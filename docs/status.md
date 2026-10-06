@@ -1,6 +1,6 @@
 # Crosswake status
 
-Updated 5 October 2026, 20:18 IST. This records engineering delivery and observed evidence separately. See [implementation plan](implementation-plan.md) and [completion checklist](completion-checklist.md).
+Updated 6 October 2026, 18:00 IST. This records engineering delivery and observed evidence separately. See [implementation plan](implementation-plan.md) and [completion checklist](completion-checklist.md).
 
 ## Current state
 
@@ -21,7 +21,7 @@ Acceptance is not complete. Provider credentials are absent; real altFINS and mo
 
 | Area                    | Engineering                                                                                                        | Acceptance still open                                                              |
 | ----------------------- | ------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------- |
-| Foundation/docs         | Implemented; 21 workspace projects                                                                                 | Local Git is uncommitted; no remote configured                                     |
+| Foundation/docs         | Implemented; 21 workspace projects                                                                                 | Git remote configured (jayasaisrikar/project-crosswake, main); local code committed and pushed 6 Oct |
 | Spot collection/history | Journals, Parquet/hash manifests, bounded writes, archive checksums/import/replay                                  | Qualified 24h run and larger-universe capacity                                     |
 | Quant/signals           | Prior-only fits, BTC impulses, transparent candidates/rejects, relationship reports and lag controls               | Stable relationship/strategy edge across unseen periods                            |
 | Paper/costs             | Delayed eligible quote fills, fees/slippage, exposure, gap reporting, fixed horizons and cost/size stress          | Empirical fill/cost calibration; BBO lacks depth/queue data                        |
@@ -47,7 +47,9 @@ Acceptance is not complete. Provider credentials are absent; real altFINS and mo
 
 ## Running processes and operational findings
 
-Current collector PID: 32337; started approximately 20:14 IST. It restored 3,361 acknowledged steps from two predecessor sessions. At 20:18 IST: connected, 3,604 cumulative paper steps, zero late/rejected events in this launch, no storage failure and no candidates/trades. Actual state is in data/collector-health.json and PID in data/collector.pid. The data/collector.lock owner guards a single writer. Verify PID/command before stopping; normal shutdown releases the lock. After a crash inspect the process before removing a stale lock.
+The 5 October collector session (PID 32337) died around 00:45 IST on 6 October after its health file recorded 152,339 cumulative late events under the seven-second allowance. No process was listening on 3000/4112 at 16:12 IST on 6 October; dashboard and evidence API were down. The stale `data/collector.lock` was inspected (owner PID dead) and cleared, and collection was restarted at ~17:55 IST on 6 October as PID 41418 with a fresh 2026-10-06 journal. At 18:00 IST: connected, 19,761 cumulative shadow steps, zero late/rejected events in the new launch, no candidates/trades. Actual state is in data/collector-health.json and PID in data/collector.pid. Verify PID/command before stopping; normal shutdown releases the lock. After a crash inspect the process before removing a stale lock.
+
+Historical backfill on 6 October added BTC/ETH/SOL spot trade archives for 2–4 October (nine day-imports, checksummed, markers under data/archives). Quality report over the historical source shows 259,200 expected buckets with zero missing; quoteFraction is 0 throughout because archives carry no BBO, so these inputs remain exploratory-only and cannot produce quote-backed executable fills.
 
 Latest follow-up at 20:21 IST: the collector remained connected with no storage failure/rejected payloads, but accumulated 324 late events under the seven-second allowance. This is an unresolved reliability finding; the allowance has not passed the operational gate. Current health counters take precedence over the earlier launch snapshot.
 
@@ -77,4 +79,4 @@ Cost models use sampled BBO and past volume/volatility proxies. They cannot esta
 
 ## Update protocol
 
-Update after each verified engineering change or new observed result. Required commands and configuration are documented in README.md. Mark acceptance gates complete only when their specified observed evidence is recorded. Code, test and documentation files remain uncommitted locally; ignored market data, logs, runtime state and credentials remain outside Git.
+Update after each verified engineering change or new observed result. Required commands and configuration are documented in README.md. Mark acceptance gates complete only when their specified observed evidence is recorded. Code, test and documentation files are committed and pushed to jayasaisrikar/project-crosswake (main); ignored market data, logs, runtime state and credentials remain outside Git. Re-verified 6 October on Node 25.8.2: root typecheck, dashboard typecheck, production dashboard build, formatting and all 57 tests pass.
