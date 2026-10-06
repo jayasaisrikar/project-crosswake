@@ -1,0 +1,55 @@
+{
+  "name": "crosswake",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=24 <26"
+  },
+  "packageManager": "pnpm@10.32.1",
+  "scripts": {
+    "collect": "tsx apps/collector/src/main.ts",
+    "history": "tsx apps/history/src/main.ts",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "replay": "tsx apps/replay/src/main.ts",
+    "backtest": "tsx apps/research/src/main.ts",
+    "data:quality": "tsx apps/quality/src/main.ts",
+    "research:freeze": "tsx apps/evaluation/src/main.ts freeze",
+    "research:walk-forward": "tsx apps/evaluation/src/main.ts walk-forward",
+    "research:holdout": "tsx apps/evaluation/src/main.ts holdout",
+    "paper:replay": "tsx apps/paper/src/main.ts",
+    "research:supervisor": "tsx apps/supervisor/src/main.ts",
+    "research:experiment": "tsx apps/supervisor/src/experiment.ts",
+    "research:api": "tsx apps/api/src/main.ts",
+    "dashboard": "pnpm --filter @crosswake/dashboard dev",
+    "dashboard:build": "pnpm --filter @crosswake/dashboard build",
+    "context:collect": "tsx apps/context/src/main.ts",
+    "typecheck:dashboard": "tsc --noEmit -p apps/dashboard/tsconfig.json",
+    "ops:report": "tsx apps/operations/src/main.ts"
+  },
+  "dependencies": {
+    "@duckdb/node-api": "1.5.6-r.1",
+    "@mastra/core": "1.74.0",
+    "@mastra/libsql": "1.25.0",
+    "@mastra/memory": "1.35.0",
+    "pino": "^10.0.0",
+    "unzipper": "^0.12.3",
+    "ws": "^8.18.0",
+    "zod": "^4.0.0"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.63.0",
+    "@types/node": "^24.0.0",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "@types/unzipper": "^0.10.11",
+    "@types/ws": "^8.18.0",
+    "prettier": "^3.9.9",
+    "tsx": "^4.20.0",
+    "typescript": "^5.9.0",
+    "vitest": "^3.2.0"
+  }
+}

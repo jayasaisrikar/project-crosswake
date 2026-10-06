@@ -1,0 +1,10 @@
+data
+node_modules
+pnpm-lock.yaml
+
+.next
+*.tsbuildinfo
+.playwright-cli
+output/playwright
+
+apps/dashboard/next-env.d.ts
