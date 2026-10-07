@@ -11,3 +11,7 @@ apps/dashboard/next-env.d.ts
 
 # Vendored shadcn-registry components keep upstream formatting
 apps/dashboard/components
+
+# Vendored shadcn-registry components keep upstream formatting
+apps/landing/components
+apps/landing/next-env.d.ts
