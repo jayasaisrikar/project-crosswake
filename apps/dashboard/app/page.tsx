@@ -1,5 +1,60 @@
 'use client';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { AnimatePresence, motion } from 'motion/react';
+import {
+  Activity,
+  ArrowUpRight,
+  FlaskConical,
+  Radio,
+  RefreshCw,
+  Search,
+  Signal,
+  Layers,
+} from 'lucide-react';
+import { Button } from '@/components/base-ui/button';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/base-ui/card';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/base-ui/table';
+import { Badge } from '@/components/base-ui/badge';
+import {
+  Alert,
+  AlertDescription,
+  AlertTitle,
+} from '@/components/base-ui/alert';
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/base-ui/alert-dialog';
+import { NativeSelect } from '@/components/base-ui/native-select';
+import { Label } from '@/components/base-ui/label';
+import { Input } from '@/components/base-ui/input';
+import { Separator } from '@/components/base-ui/separator';
+import { Skeleton } from '@/components/base-ui/skeleton';
+import { RollingNumber } from '@/components/base-ui/rolling-number';
+import { GradientHeading } from '@/components/base-ui/gradient-heading';
+import {
+  MinimalCard,
+  MinimalCardDescription,
+  MinimalCardTitle,
+} from '@/components/base-ui/minimal-card';
+import { CodeBlock } from '@/components/base-ui/code-block';
+import { cn } from '@/lib/utils';
+
 type Dict = Record<string, any>;
 const number = (x: unknown) =>
   typeof x === 'number'
@@ -13,6 +68,15 @@ const time = (x: unknown) =>
     : '—';
 const format = (x: unknown) =>
   typeof x === 'number' || typeof x === 'string' ? String(x) : '—';
+const roll = (x: unknown) =>
+  typeof x === 'number' ? (
+    <RollingNumber
+      value={x}
+      format={(n) => n.toLocaleString('en-IN', { maximumFractionDigits: 0 })}
+    />
+  ) : (
+    '—'
+  );
 async function read(path: string) {
   const r = await fetch(`/api/evidence/${path}`, { cache: 'no-store' });
   if (!r.ok)
@@ -23,6 +87,32 @@ async function read(path: string) {
     );
   return r.json();
 }
+
+const DESTINATIONS = [
+  { id: 'Overview', icon: Layers, blurb: 'Follow the evidence.' },
+  { id: 'Signals', icon: Signal, blurb: 'Inspect every decision.' },
+  { id: 'Experiments', icon: FlaskConical, blurb: 'Compare research runs.' },
+  { id: 'Context', icon: Radio, blurb: 'Higher-timeframe context.' },
+];
+const TAB_COPY: Record<string, { eyebrow: string; body: string }> = {
+  Overview: {
+    eyebrow: 'BTC → ALTCOIN TRANSMISSION',
+    body: 'A live view of collection and research readiness. Strategy performance remains unvalidated.',
+  },
+  Signals: {
+    eyebrow: 'PAPER SESSION DECISIONS',
+    body: 'Candidates, entries and rejection reasons from the current paper session.',
+  },
+  Experiments: {
+    eyebrow: 'FROZEN PROTOCOL EVIDENCE',
+    body: 'Computed reports from frozen protocols. An incomplete run is not performance evidence.',
+  },
+  Context: {
+    eyebrow: 'SUPPLEMENTARY OBSERVATIONS',
+    body: 'Timestamped altFINS observations. Missing or stale context stays unavailable.',
+  },
+};
+
 export default function Workbench() {
   const [tab, setTab] = useState('Overview'),
     [live, setLive] = useState<Dict | null>(null),
@@ -35,10 +125,8 @@ export default function Workbench() {
     [refreshed, setRefreshed] = useState<number | null>(null),
     [filter, setFilter] = useState('ALL'),
     [palette, setPalette] = useState(false),
-    [query, setQuery] = useState('');
-  const evidenceDialog = useRef<HTMLDialogElement>(null);
-  const dialog = useRef<HTMLDialogElement>(null),
-    search = useRef<HTMLInputElement>(null);
+    [query, setQuery] = useState(''),
+    [cursor, setCursor] = useState(0);
   const refresh = useCallback(async () => {
     setLoading(true);
     try {
@@ -74,15 +162,8 @@ export default function Workbench() {
     return () => window.removeEventListener('keydown', key);
   }, []);
   useEffect(() => {
-    if (palette) {
-      dialog.current?.showModal();
-      search.current?.focus();
-    } else dialog.current?.close();
-  }, [palette]);
-  useEffect(() => {
-    if (detail) evidenceDialog.current?.showModal();
-    else evidenceDialog.current?.close();
-  }, [detail]);
+    setCursor(0);
+  }, [query, palette]);
   const health = live?.health,
     shadow = health?.shadow,
     fresh = health && Date.now() - health.ts < 30000,
@@ -90,537 +171,767 @@ export default function Workbench() {
   const events = (live?.events ?? []).filter(
     (e: Dict) => filter === 'ALL' || e.kind === filter,
   );
-  const destinations = ['Overview', 'Signals', 'Experiments', 'Context'];
+  const matches = DESTINATIONS.filter((x) =>
+    x.id.toLowerCase().includes(query.toLowerCase()),
+  );
   const navigate = (value: string) => {
     setTab(value);
     setPalette(false);
     setQuery('');
   };
+  const copy = TAB_COPY[tab] ?? TAB_COPY.Overview;
   return (
-    <div className="workbench">
-      <a className="skip" href="#main">
+    <div className="min-h-screen lg:grid lg:grid-cols-[240px_minmax(0,1fr)]">
+      <a
+        href="#main"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-0 focus:z-50 focus:bg-background focus:p-4"
+      >
         Skip to research
       </a>
-      <aside className="rail">
-        <a href="#main" className="brand">
-          <span className="brandmark">↗</span> crosswake
-          <span className="brand-note">RESEARCH WORKBENCH</span>
+      <aside className="flex flex-col gap-6 border-b border-border bg-card px-4 py-5 lg:sticky lg:top-0 lg:h-screen lg:border-b-0 lg:border-r lg:px-6 lg:py-9">
+        <a href="#main" className="flex items-center gap-2">
+          <span className="grid size-8 place-items-center rounded-lg bg-primary text-primary-foreground">
+            <ArrowUpRight className="size-5" aria-hidden />
+          </span>
+          <span className="font-display text-xl font-semibold tracking-tight">
+            crosswake
+          </span>
         </a>
-        <nav aria-label="Research views">
-          {destinations.map((x, i) => (
-            <button
-              key={x}
-              aria-current={tab === x ? 'page' : undefined}
-              className={tab === x ? 'active' : ''}
-              onClick={() => setTab(x)}
-            >
-              <span className="nav-number">0{i + 1}</span>
-              {x}
-            </button>
-          ))}
+        <p className="font-mono text-[10px] tracking-[0.13em] text-muted-foreground">
+          RESEARCH WORKBENCH
+        </p>
+        <nav
+          aria-label="Research views"
+          className="flex gap-1 overflow-x-auto lg:grid"
+        >
+          {DESTINATIONS.map((x) => {
+            const Icon = x.icon;
+            const active = tab === x.id;
+            return (
+              <button
+                key={x.id}
+                aria-current={active ? 'page' : undefined}
+                onClick={() => setTab(x.id)}
+                className={cn(
+                  'relative flex min-h-11 items-center gap-3 rounded-md px-3 py-2.5 text-sm whitespace-nowrap',
+                  active
+                    ? 'text-primary'
+                    : 'text-muted-foreground hover:bg-background',
+                )}
+              >
+                {active && (
+                  <motion.span
+                    layoutId="rail-active"
+                    className="absolute inset-0 rounded-md bg-background shadow-[inset_2px_0_var(--primary)]"
+                    transition={{ type: 'spring', bounce: 0.19, duration: 0.4 }}
+                  />
+                )}
+                <Icon className="relative size-4" aria-hidden />
+                <span className="relative">{x.id}</span>
+              </button>
+            );
+          })}
         </nav>
-        <div className="rail-bottom">
-          <span className="tag">BINANCE SPOT</span>
-          <p>
-            Long-only paper validation.
-            <br />
-            Short signals for research.
-          </p>
-          <button className="command" onClick={() => setPalette(true)}>
-            Find a view <kbd>⌘ K</kbd>
-          </button>
+        <div className="mt-auto hidden flex-col gap-3 lg:flex">
+          <div className="flex flex-col gap-2 text-xs text-muted-foreground">
+            <Badge variant="secondary" className="w-fit font-mono text-[10px]">
+              BINANCE SPOT
+            </Badge>
+            <p>
+              Long-only paper validation.
+              <br />
+              Short signals for research.
+            </p>
+          </div>
+          <Separator />
+          <Button
+            variant="outline"
+            className="justify-between"
+            onClick={() => setPalette(true)}
+          >
+            Find a view
+            <kbd className="font-mono text-[11px] text-muted-foreground">
+              ⌘K
+            </kbd>
+          </Button>
         </div>
       </aside>
-      <div className="canvas">
-        <header className="toolbar">
-          <span>
-            Research / <strong>{tab}</strong>
+      <div className="min-w-0">
+        <header className="flex items-center justify-between gap-3 border-b border-border px-4 py-3 text-xs lg:px-10 lg:py-4">
+          <span className="hidden text-muted-foreground sm:block">
+            Research / <strong className="text-foreground">{tab}</strong>
           </span>
-          <div>
-            <span className={`status ${connected ? 'connected' : ''}`}>
+          <Button
+            variant="outline"
+            size="sm"
+            className="sm:hidden"
+            onClick={() => setPalette(true)}
+            aria-label="Find a research view"
+          >
+            <Search className="size-4" aria-hidden />
+          </Button>
+          <div className="flex items-center gap-3">
+            <Badge
+              variant={connected ? 'default' : 'secondary'}
+              className="gap-1.5"
+            >
+              <span
+                className={cn(
+                  'size-1.5 rounded-full',
+                  connected ? 'bg-emerald-400' : 'bg-muted-foreground',
+                )}
+                aria-hidden
+              />
               {connected
                 ? 'Collecting'
                 : health
                   ? 'Feed unavailable'
                   : 'Waiting for collector'}
-            </span>
-            <button
-              className="button"
+            </Badge>
+            <Button
+              variant="outline"
+              size="sm"
               onClick={() => void refresh()}
               disabled={loading}
             >
+              <RefreshCw
+                className={cn('size-3.5', loading && 'animate-spin')}
+                aria-hidden
+              />
               {loading ? 'Refreshing…' : 'Refresh evidence'}
-            </button>
+            </Button>
           </div>
         </header>
-        <main id="main">
-          <div className="page-heading">
-            <div>
-              <p className="eyebrow">BTC → ALTCOIN TRANSMISSION</p>
-              <h1>
-                {tab === 'Overview'
-                  ? 'Follow the evidence.'
-                  : tab === 'Signals'
-                    ? 'Inspect every decision.'
-                    : tab === 'Experiments'
-                      ? 'Compare research runs.'
-                      : 'Higher-timeframe context.'}
-              </h1>
-              <p>
-                {tab === 'Overview'
-                  ? 'A live view of collection and research readiness. Strategy performance remains unvalidated.'
-                  : tab === 'Signals'
-                    ? 'Candidates, entries and rejection reasons from the current paper session.'
-                    : tab === 'Experiments'
-                      ? 'Computed reports from frozen protocols. An incomplete run is not performance evidence.'
-                      : 'Timestamped altFINS observations. Missing or stale context stays unavailable.'}
+        <main
+          id="main"
+          className="mx-auto max-w-6xl px-4 py-8 lg:px-10 lg:py-12"
+        >
+          <div className="mb-10 flex flex-wrap items-end justify-between gap-6">
+            <div className="max-w-2xl">
+              <p className="mb-3 font-mono text-[10px] tracking-[0.07em] text-muted-foreground uppercase">
+                {copy.eyebrow}
               </p>
+              <GradientHeading asChild size="lg" weight="semi">
+                <h1>{DESTINATIONS.find((d) => d.id === tab)?.blurb}</h1>
+              </GradientHeading>
+              <p className="mt-3 text-sm text-muted-foreground">{copy.body}</p>
             </div>
-            <div className="updated">
-              <span>LAST REFRESH · IST</span>
-              <strong>{time(refreshed)}</strong>
+            <div className="text-right">
+              <p className="font-mono text-[10px] tracking-[0.07em] text-muted-foreground uppercase">
+                Last refresh · IST
+              </p>
+              <p className="font-mono text-base font-medium">
+                {time(refreshed)}
+              </p>
             </div>
           </div>
           {error && (
-            <div className="notice" role="alert">
-              <strong>Evidence could not be refreshed.</strong>
-              <p>{error}</p>
-              <button
-                className="button"
-                onClick={() => void refresh()}
-                disabled={loading}
-              >
-                Try refresh
-              </button>
-            </div>
+            <Alert variant="destructive" className="mb-6" role="alert">
+              <AlertTitle>Evidence could not be refreshed.</AlertTitle>
+              <AlertDescription className="mt-1">{error}</AlertDescription>
+              <div className="mt-3">
+                <Button
+                  size="sm"
+                  onClick={() => void refresh()}
+                  disabled={loading}
+                >
+                  Try refresh
+                </Button>
+              </div>
+            </Alert>
           )}
           {!error && loading && !live && (
-            <div role="status" className="empty">
-              Loading local evidence…
+            <div
+              role="status"
+              className="grid gap-3"
+              aria-label="Loading local evidence"
+            >
+              <Skeleton className="h-36 w-full" />
+              <div className="grid gap-3 sm:grid-cols-2">
+                <Skeleton className="h-48 w-full" />
+                <Skeleton className="h-48 w-full" />
+              </div>
             </div>
           )}
-          {tab === 'Overview' && (
-            <>
-              <section
-                className="instrument"
-                aria-label="Collection measurements"
-              >
-                <div className="lead-reading">
-                  <span>Closed research seconds</span>
-                  <strong>{number(shadow?.steps)}</strong>
-                  <p>
-                    {shadow?.mode
-                      ? 'Adaptive paper observation'
-                      : 'No active paper session'}
-                  </p>
-                </div>
-                <dl>
-                  <div>
-                    <dt>Accepted candidates</dt>
-                    <dd>{number(shadow?.candidates)}</dd>
-                  </div>
-                  <div>
-                    <dt>Closed paper trades</dt>
-                    <dd>{number(shadow?.closedTrades)}</dd>
-                  </div>
-                  <div>
-                    <dt>Open positions</dt>
-                    <dd>{number(shadow?.openPositions)}</dd>
-                  </div>
-                  <div>
-                    <dt>Late market events</dt>
-                    <dd>{number(health?.late)}</dd>
-                  </div>
-                </dl>
-              </section>
-              <div className="overview-grid">
-                <section>
-                  <h2>Collection health</h2>
-                  <table>
-                    <tbody>
-                      {[
-                        [
-                          'Universe',
-                          health?.symbols?.join(' · ') ?? 'No collector',
-                        ],
-                        ['Last market message', time(health?.lastMessageAt)],
-                        [
-                          'Closure allowance',
-                          health?.latenessMs
-                            ? `${health.latenessMs / 1000} seconds`
-                            : 'Legacy session setting',
-                        ],
-                        ['Rejected payloads', number(health?.rejected)],
-                        ['Queue pending', number(health?.pending)],
-                        [
-                          'Memory',
-                          health
-                            ? `${(health.memoryBytes / 1024 / 1024).toFixed(0)} MB`
-                            : '—',
-                        ],
-                        [
-                          'Recovered paper steps',
-                          number(health?.recoveredPaperSteps),
-                        ],
-                      ].map(([a, b]) => (
-                        <tr key={a}>
-                          <th>{a}</th>
-                          <td>{b}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </section>
-                <section className="readiness">
-                  <h2>Validation readiness</h2>
-                  <ol>
-                    <li>
-                      <span>01</span>
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={tab}
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.2 }}
+            >
+              {tab === 'Overview' && (
+                <>
+                  <Card className="mb-10 overflow-hidden border-primary/20 bg-primary text-primary-foreground">
+                    <CardContent className="grid gap-8 p-6 sm:p-8 lg:grid-cols-[1fr_2fr]">
                       <div>
-                        <strong>Collect sufficient history</strong>
-                        <p>
-                          The frozen protocol needs prospective coverage before
-                          evaluation can begin.
+                        <p className="font-mono text-[11px] tracking-[0.06em] uppercase opacity-80">
+                          Closed research seconds
+                        </p>
+                        <p className="font-display mt-2 text-5xl font-medium tracking-tight tabular-nums lg:text-6xl">
+                          {roll(shadow?.steps)}
+                        </p>
+                        <p className="mt-2 text-xs opacity-80">
+                          {shadow?.mode
+                            ? 'Adaptive paper observation'
+                            : 'No active paper session'}
                         </p>
                       </div>
-                    </li>
-                    <li>
-                      <span>02</span>
-                      <div>
-                        <strong>Evaluate unseen periods</strong>
-                        <p>
-                          Walk-forward and one-use holdout results must meet
-                          sample and confidence gates.
-                        </p>
-                      </div>
-                    </li>
-                    <li>
-                      <span>03</span>
-                      <div>
-                        <strong>Reconcile forward paper</strong>
-                        <p>
-                          Confirm costs, missing quotes and session continuity
-                          before considering execution.
-                        </p>
-                      </div>
-                    </li>
-                  </ol>
-                  <p className="footnote">
-                    No profitability claim. No exchange orders are enabled.
-                  </p>
-                </section>
-              </div>
-              <section className="protocol-strip">
-                <div>
-                  <h2>Frozen protocols</h2>
-                  <p>Declared clocks and hypotheses, before selection.</p>
-                </div>
-                <div>
-                  {protocols.length ? (
-                    protocols.map((id) => (
-                      <button
-                        className="button"
-                        key={id}
-                        onClick={async () => {
-                          try {
-                            setDetail(await read(`protocols/${id}`));
-                          } catch (e) {
-                            setError(String(e));
-                          }
-                        }}
-                      >
-                        Inspect {id} ↗
-                      </button>
-                    ))
-                  ) : (
-                    <p>No registered protocols.</p>
-                  )}
-                </div>
-              </section>
-            </>
-          )}
-          {tab === 'Signals' && (
-            <section>
-              <div className="section-toolbar">
-                <h2>Current session decisions</h2>
-                <label>
-                  Event type{' '}
-                  <select
-                    value={filter}
-                    onChange={(e) => setFilter(e.target.value)}
-                  >
-                    <option value="ALL">All events</option>
-                    <option value="candidate">Candidates</option>
-                    <option value="entry">Entries</option>
-                    <option value="trade">Closed trades</option>
-                    <option value="entry_rejection">Entry rejections</option>
-                  </select>
-                </label>
-              </div>
-              {!events.length ? (
-                <div className="empty">
-                  <h3>No matching decisions yet.</h3>
-                  <p>
-                    The engine needs warm-up history and a qualifying BTC
-                    impulse. Empty samples have no win-rate estimate.
-                  </p>
-                </div>
-              ) : (
-                <div className="table-wrap">
-                  <table>
-                    <thead>
-                      <tr>
-                        <th>Event</th>
-                        <th>Asset</th>
-                        <th>Direction</th>
-                        <th>Evidence</th>
-                        <th>Inspect</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {events.map((e: Dict, i: number) => {
-                        const c = e.candidate ?? e;
-                        return (
-                          <tr key={`${c.id ?? c.signalId}-${i}`}>
-                            <td>{format(e.kind)}</td>
-                            <td>{format(c.symbol)}</td>
-                            <td>{format(c.side ?? 'LONG')}</td>
-                            <td>
-                              {c.reasons?.join(', ') ||
-                                c.reason ||
-                                c.exitReason ||
-                                'Paper observation'}
-                            </td>
-                            <td>
-                              <button
-                                className="text-button"
-                                onClick={() => setDetail(e)}
-                              >
-                                View evidence
-                              </button>
-                            </td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
-                </div>
-              )}
-              <p className="footnote">
-                Showing up to 100 recent material events. Short-side
-                observations remain research-only.
-              </p>
-            </section>
-          )}
-          {tab === 'Experiments' && (
-            <section>
-              <div className="run-layout">
-                <div>
-                  <h2>Saved experiment runs</h2>
-                  {runs.length ? (
-                    runs.map((id) => (
-                      <button
-                        key={id}
-                        className="run-row"
-                        onClick={async () => {
-                          try {
-                            setSelected(await read(`experiments/${id}`));
-                            setError('');
-                          } catch (e) {
-                            setSelected(null);
-                            setError(
-                              String(e instanceof Error ? e.message : e),
-                            );
-                          }
-                        }}
-                      >
-                        {id}
-                        <span>Inspect →</span>
-                      </button>
-                    ))
-                  ) : (
-                    <div className="empty">
-                      <h3>No completed research evidence yet.</h3>
-                      <p>
-                        Run a frozen protocol after its required data window is
-                        available. Failed runs are retained for audit.
-                      </p>
-                    </div>
-                  )}
-                </div>
-                <div>
-                  {selected ? (
-                    <>
-                      <h2>Unseen block summary</h2>
-                      <dl className="result-readings">
-                        <div>
-                          <dt>Closed long trades</dt>
-                          <dd>{number(selected.metrics?.closedTrades)}</dd>
-                        </div>
-                        <div>
-                          <dt>Net win rate</dt>
-                          <dd>{percent(selected.metrics?.winRate)}</dd>
-                        </div>
-                        <div>
-                          <dt>Net expectancy</dt>
-                          <dd>
-                            {number(selected.metrics?.netExpectancyBps)} bps
-                          </dd>
-                        </div>
-                        <div>
-                          <dt>Profit factor</dt>
-                          <dd>{number(selected.metrics?.profitFactor)}</dd>
-                        </div>
-                      </dl>
-                      <p className="notice">
-                        {selected.gate?.passed
-                          ? 'Statistical checks passed; holdout and forward paper still required.'
-                          : 'Statistical evidence is insufficient or failed.'}
-                      </p>
-                      <ul>
-                        {selected.gate?.reasons?.map((x: string) => (
-                          <li key={x}>{x.replaceAll('_', ' ')}</li>
+                      <dl className="grid grid-cols-2 gap-6">
+                        {[
+                          ['Accepted candidates', roll(shadow?.candidates)],
+                          ['Closed paper trades', roll(shadow?.closedTrades)],
+                          ['Open positions', roll(shadow?.openPositions)],
+                          ['Late market events', roll(health?.late)],
+                        ].map(([term, value]) => (
+                          <div key={term as string}>
+                            <dt className="text-xs opacity-80">{term}</dt>
+                            <dd className="font-display mt-1 text-2xl font-medium tabular-nums">
+                              {value}
+                            </dd>
+                          </div>
                         ))}
-                      </ul>
-                      <button
-                        className="button"
-                        onClick={() => setDetail(selected)}
-                      >
-                        Inspect provenance and limits
-                      </button>
-                    </>
-                  ) : (
-                    <p className="muted">
-                      Choose a run to inspect its computed evidence.
-                    </p>
-                  )}
-                </div>
-              </div>
-            </section>
-          )}
-          {tab === 'Context' && (
-            <section>
-              <h2>altFINS cache</h2>
-              <div className="context-layout">
-                <div className="context-state">
-                  <span className="tag">
-                    {live?.context?.status ?? 'Unavailable'}
-                  </span>
-                  <h3>
-                    {live?.context?.snapshot
-                      ? 'A timestamped context snapshot is available.'
-                      : 'Context has not been collected.'}
-                  </h3>
-                  <p>
-                    Configure the subscription key locally and run the context
-                    collector. Context availability begins when Crosswake
-                    retrieves it; later downloads cannot become past evidence.
-                  </p>
-                </div>
-                <dl>
-                  {[
-                    ['Provider', 'altFINS'],
-                    ['Retrieved', time(live?.context?.snapshot?.retrievedAt)],
-                    ['Expires', time(live?.context?.snapshot?.expiresAt)],
-                    [
-                      'Assets',
-                      live?.context?.snapshot?.request?.symbols?.join(', ') ??
-                        '—',
-                    ],
-                  ].map(([a, b]) => (
-                    <div key={a}>
-                      <dt>{a}</dt>
-                      <dd>{b}</dd>
-                    </div>
-                  ))}
-                </dl>
-              </div>
-              {live?.context?.snapshot && (
-                <button
-                  className="button"
-                  onClick={() => setDetail(live.context.snapshot)}
-                >
-                  Inspect context and provenance
-                </button>
+                      </dl>
+                    </CardContent>
+                  </Card>
+                  <div className="mb-10 grid gap-6 [&>*]:min-w-0 lg:grid-cols-[1.25fr_1fr]">
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="text-lg">
+                          Collection health
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="overflow-x-auto">
+                        <Table>
+                          <TableBody>
+                            {[
+                              [
+                                'Universe',
+                                health?.symbols?.join(' · ') ?? 'No collector',
+                              ],
+                              [
+                                'Last market message',
+                                time(health?.lastMessageAt),
+                              ],
+                              [
+                                'Closure allowance',
+                                health?.latenessMs
+                                  ? `${health.latenessMs / 1000} seconds`
+                                  : 'Legacy session setting',
+                              ],
+                              ['Rejected payloads', number(health?.rejected)],
+                              ['Queue pending', number(health?.pending)],
+                              [
+                                'Memory',
+                                health
+                                  ? `${(health.memoryBytes / 1024 / 1024).toFixed(0)} MB`
+                                  : '—',
+                              ],
+                              [
+                                'Recovered paper steps',
+                                number(health?.recoveredPaperSteps),
+                              ],
+                            ].map(([a, b]) => (
+                              <TableRow key={a}>
+                                <TableHead>{a}</TableHead>
+                                <TableCell className="text-right">
+                                  {b}
+                                </TableCell>
+                              </TableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
+                      </CardContent>
+                    </Card>
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="text-lg">
+                          Validation readiness
+                        </CardTitle>
+                        <CardDescription>
+                          No profitability claim. No exchange orders are
+                          enabled.
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent>
+                        <ol className="grid gap-5">
+                          {[
+                            [
+                              'Collect sufficient history',
+                              'The frozen protocol needs prospective coverage before evaluation can begin.',
+                            ],
+                            [
+                              'Evaluate unseen periods',
+                              'Walk-forward and one-use holdout results must meet sample and confidence gates.',
+                            ],
+                            [
+                              'Reconcile forward paper',
+                              'Confirm costs, missing quotes and session continuity before considering execution.',
+                            ],
+                          ].map(([title, body], i) => (
+                            <li key={title} className="flex gap-4">
+                              <span className="font-mono text-xs text-primary">
+                                0{i + 1}
+                              </span>
+                              <div>
+                                <p className="text-sm font-medium">{title}</p>
+                                <p className="mt-1 text-xs text-muted-foreground">
+                                  {body}
+                                </p>
+                              </div>
+                            </li>
+                          ))}
+                        </ol>
+                      </CardContent>
+                    </Card>
+                  </div>
+                  <Card>
+                    <CardContent className="flex flex-wrap items-center justify-between gap-4 p-6">
+                      <div>
+                        <CardTitle className="text-lg">
+                          Frozen protocols
+                        </CardTitle>
+                        <CardDescription className="mt-1">
+                          Declared clocks and hypotheses, before selection.
+                        </CardDescription>
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        {protocols.length ? (
+                          protocols.map((id) => (
+                            <Button
+                              key={id}
+                              variant="outline"
+                              onClick={async () => {
+                                try {
+                                  setDetail(await read(`protocols/${id}`));
+                                } catch (e) {
+                                  setError(String(e));
+                                }
+                              }}
+                            >
+                              Inspect {id}{' '}
+                              <ArrowUpRight className="size-3.5" aria-hidden />
+                            </Button>
+                          ))
+                        ) : (
+                          <p className="text-xs text-muted-foreground">
+                            No registered protocols.
+                          </p>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                </>
               )}
-            </section>
-          )}
-          <footer>
+              {tab === 'Signals' && (
+                <section aria-label="Current session decisions">
+                  <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+                    <h2 className="font-display text-xl font-medium tracking-tight">
+                      Current session decisions
+                    </h2>
+                    <div className="flex items-center gap-2">
+                      <Label
+                        htmlFor="event-filter"
+                        className="text-xs text-muted-foreground"
+                      >
+                        Event type
+                      </Label>
+                      <NativeSelect
+                        id="event-filter"
+                        value={filter}
+                        onChange={(e) => setFilter(e.target.value)}
+                        className="w-auto"
+                      >
+                        <option value="ALL">All events</option>
+                        <option value="candidate">Candidates</option>
+                        <option value="entry">Entries</option>
+                        <option value="trade">Closed trades</option>
+                        <option value="entry_rejection">
+                          Entry rejections
+                        </option>
+                      </NativeSelect>
+                    </div>
+                  </div>
+                  {!events.length ? (
+                    <Card className="bg-card">
+                      <CardContent className="flex min-h-44 flex-col justify-center gap-2 p-7">
+                        <CardTitle className="text-lg">
+                          No matching decisions yet.
+                        </CardTitle>
+                        <CardDescription>
+                          The engine needs warm-up history and a qualifying BTC
+                          impulse. Empty samples have no win-rate estimate.
+                        </CardDescription>
+                      </CardContent>
+                    </Card>
+                  ) : (
+                    <Card>
+                      <CardContent className="overflow-x-auto p-0">
+                        <Table>
+                          <TableHeader>
+                            <TableRow>
+                              <TableHead>Event</TableHead>
+                              <TableHead>Asset</TableHead>
+                              <TableHead>Direction</TableHead>
+                              <TableHead>Evidence</TableHead>
+                              <TableHead className="text-right">
+                                Inspect
+                              </TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {events.map((e: Dict, i: number) => {
+                              const c = e.candidate ?? e;
+                              return (
+                                <TableRow key={`${c.id ?? c.signalId}-${i}`}>
+                                  <TableCell>
+                                    <Badge variant="secondary">
+                                      {format(e.kind)}
+                                    </Badge>
+                                  </TableCell>
+                                  <TableCell className="font-medium">
+                                    {format(c.symbol)}
+                                  </TableCell>
+                                  <TableCell>
+                                    <Badge
+                                      variant={
+                                        String(c.side ?? 'LONG') === 'LONG'
+                                          ? 'default'
+                                          : 'outline'
+                                      }
+                                    >
+                                      {format(c.side ?? 'LONG')}
+                                    </Badge>
+                                  </TableCell>
+                                  <TableCell className="max-w-64 truncate text-muted-foreground">
+                                    {c.reasons?.join(', ') ||
+                                      c.reason ||
+                                      c.exitReason ||
+                                      'Paper observation'}
+                                  </TableCell>
+                                  <TableCell className="text-right">
+                                    <Button
+                                      variant="link"
+                                      size="sm"
+                                      onClick={() => setDetail(e)}
+                                    >
+                                      View evidence
+                                    </Button>
+                                  </TableCell>
+                                </TableRow>
+                              );
+                            })}
+                          </TableBody>
+                        </Table>
+                      </CardContent>
+                    </Card>
+                  )}
+                  <p className="mt-4 text-[11px] text-muted-foreground">
+                    Showing up to 100 recent material events. Short-side
+                    observations remain research-only.
+                  </p>
+                </section>
+              )}
+              {tab === 'Experiments' && (
+                <section
+                  aria-label="Saved experiment runs"
+                  className="grid gap-6 [&>*]:min-w-0 lg:grid-cols-[1.2fr_1fr]"
+                >
+                  <div>
+                    <h2 className="font-display mb-4 text-xl font-medium tracking-tight">
+                      Saved experiment runs
+                    </h2>
+                    {runs.length ? (
+                      <div className="grid gap-2">
+                        {runs.map((id) => (
+                          <button
+                            key={id}
+                            onClick={async () => {
+                              try {
+                                setSelected(await read(`experiments/${id}`));
+                                setError('');
+                              } catch (e) {
+                                setSelected(null);
+                                setError(
+                                  String(e instanceof Error ? e.message : e),
+                                );
+                              }
+                            }}
+                            className="flex items-center justify-between gap-4 rounded-lg border border-border bg-card px-4 py-3 font-mono text-xs break-all hover:border-primary hover:text-primary"
+                          >
+                            {id}
+                            <span className="shrink-0 text-primary">
+                              Inspect →
+                            </span>
+                          </button>
+                        ))}
+                      </div>
+                    ) : (
+                      <Card className="bg-card">
+                        <CardContent className="flex min-h-44 flex-col justify-center gap-2 p-7">
+                          <CardTitle className="text-lg">
+                            No completed research evidence yet.
+                          </CardTitle>
+                          <CardDescription>
+                            Run a frozen protocol after its required data window
+                            is available. Failed runs are retained for audit.
+                          </CardDescription>
+                        </CardContent>
+                      </Card>
+                    )}
+                  </div>
+                  <div>
+                    {selected ? (
+                      <Card>
+                        <CardHeader>
+                          <CardTitle className="text-lg">
+                            Unseen block summary
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <dl className="grid grid-cols-2 gap-6">
+                            <div>
+                              <dt className="text-xs text-muted-foreground">
+                                Closed long trades
+                              </dt>
+                              <dd className="font-display mt-1 text-2xl tabular-nums">
+                                {roll(selected.metrics?.closedTrades)}
+                              </dd>
+                            </div>
+                            <div>
+                              <dt className="text-xs text-muted-foreground">
+                                Net win rate
+                              </dt>
+                              <dd className="font-display mt-1 text-2xl tabular-nums">
+                                {percent(selected.metrics?.winRate)}
+                              </dd>
+                            </div>
+                            <div>
+                              <dt className="text-xs text-muted-foreground">
+                                Net expectancy
+                              </dt>
+                              <dd className="font-display mt-1 text-2xl tabular-nums">
+                                {number(selected.metrics?.netExpectancyBps)} bps
+                              </dd>
+                            </div>
+                            <div>
+                              <dt className="text-xs text-muted-foreground">
+                                Profit factor
+                              </dt>
+                              <dd className="font-display mt-1 text-2xl tabular-nums">
+                                {number(selected.metrics?.profitFactor)}
+                              </dd>
+                            </div>
+                          </dl>
+                          <Alert
+                            variant={
+                              selected.gate?.passed ? 'default' : 'destructive'
+                            }
+                            className="mt-6"
+                          >
+                            <AlertTitle>
+                              {selected.gate?.passed
+                                ? 'Statistical checks passed; holdout and forward paper still required.'
+                                : 'Statistical evidence is insufficient or failed.'}
+                            </AlertTitle>
+                            {!!selected.gate?.reasons?.length && (
+                              <AlertDescription>
+                                <ul className="mt-2 list-disc pl-4">
+                                  {selected.gate.reasons.map((x: string) => (
+                                    <li key={x}>{x.replaceAll('_', ' ')}</li>
+                                  ))}
+                                </ul>
+                              </AlertDescription>
+                            )}
+                          </Alert>
+                          <Button
+                            variant="outline"
+                            className="mt-4"
+                            onClick={() => setDetail(selected)}
+                          >
+                            Inspect provenance and limits
+                          </Button>
+                        </CardContent>
+                      </Card>
+                    ) : (
+                      <p className="text-sm text-muted-foreground">
+                        Choose a run to inspect its computed evidence.
+                      </p>
+                    )}
+                  </div>
+                </section>
+              )}
+              {tab === 'Context' && (
+                <section aria-label="altFINS cache">
+                  <h2 className="font-display mb-4 text-xl font-medium tracking-tight">
+                    altFINS cache
+                  </h2>
+                  <div className="grid gap-6 [&>*]:min-w-0 lg:grid-cols-[1.5fr_1fr]">
+                    <MinimalCard className="bg-card p-7">
+                      <Badge
+                        variant={
+                          live?.context?.snapshot ? 'default' : 'secondary'
+                        }
+                      >
+                        {live?.context?.status ?? 'Unavailable'}
+                      </Badge>
+                      <MinimalCardTitle className="mt-4">
+                        {live?.context?.snapshot
+                          ? 'A timestamped context snapshot is available.'
+                          : 'Context has not been collected.'}
+                      </MinimalCardTitle>
+                      <MinimalCardDescription>
+                        Configure the subscription key locally and run the
+                        context collector. Context availability begins when
+                        Crosswake retrieves it; later downloads cannot become
+                        past evidence.
+                      </MinimalCardDescription>
+                    </MinimalCard>
+                    <Card>
+                      <CardContent className="p-6">
+                        <dl className="grid gap-5">
+                          {[
+                            ['Provider', 'altFINS'],
+                            [
+                              'Retrieved',
+                              time(live?.context?.snapshot?.retrievedAt),
+                            ],
+                            [
+                              'Expires',
+                              time(live?.context?.snapshot?.expiresAt),
+                            ],
+                            [
+                              'Assets',
+                              live?.context?.snapshot?.request?.symbols?.join(
+                                ', ',
+                              ) ?? '—',
+                            ],
+                          ].map(([a, b]) => (
+                            <div key={a}>
+                              <dt className="text-xs text-muted-foreground">
+                                {a}
+                              </dt>
+                              <dd className="mt-1 font-mono text-sm">{b}</dd>
+                            </div>
+                          ))}
+                        </dl>
+                      </CardContent>
+                    </Card>
+                  </div>
+                  {live?.context?.snapshot && (
+                    <Button
+                      variant="outline"
+                      className="mt-4"
+                      onClick={() => setDetail(live.context.snapshot)}
+                    >
+                      Inspect context and provenance
+                    </Button>
+                  )}
+                </section>
+              )}
+            </motion.div>
+          </AnimatePresence>
+          <footer className="mt-12 flex flex-wrap justify-between gap-4 border-t border-border pt-6 font-mono text-[10px] text-muted-foreground">
             <span>crosswake / local research</span>
             <span>Evidence first. Execution disabled.</span>
           </footer>
         </main>
       </div>
-      <dialog
-        ref={dialog}
-        onCancel={() => setPalette(false)}
-        onClick={(e) => {
-          if (e.target === dialog.current) setPalette(false);
+      <AlertDialog
+        open={palette}
+        onOpenChange={(open) => {
+          setPalette(open);
+          if (!open) setQuery('');
         }}
-        onKeyDown={(e) => {
-          if (!['ArrowDown', 'ArrowUp'].includes(e.key)) return;
-          e.preventDefault();
-          const buttons = [
-            ...(dialog.current?.querySelectorAll<HTMLButtonElement>('button') ??
-              []),
-          ];
-          if (!buttons.length) return;
-          const current = buttons.indexOf(
-            document.activeElement as HTMLButtonElement,
-          );
-          const next =
-            current < 0
-              ? e.key === 'ArrowDown'
-                ? 0
-                : buttons.length - 1
-              : (current + (e.key === 'ArrowDown' ? 1 : -1) + buttons.length) %
-                buttons.length;
-          buttons[next]?.focus();
-        }}
-        className="palette"
       >
-        <h2>Find a research view</h2>
-        <input
-          ref={search}
-          aria-label="Search research views"
-          placeholder="Search views"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-        />
-        {destinations
-          .filter((x) => x.toLowerCase().includes(query.toLowerCase()))
-          .map((x) => (
-            <button key={x} onClick={() => navigate(x)}>
-              {x} <span>↗</span>
-            </button>
-          ))}
-        <button onClick={() => setPalette(false)}>Close search</button>
-      </dialog>
-      <dialog
-        ref={evidenceDialog}
-        onCancel={() => setDetail(null)}
-        onClick={(e) => {
-          if (e.target === evidenceDialog.current) setDetail(null);
-        }}
-        aria-label="Research evidence"
-        className="drawer"
-      >
-        {detail && (
-          <>
-            <div>
-              <h2>Research evidence</h2>
+        <AlertDialogContent
+          className="max-w-lg"
+          onKeyDown={(e) => {
+            if (!['ArrowDown', 'ArrowUp', 'Enter'].includes(e.key)) return;
+            e.preventDefault();
+            if (!matches.length) return;
+            if (e.key === 'Enter') {
+              const pick = matches[cursor] ?? matches[0];
+              if (pick) navigate(pick.id);
+              return;
+            }
+            const next =
+              (cursor + (e.key === 'ArrowDown' ? 1 : -1) + matches.length) %
+              matches.length;
+            setCursor(next);
+          }}
+        >
+          <AlertDialogHeader>
+            <AlertDialogTitle>Find a research view</AlertDialogTitle>
+            <AlertDialogDescription>
+              Jump between evidence views. Arrow keys move, Enter selects,
+              Escape closes.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="flex items-center gap-2 rounded-md border border-input bg-background px-3">
+            <Search className="size-4 text-muted-foreground" aria-hidden />
+            <Input
+              autoFocus
+              aria-label="Search research views"
+              placeholder="Search views"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              className="border-0 shadow-none focus-visible:ring-0"
+            />
+          </div>
+          <div
+            className="grid gap-1"
+            role="listbox"
+            aria-label="Research views"
+          >
+            {matches.map((x, i) => (
               <button
-                className="button"
-                autoFocus
-                onClick={() => setDetail(null)}
+                key={x.id}
+                role="option"
+                aria-selected={i === cursor}
+                onMouseEnter={() => setCursor(i)}
+                onClick={() => navigate(x.id)}
+                className={cn(
+                  'flex items-center justify-between rounded-md px-3 py-2.5 text-left text-sm',
+                  i === cursor
+                    ? 'bg-accent text-accent-foreground'
+                    : 'hover:bg-accent/60',
+                )}
               >
-                Close
+                {x.id}
+                <span className="text-primary">↗</span>
               </button>
+            ))}
+          </div>
+        </AlertDialogContent>
+      </AlertDialog>
+      <AlertDialog
+        open={detail !== null}
+        onOpenChange={(open) => !open && setDetail(null)}
+      >
+        <AlertDialogContent className="max-w-3xl">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Research evidence</AlertDialogTitle>
+            <AlertDialogDescription>
+              Raw computed record. Copy it for audit or close with Escape.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          {detail && (
+            <div className="max-h-[65vh] overflow-auto">
+              <CodeBlock
+                code={JSON.stringify(detail, null, 2)}
+                language="json"
+              />
             </div>
-            <pre tabIndex={0}>{JSON.stringify(detail, null, 2)}</pre>
-          </>
-        )}
-      </dialog>
+          )}
+          <div className="flex justify-end">
+            <Button autoFocus variant="outline" onClick={() => setDetail(null)}>
+              Close
+            </Button>
+          </div>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

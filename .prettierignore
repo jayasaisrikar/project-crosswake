@@ -8,3 +8,6 @@ pnpm-lock.yaml
 output/playwright
 
 apps/dashboard/next-env.d.ts
+
+# Vendored shadcn-registry components keep upstream formatting
+apps/dashboard/components

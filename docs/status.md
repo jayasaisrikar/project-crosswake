@@ -19,18 +19,18 @@ Acceptance is not complete. Provider credentials are absent; real altFINS and mo
 
 ## Stage tracker
 
-| Area                    | Engineering                                                                                                        | Acceptance still open                                                              |
-| ----------------------- | ------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------- |
+| Area                    | Engineering                                                                                                        | Acceptance still open                                                                                |
+| ----------------------- | ------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------- |
 | Foundation/docs         | Implemented; 21 workspace projects                                                                                 | Git remote configured (jayasaisrikar/project-crosswake, main); local code committed and pushed 6 Oct |
-| Spot collection/history | Journals, Parquet/hash manifests, bounded writes, archive checksums/import/replay                                  | Qualified 24h run and larger-universe capacity                                     |
-| Quant/signals           | Prior-only fits, BTC impulses, transparent candidates/rejects, relationship reports and lag controls               | Stable relationship/strategy edge across unseen periods                            |
-| Paper/costs             | Delayed eligible quote fills, fees/slippage, exposure, gap reporting, fixed horizons and cost/size stress          | Empirical fill/cost calibration; BBO lacks depth/queue data                        |
-| Frozen evaluation       | Chronological selection, unseen blocks, boundary purge and one-use holdout provenance                              | Prospective data and statistical gates; holdout not consumed                       |
-| Forward recovery        | Exact acknowledged-step reconstruction of model, pending entries, positions and event IDs; single-writer lock      | Qualified forward-paper reconciliation against frozen deployment                   |
-| Mastra runtime          | Persistent session/thread/mode/messages, constrained tools/delegation, libSQL snapshots and deterministic Workflow | Real model and specialist invocation with provider credentials                     |
-| Context                 | Documented altFINS screener adapter, validated cache, receipt-time provenance/hash/expiry                          | Real subscription response; incremental OOS contribution before strategy influence |
-| Evidence UI             | Loopback read-only API and Next.js dashboard                                                                       | Populated prospective strategy evidence                                            |
-| Operations              | Explicit wall-clock interval and universe; downtime stays in denominator; sampled health/disk reports              | Sustained 24h coverage, disk growth and capacity measurements                      |
+| Spot collection/history | Journals, Parquet/hash manifests, bounded writes, archive checksums/import/replay                                  | Qualified 24h run and larger-universe capacity                                                       |
+| Quant/signals           | Prior-only fits, BTC impulses, transparent candidates/rejects, relationship reports and lag controls               | Stable relationship/strategy edge across unseen periods                                              |
+| Paper/costs             | Delayed eligible quote fills, fees/slippage, exposure, gap reporting, fixed horizons and cost/size stress          | Empirical fill/cost calibration; BBO lacks depth/queue data                                          |
+| Frozen evaluation       | Chronological selection, unseen blocks, boundary purge and one-use holdout provenance                              | Prospective data and statistical gates; holdout not consumed                                         |
+| Forward recovery        | Exact acknowledged-step reconstruction of model, pending entries, positions and event IDs; single-writer lock      | Qualified forward-paper reconciliation against frozen deployment                                     |
+| Mastra runtime          | Persistent session/thread/mode/messages, constrained tools/delegation, libSQL snapshots and deterministic Workflow | Real model and specialist invocation with provider credentials                                       |
+| Context                 | Documented altFINS screener adapter, validated cache, receipt-time provenance/hash/expiry                          | Real subscription response; incremental OOS contribution before strategy influence                   |
+| Evidence UI             | Loopback read-only API and Next.js dashboard rebuilt 7 Oct on Watermelon base plus Cult motion pieces              | Populated prospective strategy evidence                                                              |
+| Operations              | Explicit wall-clock interval and universe; downtime stays in denominator; sampled health/disk reports              | Sustained 24h coverage, disk growth and capacity measurements                                        |
 
 ## Verification completed
 
