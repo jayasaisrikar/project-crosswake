@@ -1,6 +1,7 @@
 import { once } from 'node:events';
 import { Memory } from '@mastra/memory';
 import { createEvidenceServer } from '../packages/research-runtime/src/evidence-api.js';
+import { resolveModel } from '../packages/research-runtime/src/model.js';
 import { describe, it, expect } from 'vitest';
 import {
   mkdtemp,
@@ -263,4 +264,35 @@ it('serves local evidence read-only and rejects mutation and arbitrary file path
     );
     await rm(f.root, { recursive: true, force: true });
   }
+});
+
+describe('opencode model resolution', () => {
+  it('passes built-in provider IDs through unchanged', () => {
+    expect(resolveModel('openai/gpt-4o')).toBe('openai/gpt-4o');
+  });
+  it('requires OPENCODE_API_KEY for opencode/ models', () => {
+    const saved = process.env.OPENCODE_API_KEY;
+    delete process.env.OPENCODE_API_KEY;
+    try {
+      expect(() => resolveModel('opencode/muse-spark-1.3-contributor')).toThrow(
+        'OPENCODE_API_KEY',
+      );
+    } finally {
+      if (saved !== undefined) process.env.OPENCODE_API_KEY = saved;
+    }
+  });
+  it('builds a gateway Responses model for opencode/ IDs', () => {
+    const saved = process.env.OPENCODE_API_KEY;
+    process.env.OPENCODE_API_KEY = 'test-key';
+    try {
+      const model = resolveModel('opencode/muse-spark-1.3-contributor');
+      expect(typeof model).toBe('object');
+      expect((model as { modelId?: string }).modelId).toBe(
+        'muse-spark-1.3-contributor',
+      );
+    } finally {
+      if (saved !== undefined) process.env.OPENCODE_API_KEY = saved;
+      else delete process.env.OPENCODE_API_KEY;
+    }
+  });
 });

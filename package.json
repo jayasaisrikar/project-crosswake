@@ -31,10 +31,12 @@
     "ops:report": "tsx apps/operations/src/main.ts"
   },
   "dependencies": {
+    "@ai-sdk/openai": "^4.0.86",
     "@duckdb/node-api": "1.5.6-r.1",
     "@mastra/core": "1.74.0",
     "@mastra/libsql": "1.25.0",
     "@mastra/memory": "1.35.0",
+    "ai": "^7.0.130",
     "pino": "^10.0.0",
     "unzipper": "^0.12.3",
     "ws": "^8.18.0",
