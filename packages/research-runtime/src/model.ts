@@ -11,9 +11,12 @@ export function resolveModel(modelId: string): string | MastraModelConfig {
   const apiKey = process.env.OPENCODE_API_KEY;
   if (!apiKey)
     throw new Error('OPENCODE_API_KEY is required for opencode/ models');
-  return createOpenAI({
+  const provider = createOpenAI({
     baseURL: OPENCODE_GATEWAY_URL,
     apiKey,
     headers: { 'x-opencode-session': randomUUID() },
-  }).responses(name);
+  });
+  return name.endsWith('-free')
+    ? provider.chat(name)
+    : provider.responses(name);
 }

@@ -296,3 +296,20 @@ describe('opencode model resolution', () => {
     }
   });
 });
+
+describe('opencode free-model protocol', () => {
+  it('builds a chat model for -free IDs', () => {
+    const saved = process.env.OPENCODE_API_KEY;
+    process.env.OPENCODE_API_KEY = 'test-key';
+    try {
+      const model = resolveModel('opencode/longcat-2.5-preview-free');
+      expect(typeof model).toBe('object');
+      expect((model as { modelId?: string }).modelId).toBe(
+        'longcat-2.5-preview-free',
+      );
+    } finally {
+      if (saved !== undefined) process.env.OPENCODE_API_KEY = saved;
+      else delete process.env.OPENCODE_API_KEY;
+    }
+  });
+});
