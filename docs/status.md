@@ -61,7 +61,7 @@ Dashboard production server: http://127.0.0.1:3000. Evidence API: http://127.0.0
 
 ## Open evidence gates
 
-1. Configure RESEARCH_MODEL, the chosen provider's key and ALTFINS_API_KEY locally, then verify the real Supervisor/specialist and context paths. Never put keys in conversation or Git. The local deterministic paths remain usable without them.
+1. Real altFINS snapshot verified 7 Oct with a local key (BTC/ETH/SOL 4h screener, receipt-timestamped, hashed, 15-minute expiry; served as available through the evidence API). Provider RESEARCH_MODEL key still unconfigured, so real Supervisor/specialist calls remain unverified. Never put keys in conversation or Git. The local deterministic paths remain usable without them.
 2. Run a fresh sustained 24h observation with the seven-second allowance and sampled health. Report complete coverage, late/rejected events, disconnects, sampled memory and disk growth; do not substitute a shorter interval.
 3. Accumulate the frozen v001 clocks: October 6–30 UTC walk-forward periods and October 30–31 UTC holdout. Current data is insufficient; the workflow correctly refuses evaluation. At least 500 closed eligible long trades and the declared confidence/expectancy/asset gates are required; dates alone do not establish sufficient samples.
 4. Reconcile statistically qualified frozen-model forward paper. Current live mode is adaptive exploratory shadow, and exact restart parity does not establish equivalence to a frozen-fit deployment policy.
