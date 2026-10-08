@@ -4,6 +4,19 @@ Local BTC-to-altcoin transmission research. Binance Spot is the first market; ex
 
 Read [the implementation plan](docs/implementation-plan.md) and [current status](docs/status.md) for scope and evidence gates.
 
+## Strategy scoreboard
+
+Every strategy rule set is committed before it sees its test data and is never retuned on that data. Signals are paper research only.
+
+| Version | Idea | Horizon | Unseen-data result | Status |
+|---|---|---|---|---|
+| v001 / v002 | Alts follow a BTC impulse | seconds–minutes | Lag is ~1–3 s, too fast for a human; filters reject everything | Not viable for manual signals |
+| v003 | Buy alts lagging their BTC beta (spot, hedged) | 1–4 h | Spot: 0 trades; hedged: −43 bps/trade | Falsified |
+| v004 | Short alts that held up while BTC fell (perp) | 4 h | 349 trades, 40.7% win, −45.9 bps/trade | Falsified |
+| **v005** | **Daily 20-day breakout, only while BTC > 100-day SMA** | **days–weeks** | **243 trades, 33.7% win, +153 bps/trade, CI [−287, +629]** | **Inconclusive; next is live paper from 1 Oct 2026** |
+
+Full records: [v003–v005](docs/residual-strategy-v003.md), [v002](docs/signal-improvements-v002.md).
+
 ## Run locally
 
 Use Node 24 LTS and pnpm 10.32.1. Install with `pnpm install`, then run `pnpm typecheck` and `pnpm test`. `pnpm format:check` checks formatting.
@@ -38,7 +51,7 @@ The paper simulator requires a quote received after the signal decision, checks 
 
 Walk-forward selection, one-use holdout, fixed-horizon research outcomes, multi-window relationship diagnostics and cost stress are implemented. Lag reports include block-shuffle maximum-grid and shifted-clock controls; these diagnostics do not change strategy selection. Optional size/volatility costs use only prior observed volume and returns, reject unsupported participation, and remain proxies for unavailable order-book depth. No win-rate or edge claim is made by these commands. Empty samples report null performance values rather than zero or a fabricated estimate.
 
-Keep the laptop awake for sustained collection and monitor disk usage. The current process is recorded in the status document; no scheduler or automatic restart service is installed.
+Collection grows the raw journal by about 1.7 GB/day; monitor disk usage. Long-running processes are supervised by launchd locally or systemd on a server (see Services and hosting).
 
 ## Walk-forward and live paper workflow
 
@@ -58,6 +71,24 @@ Reports include per-asset/month outcomes, equal-notional drawdown, concentration
 ## BTC-relative residual strategy (v003)
 
 `configs/residual-spot-v003.json` and `configs/residual-hedged-v003.json` define a 1–4 hour strategy that tests whether alts catch up after lagging their BTC beta. It runs on verified 1-minute kline Parquet under `data/bars`. `pnpm residual:history`, `residual:study`, `residual:backtest`, `residual:walk-forward`, `residual:holdout` and `residual:live` share one causal engine and paper simulator. Live mode prints signals for users and records paper outcomes from Binance REST. The October 2025–July 2026 walk-forward failed both plans. See [the v003 record](docs/residual-strategy-v003.md) before using any signal.
+
+Version v004, the catch-down short (`configs/catchdown-perp-v004.json`), uses USDⓈ-M perp klines and funding (`residual:history -- --market usdm`); funding is charged in the simulator. `pnpm costs:sample` and `costs:report` measure order-book spread and depth into `data/costs/summary.json`.
+
+## Daily trend breakout (v005)
+
+`configs/trend-plan-v005.json` is the frozen plan: buy at the next daily open when an alt closes above its prior 20-day high while BTC closes above its 100-day SMA. Exit when the alt closes below its prior 10-day low or the BTC regime turns off. The plan covers 29 alts plus BTC, including pairs that were later delisted, and charges 30 bps per round trip. `pnpm trend:history` downloads checksummed daily klines from 2020 into `data/daily`, and `pnpm trend:test` writes `data/research/trend-daily-v005.json`. The engine is `packages/backtest/src/trend.ts`. The plan requires at least 200 test trades, a 30–50% win rate, a profit factor of at least 1.2 and a 95% expectancy interval above zero. The 2025–2026 test met every criterion except the interval.
+
+## Signal delivery
+
+The dashboard's `/signals` page shows live signals, paper outcomes and the strategy lab. The banner "This strategy failed its out-of-sample validation" is intentional and remains until a strategy passes its gate. You can record a manual fill with `POST /signals/<id>/fills`, the API's only write route. Telegram delivery (`packages/notify`) stays off unless `TELEGRAM_ENABLED=true`, `TELEGRAM_BOT_TOKEN` and `TELEGRAM_CHAT_ID` are set in `.env.local`.
+
+## Services and hosting
+
+- **macOS:** `pnpm services:install|uninstall|status|restart|logs` manages launchd agents for keep-awake, the API, both signal engines, cost sampling and context.
+- **Server (Oracle Cloud Always Free, Ubuntu arm64):** `bash deploy/oci/setup.sh <repo-url>` installs Node 24 and pnpm, clones into `/opt/crosswake`, then runs tests and builds the dashboard. Then `bash deploy/oci/services.sh enable|status|logs` runs the collector, API, dashboard, engines, costs and context as `crosswake@<name>` systemd units that restart automatically.
+- **Region:** use a non-US region, because Binance blocks US IPs.
+- **Access:** services bind to loopback only. Reach the dashboard with `ssh -L 3000:127.0.0.1:3000 ubuntu@<ip>`.
+- **Secrets:** copy `.env.local` with `scp`. Never commit it.
 
 ## Interactive research with Mastra
 

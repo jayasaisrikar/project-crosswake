@@ -41,7 +41,9 @@
     "services:uninstall": "scripts/services.sh uninstall",
     "services:status": "scripts/services.sh status",
     "services:restart": "scripts/services.sh restart",
-    "services:logs": "scripts/services.sh logs"
+    "services:logs": "scripts/services.sh logs",
+    "trend:history": "tsx apps/trend/src/main.ts history",
+    "trend:test": "tsx apps/trend/src/main.ts test"
   },
   "dependencies": {
     "@ai-sdk/openai": "^4.0.86",
