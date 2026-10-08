@@ -373,7 +373,11 @@ export function TrendBoard({
 }) {
   const list: Dict[] = data?.strategies ?? [];
   const [chosen, setChosen] = useState<string | null>(null);
-  const current = list.find((s) => s.version === chosen) ?? list[0] ?? null;
+  const current =
+    list.find((s) => s.version === chosen) ??
+    list.find((s) => s.kind !== 'htf-rsi') ??
+    list[0] ??
+    null;
   return (
     <div className="grid min-w-0 gap-6">
       {list.length > 1 && (
@@ -395,14 +399,269 @@ export function TrendBoard({
                   : 'border-border hover:bg-card',
               )}
             >
-              {s.version === 'trend-daily-v005'
-                ? 'v005 · core 28 coins'
-                : `v006 · + HYPE & new coins (${s.universe})`}
+              {s.kind === 'htf-rsi'
+                ? 'v007 · 15m RSI perps (BTC/ETH/SOL)'
+                : s.version === 'trend-daily-v005'
+                  ? 'v005 · core 28 coins'
+                  : `v006 · + HYPE & new coins (${s.universe})`}
             </button>
           ))}
         </div>
       )}
-      <TrendSignals data={current} onInspect={onInspect} />
+      {current?.kind === 'htf-rsi' ? (
+        <HtfSignals data={current} onInspect={onInspect} />
+      ) : (
+        <TrendSignals data={current} onInspect={onInspect} />
+      )}
     </div>
+  );
+}
+
+const rMult = (x: unknown) =>
+  typeof x === 'number' ? `${x >= 0 ? '+' : ''}${x.toFixed(2)}R` : '—';
+const time = (x: unknown) =>
+  typeof x === 'number'
+    ? new Date(x).toLocaleString('en-IN', {
+        timeZone: 'UTC',
+        day: '2-digit',
+        month: 'short',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false,
+      }) + ' UTC'
+    : '—';
+const exitLabel: Record<string, string> = {
+  stop: 'Stop',
+  trail: 'Trail',
+  time: 'Time stop',
+  gap: 'Data gap',
+  open: 'Open',
+};
+const skipLabel: Record<string, string> = {
+  funding: 'Funding against',
+  max_concurrent: '2 already open',
+  position_open: 'Already in coin',
+  gap_through_stop: 'Gapped past stop',
+  no_next_bar: 'Awaiting fill',
+};
+
+/** v007 15m RSI re-cross on perps: open paper positions and every signal with its logged fields. */
+export function HtfSignals({
+  data,
+  onInspect,
+}: {
+  data: Dict;
+  onInspect: (x: unknown) => void;
+}) {
+  const fresh = Date.now() - data.updatedAt < 45 * 60_000,
+    s: Dict = data.stats ?? {},
+    events: Dict[] = data.events ?? [],
+    open: Dict[] = data.open ?? [];
+  const status = !fresh
+    ? `Engine stale: last report ${time(data.updatedAt)}. Restart it with pnpm htf:live.`
+    : Date.now() < data.forwardStart
+      ? `Not started: live paper trading begins ${day(data.forwardStart)} at 00:00 UTC.`
+      : open.length
+        ? `Holding ${open.length} of 2 allowed positions. Next check after ${time(data.nextClose)}.`
+        : `Watching ${data.universe} perps on every 15m close. No open position; next check after ${time(data.nextClose)}.`;
+  return (
+    <section
+      aria-label="15m RSI perp signals"
+      className="grid min-w-0 gap-8 [&>*]:min-w-0"
+    >
+      <Alert role="note">
+        <CircleAlert aria-hidden />
+        <AlertTitle>
+          New strategy, judged on its frozen test and live paper.
+        </AlertTitle>
+        <AlertDescription>
+          4h EMA trend filter with 15m RSI re-crosses on BTC, ETH and SOL perps.
+          Results are in R (multiples of the stop distance) after 10 bps costs
+          and funding. Paper signals only, not trade advice. Execution is
+          disabled.
+        </AlertDescription>
+      </Alert>
+
+      <div className="flex flex-wrap items-center gap-2">
+        <Badge variant={fresh ? 'default' : 'secondary'} className="gap-1.5">
+          <span
+            className={cn(
+              'size-1.5 rounded-full',
+              fresh ? 'bg-emerald-400' : 'bg-muted-foreground',
+            )}
+            aria-hidden
+          />
+          {fresh ? 'Engine running' : 'Engine stale'}
+        </Badge>
+        <Badge variant="outline">{data.universe} perps · 15m</Badge>
+        {(data.channels ?? []).map((c: Dict) => (
+          <Badge
+            key={c.name}
+            variant={c.enabled ? 'secondary' : 'outline'}
+            className="gap-1"
+            title={c.detail}
+          >
+            {c.enabled ? <Bell aria-hidden /> : <BellOff aria-hidden />}
+            {c.name}
+            {!c.enabled && ' · later'}
+          </Badge>
+        ))}
+      </div>
+
+      <p
+        role="status"
+        className="rounded-lg border border-border bg-card px-4 py-3 text-sm font-medium"
+      >
+        {status}
+      </p>
+
+      <div>
+        <h2 className="font-display mb-4 text-xl font-medium tracking-tight">
+          Live record since {day(data.forwardStart)}
+        </h2>
+        <dl className="grid grid-cols-2 gap-6 sm:grid-cols-4">
+          <Stat
+            term="Closed trades"
+            value={String(s.trades ?? 0)}
+            hint="Target 200 before judging"
+          />
+          <Stat term="Win rate" value={pct(s.winRate)} hint="Target 45–55%" />
+          <Stat term="Per trade, net" value={rMult(s.expectancyR)} />
+          <Stat term="Total" value={rMult(s.totalR)} />
+        </dl>
+      </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Open paper positions</CardTitle>
+          <CardDescription>
+            Half comes off at 1.5R; the stop moves to entry after 1R; the rest
+            trails 2 ATR. Flat after 16 bars if 1.5R is not reached.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="overflow-x-auto">
+          {open.length ? (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Coin</TableHead>
+                  <TableHead>Side</TableHead>
+                  <TableHead>Signal</TableHead>
+                  <TableHead className="text-right">Entry</TableHead>
+                  <TableHead className="text-right">Stop</TableHead>
+                  <TableHead className="text-right">Now</TableHead>
+                  <TableHead className="text-right">Mark</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {open.map((t) => (
+                  <TableRow
+                    key={t.id}
+                    className="cursor-pointer"
+                    onClick={() => onInspect(t)}
+                  >
+                    <TableCell className="font-medium">
+                      {asset(t.symbol)}
+                    </TableCell>
+                    <TableCell>
+                      {t.side === 'long' ? 'Long' : 'Short'}
+                    </TableCell>
+                    <TableCell>{time(t.ts)}</TableCell>
+                    <TableCell className="text-right tabular-nums">
+                      {price(t.entry)}
+                    </TableCell>
+                    <TableCell className="text-right tabular-nums">
+                      {price(t.stop)}
+                    </TableCell>
+                    <TableCell className="text-right tabular-nums">
+                      {price(t.lastClose)}
+                    </TableCell>
+                    <TableCell
+                      className={cn(
+                        'text-right tabular-nums',
+                        tone(t.realizedR),
+                      )}
+                    >
+                      {rMult(t.realizedR)}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          ) : (
+            <p className="text-sm text-muted-foreground">No open positions.</p>
+          )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Signal log</CardTitle>
+          <CardDescription>
+            Every trigger, including skipped ones. Select a row for all logged
+            fields (EMA state, ADX, RSI, ATR, VWAP, funding).
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="overflow-x-auto">
+          {events.length ? (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Signal</TableHead>
+                  <TableHead>Trade</TableHead>
+                  <TableHead className="text-right">RSI</TableHead>
+                  <TableHead className="text-right">4h ADX</TableHead>
+                  <TableHead className="text-right">Stop</TableHead>
+                  <TableHead>Outcome</TableHead>
+                  <TableHead className="text-right">Result</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {events.map((e) => (
+                  <TableRow
+                    key={e.id}
+                    className="cursor-pointer"
+                    onClick={() => onInspect(e)}
+                  >
+                    <TableCell>{time(e.ts)}</TableCell>
+                    <TableCell>
+                      {e.side === 'long' ? 'Long' : 'Short'} {asset(e.symbol)}
+                    </TableCell>
+                    <TableCell className="text-right tabular-nums">
+                      {e.rsiPrev?.toFixed(1)}→{e.rsi?.toFixed(1)}
+                    </TableCell>
+                    <TableCell className="text-right tabular-nums">
+                      {e.adx4h?.toFixed(1)}
+                    </TableCell>
+                    <TableCell className="text-right tabular-nums">
+                      {typeof e.rDistance === 'number'
+                        ? `${((e.rDistance / e.entry) * 100).toFixed(2)}%`
+                        : '—'}
+                    </TableCell>
+                    <TableCell>
+                      {e.status === 'skipped'
+                        ? `Skipped: ${skipLabel[e.skipReason] ?? e.skipReason}`
+                        : `${exitLabel[e.exitReason] ?? e.exitReason}${e.scaled ? ' · ½ at 1.5R' : ''}`}
+                    </TableCell>
+                    <TableCell
+                      className={cn(
+                        'text-right tabular-nums',
+                        tone(e.realizedR),
+                      )}
+                    >
+                      {e.status === 'skipped' ? '—' : rMult(e.realizedR)}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          ) : (
+            <p className="text-sm text-muted-foreground">
+              No signals since the live start yet.
+            </p>
+          )}
+        </CardContent>
+      </Card>
+    </section>
   );
 }

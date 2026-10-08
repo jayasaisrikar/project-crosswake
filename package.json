@@ -45,6 +45,9 @@
     "trend:history": "tsx apps/trend/src/main.ts history",
     "trend:test": "tsx apps/trend/src/main.ts test",
     "trend:live": "tsx apps/trend/src/main.ts live",
+    "htf:history": "tsx apps/htf/src/main.ts history",
+    "htf:test": "tsx apps/htf/src/main.ts test",
+    "htf:live": "tsx apps/htf/src/main.ts live",
     "data:retention": "tsx apps/retention/src/main.ts"
   },
   "dependencies": {
