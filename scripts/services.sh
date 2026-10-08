@@ -18,6 +18,7 @@ SERVICES=(
   "signals-spot|$PNPM -s residual:live -- --config configs/residual-spot-v003.json"
   "signals-perp|$PNPM -s residual:live -- --config configs/catchdown-perp-v004.json"
   "signals-daily|$PNPM -s trend:live"
+  "retention|$PNPM -s data:retention -- --watch"
   "costs|$PNPM -s costs:sample -- --interval-seconds 300"
   "context|$PNPM -s context:collect -- --watch"
 )

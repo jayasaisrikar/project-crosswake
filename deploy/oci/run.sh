@@ -8,7 +8,9 @@
 set -euo pipefail
 cd /opt/crosswake
 case "$1" in
-  collector)    exec node --import tsx apps/collector/src/main.ts ;;
+  # v001 shadow replay is retired: the journal is a WAL split per UTC day so retention can expire it.
+  collector)    PAPER_MODE=off exec node --import tsx apps/collector/src/main.ts ;;
+  retention)    exec node --import tsx apps/retention/src/main.ts --watch ;;
   api)          exec node --import tsx apps/api/src/main.ts ;;
   dashboard)    cd apps/dashboard && exec node node_modules/next/dist/bin/next start --hostname 127.0.0.1 --port 3000 ;;
   signals-spot) exec node --import tsx apps/residual/src/main.ts live --config configs/residual-spot-v003.json ;;

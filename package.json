@@ -44,7 +44,8 @@
     "services:logs": "scripts/services.sh logs",
     "trend:history": "tsx apps/trend/src/main.ts history",
     "trend:test": "tsx apps/trend/src/main.ts test",
-    "trend:live": "tsx apps/trend/src/main.ts live"
+    "trend:live": "tsx apps/trend/src/main.ts live",
+    "data:retention": "tsx apps/retention/src/main.ts"
   },
   "dependencies": {
     "@ai-sdk/openai": "^4.0.86",

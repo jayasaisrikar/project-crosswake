@@ -60,11 +60,11 @@ await writeFile(
 );
 await writeFile(join(root, 'collector.pid'), String(process.pid) + '\n');
 
-const journalPath = join(
-  root,
-  'raw',
-  `${new Date().toISOString().slice(0, 10)}-${randomUUID()}.jsonl`,
-);
+const sessionId = randomUUID(),
+  segmentPath = (ts: number) =>
+    join(root, 'raw', `${new Date(ts).toISOString().slice(0, 10)}-${sessionId}.jsonl`);
+const journalPath = segmentPath(Date.now());
+let segment = journalPath;
 const paperMode = z
   .enum(['shadow', 'off'])
   .parse(process.env.PAPER_MODE ?? 'shadow');
@@ -138,7 +138,7 @@ const writer = await ParquetWriter.create(root);
 const pipeline = new IngestionPipeline(
   (records) =>
     appendFile(
-      journalPath,
+      segment,
       records.map((r) => JSON.stringify(r)).join('\n') + '\n',
     ),
   (rows) => writer.write(rows),
@@ -158,6 +158,16 @@ let reconnectTimer: NodeJS.Timeout | undefined,
   rotation: NodeJS.Timeout | undefined,
   durationTimer: NodeJS.Timeout | undefined;
 const startedAt = Date.now();
+const segmentTimer =
+  paperMode === 'off'
+    ? setInterval(() => {
+        const next = segmentPath(Date.now());
+        if (next !== segment) {
+          log.info({ from: segment, to: next }, 'Journal segment rotated');
+          segment = next;
+        }
+      }, 30_000)
+    : undefined;
 pipeline.push({
   kind: 'session',
   ts: startedAt,
@@ -290,6 +300,7 @@ async function stop() {
   if (stopping) return;
   stopping = true;
   clearInterval(timer);
+  if (segmentTimer) clearInterval(segmentTimer);
   if (reconnectTimer) clearTimeout(reconnectTimer);
   if (rotation) clearTimeout(rotation);
   if (durationTimer) clearTimeout(durationTimer);
