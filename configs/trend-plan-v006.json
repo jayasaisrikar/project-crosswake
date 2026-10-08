@@ -1,0 +1,78 @@
+{
+  "version": "trend-daily-v006",
+  "frozenAt": "2026-10-08",
+  "hypothesis": "The v005 rules, unchanged, keep positive net expectancy on a universe extended with newer high-beta coins (HYPE and peers), measured only on live paper data from the freeze date onward.",
+  "rulesChosenFrom": "Identical to trend-daily-v005; only the universe changes. HYPE was added at the user's request; daily correlation analysis (495 days of perp data) showed HYPE moves with the whole market (0.5-0.6) and no HYPE-specific cluster on Binance, so peers were chosen as liquid post-2023 Binance spot listings, not by correlation.",
+  "market": "spot",
+  "interval": "1d",
+  "regimeSymbol": "BTCUSDT",
+  "symbols": [
+    "ETHUSDT",
+    "BNBUSDT",
+    "XRPUSDT",
+    "ADAUSDT",
+    "DOGEUSDT",
+    "SOLUSDT",
+    "DOTUSDT",
+    "LINKUSDT",
+    "LTCUSDT",
+    "BCHUSDT",
+    "AVAXUSDT",
+    "UNIUSDT",
+    "ATOMUSDT",
+    "ETCUSDT",
+    "XLMUSDT",
+    "TRXUSDT",
+    "FILUSDT",
+    "VETUSDT",
+    "THETAUSDT",
+    "ALGOUSDT",
+    "XTZUSDT",
+    "NEOUSDT",
+    "ZECUSDT",
+    "DASHUSDT",
+    "IOTAUSDT",
+    "AAVEUSDT",
+    "NEARUSDT",
+    "BTCUSDT",
+    "HYPEUSDT",
+    "SUIUSDT",
+    "ENAUSDT",
+    "TAOUSDT",
+    "JUPUSDT",
+    "WLDUSDT",
+    "SEIUSDT",
+    "PUMPUSDT"
+  ],
+  "survivorshipNote": "EOSUSDT and MATICUSDT are dropped because Binance spot no longer trades them. A coin trades once it has 20 daily closes.",
+  "entry": {
+    "breakoutDays": 20,
+    "regimeSmaDays": 100,
+    "requireRegime": true
+  },
+  "exit": {
+    "breakdownDays": 10,
+    "exitOnRegimeOff": true
+  },
+  "execution": "Signal on the daily close (00:00 UTC); fill at the next day's open. One position per symbol, equal size. Long only.",
+  "costBpsRoundTrip": 30,
+  "periods": {
+    "liveOnly": [
+      "2026-10-09",
+      null
+    ]
+  },
+  "acceptance": {
+    "period": "live paper from 2026-10-09",
+    "minClosedTrades": 200,
+    "winRateRange": [
+      0.3,
+      0.5
+    ],
+    "netExpectancyBpsCi95LowerAbove": 0,
+    "bootstrap": "by entry week, 10000 resamples, seed 5",
+    "profitFactorMin": 1.2
+  },
+  "noRetuning": "No historical test is claimed: most added coins have under 3 years of history. Results count only from live paper. v005 continues unchanged in parallel.",
+  "forwardStart": "2026-10-09"
+}
