@@ -1,68 +1,53 @@
 # Crosswake
 
-**Research engine for BTC-driven altcoin trade signals.** It collects Binance market data, tests trading ideas on data they have never seen, and publishes paper signals to a dashboard.
+**Crypto trade signals backed by evidence, not hype.**
 
-> Paper research only. Crosswake never places orders, and no strategy has passed validation yet.
+Most signal groups post calls with no proof behind them. Crosswake works the other way around. A strategy has to prove itself on market data it has never seen before it ever reaches a user.
 
-## Strategies
+## What we do
 
-Each strategy's rules are committed before testing and are never retuned on the test data.
+Bitcoin moves the crypto market. When BTC trends, most altcoins follow, but not all at once and not equally. Crosswake watches that relationship across 30 major coins. It looks for altcoins that are starting to move with real strength, then turns that into a clear signal: **what to buy, when, and when to exit.**
 
-| | Idea | Holding time | Result on unseen data | Status |
+- **Simple signals:** a coin, an entry and an exit rule, delivered to a live dashboard. Telegram alerts are coming.
+- **Built for real people:** a trade lasts days to weeks, so there's time to act. This isn't high-frequency trading.
+- **Honest numbers:** every result includes trading fees and slippage, and we publish what failed as well as what worked.
+
+## The strategy
+
+**Ride strong altcoins, but only when Bitcoin is in an uptrend.**
+
+1. **Market check:** trade only while Bitcoin is above its 100-day average. When the market turns, we step aside.
+2. **Entry:** buy a coin when it breaks above its highest price of the last 20 days.
+3. **Exit:** sell when it falls below its lowest price of the last 10 days. That cuts losers quickly and lets winners run.
+
+It's designed to win about 1 trade in 3, with each winner much larger than each loser. That's the profile of classic trend following.
+
+### Results so far
+
+| | Trades | Win rate | Average winner | Average loser |
 |---|---|---|---|---|
-| v001–v002 | Alts follow a BTC move | seconds | Lag is 1–3 s, too fast for a human | ❌ Not viable |
-| v003 | Buy alts lagging BTC | 1–4 h | −0.43% per trade | ❌ Failed |
-| v004 | Short alts that held up while BTC fell | 4 h | −0.46% per trade | ❌ Failed |
-| **v005** | **Daily breakout while BTC is in an uptrend** | **~12 days** | **34% win rate, +1.5% per trade** | 🟡 **Promising, not yet proven** |
+| 2020–2024 | 910 | 43% | +43% | −8.5% |
+| 2025–2026, unseen data | 243 | 34% | +19% | −7.3% |
 
-**v005** buys an alt when it closes at a 20-day high while BTC is above its 100-day average. It sells when the alt closes at a 10-day low. Its average win is about 2.6× its average loss. The result isn't statistically certain yet, so it is being paper traded live.
+All figures are after fees.
 
-## Quick start
+The rules were locked before testing and never adjusted to fit the results. On 2025–2026 data the strategy had never seen, it stayed profitable on average, at **+1.5% per trade**. It is now being tracked live to confirm the edge holds up in real time.
 
-```bash
-pnpm install
-pnpm test
-cp .env.example .env.local    # optional keys; never commit this file
-pnpm services:install         # macOS: run collector, API and signal engines in the background
-pnpm dashboard                # http://127.0.0.1:3000/signals
-```
+## How we got here
 
-Requires Node 24 and pnpm 10.
+We tested and rejected three faster strategies before this one, including signals that tried to profit from altcoins lagging Bitcoin by seconds or hours. They either moved too fast for a person to act on or lost money after fees. Discarding ideas that don't hold up is the core of the product.
 
-## Common commands
+## Status
 
-| Command | What it does |
+| Stage | |
 |---|---|
-| `pnpm trend:history` / `pnpm trend:test` | Download daily data and test v005 |
-| `pnpm residual:live` | Run the live signal engine |
-| `pnpm collect` | Record live trades and quotes |
-| `pnpm services:status` | Check the background services |
-| `pnpm costs:report` | Show measured trading costs |
+| Data collection and research engine | ✅ Live |
+| Signal dashboard | ✅ Live |
+| Strategy validation | 🟡 Live paper tracking |
+| Telegram alerts | ⏳ Built, launching after validation |
 
-## Hosting
+---
 
-The repo runs on a free Oracle Cloud ARM server. Choose a non-US region, because Binance blocks US IPs.
+*Crosswake is research software. Signals are not financial advice, and past performance doesn't guarantee future results.*
 
-```bash
-bash deploy/oci/setup.sh <repo-url>
-bash deploy/oci/services.sh enable
-ssh -L 3000:127.0.0.1:3000 ubuntu@<server-ip>   # then open localhost:3000
-```
-
-## Project layout
-
-```
-apps/       CLIs and the Next.js dashboard
-packages/   market data, storage, quant, signals, backtest, notify
-configs/    frozen strategy plans
-docs/       research records and the full reference
-deploy/     server setup
-```
-
-## Learn more
-
-- [Full reference](docs/reference.md): every command, data format and research rule
-- [Strategy records v003–v005](docs/residual-strategy-v003.md)
-- [Current status](docs/status.md)
-
-Telegram alerts are built in but stay off until `TELEGRAM_ENABLED=true` is set.
+<sub>Developers: see the [technical reference](docs/reference.md).</sub>
