@@ -6,7 +6,7 @@ import {
 } from './residual-evidence.js';
 import { latestContext } from '../../context/src/index.js';
 import { createServer, type Server } from 'node:http';
-import { readFile } from 'node:fs/promises';
+import { readFile, readdir } from 'node:fs/promises';
 import { join } from 'node:path';
 import { z } from 'zod';
 import {
@@ -113,12 +113,7 @@ export function createEvidenceServer(paths: RuntimePaths): Server {
       else if (segments.length === 1 && segments[0] === 'signals')
         send(200, await residualSignals(paths.dataDir));
       else if (segments.length === 1 && segments[0] === 'trend')
-        send(
-          200,
-          JSON.parse(
-            await readFile(join(paths.dataDir, 'trend', 'live', 'state.json'), 'utf8'),
-          ),
-        );
+        send(200, await trendStrategies(paths.dataDir));
       else if (segments.length === 1 && segments[0] === 'research')
         send(200, await residualResearch(paths.dataDir));
       else if (segments.length === 1 && segments[0] === 'context')
@@ -136,4 +131,20 @@ export function createEvidenceServer(paths: RuntimePaths): Server {
       else send(409, { error: 'evidence_unavailable_or_integrity_failure' });
     }
   });
+}
+
+/** Live daily-trend engines, one state file per frozen plan version. */
+async function trendStrategies(dataDir: string) {
+  const root = join(dataDir, 'trend', 'live'),
+    strategies = [];
+  for (const id of (await readdir(root).catch(() => [] as string[])).sort())
+    try {
+      if (identifier.safeParse(id).success)
+        strategies.push(
+          JSON.parse(await readFile(join(root, id, 'state.json'), 'utf8')),
+        );
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error;
+    }
+  return { strategies };
 }

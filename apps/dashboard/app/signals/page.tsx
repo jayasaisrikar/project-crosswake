@@ -24,7 +24,7 @@ import {
 import { CodeBlock } from '@/components/base-ui/code-block';
 import { cn } from '@/lib/utils';
 import { StrategyLab, TradeSignals } from '../residual-views';
-import { TrendSignals } from '../trend-views';
+import { TrendBoard } from '../trend-views';
 
 type Dict = Record<string, any>;
 const VIEWS = [
@@ -168,7 +168,7 @@ export default function SignalsPage() {
           </Alert>
         )}
         {view === 'daily' ? (
-          <TrendSignals data={trend} onInspect={setDetail} />
+          <TrendBoard data={trend} onInspect={setDetail} />
         ) : view === 'signals' ? (
           <TradeSignals
             data={signals}

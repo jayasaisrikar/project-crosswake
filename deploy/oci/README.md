@@ -8,7 +8,7 @@ API over the network; every service on this box binds `127.0.0.1`.
 
 | Where          | What                                                                                |
 | -------------- | ----------------------------------------------------------------------------------- |
-| OCI (this box) | `collector`, `api` (evidence), `signals-spot`, `signals-perp`, `signals-daily`, `costs`, `context`   |
+| OCI (this box) | `collector`, `api` (evidence), `signals-spot`, `signals-perp`, `signals-daily`, `signals-daily-v006`, `retention`, `costs`, `context`   |
 | Vercel         | `apps/dashboard`, proxying `/api/evidence/*` to the OCI API via `RESEARCH_API_BASE` |
 
 The dashboard's pages are client components that call its own `/api/evidence/*` route,
@@ -94,7 +94,7 @@ sudo chown ubuntu:ubuntu /opt/crosswake/.env.local && chmod 600 /opt/crosswake/.
 
 ```bash
 cd /opt/crosswake
-bash deploy/oci/services.sh enable collector api signals-spot signals-perp signals-daily costs context
+bash deploy/oci/services.sh enable collector api signals-spot signals-perp signals-daily signals-daily-v006 retention costs context
 bash deploy/oci/services.sh status
 bash deploy/oci/services.sh logs collector
 ```

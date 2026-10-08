@@ -17,7 +17,9 @@ import {
 } from '../../../packages/backtest/src/trend.js';
 
 const root = process.env.CROSSWAKE_DATA ?? 'data',
-  planPath = 'configs/trend-plan-v005.json',
+  planFlag = process.argv.indexOf('--plan'),
+  planPath =
+    planFlag > 0 ? process.argv[planFlag + 1]! : 'configs/trend-plan-v005.json',
   plan = JSON.parse(await readFile(planPath, 'utf8')),
   dailyDir = (s: string) => join(root, 'daily', s);
 
@@ -137,7 +139,10 @@ async function test() {
 }
 
 const DAY = 86_400_000,
-  FORWARD_START = Date.parse('2026-10-01T00:00:00Z'),
+  // v005's frozen plan predates the field; its live record starts 1 Oct 2026.
+  FORWARD_START = Date.parse(
+    (plan.forwardStart ?? '2026-10-01') + 'T00:00:00Z',
+  ),
   pct = (bps: number) => `${bps >= 0 ? '+' : ''}${(bps / 100).toFixed(1)}%`;
 
 /** Last ~200 daily bars from REST. The final row is today's unfinished bar: its open is real (fills), its close is only a mark. */
@@ -157,7 +162,7 @@ async function recentBars(symbol: string): Promise<DailyBar[]> {
 
 async function live() {
   if (existsSync('.env.local')) process.loadEnvFile('.env.local');
-  const out = join(root, 'trend', 'live'),
+  const out = join(root, 'trend', 'live', plan.version),
     rules = {
       ...plan.entry,
       ...plan.exit,
@@ -178,7 +183,10 @@ async function live() {
         const b = await recentBars(symbol);
         // A pair whose newest bar is not today's is delisted or halted.
         if (
-          b.length > plan.entry.regimeSmaDays &&
+          b.length >
+            (symbol === plan.regimeSymbol
+              ? plan.entry.regimeSmaDays
+              : plan.entry.breakoutDays) &&
           b.at(-1)!.ts === Math.floor(Date.now() / DAY) * DAY
         )
           bars.set(symbol, b);
@@ -215,14 +223,19 @@ async function live() {
       events: ledger.events.slice(0, 100),
       closed: ledger.closed,
       stats,
-      backtest: {
-        test: {
-          trades: 243,
-          winRate: 0.337,
-          netExpectancyBps: 153,
-          ci95: [-287, 629],
-        },
-      },
+      // Only v005 has a frozen historical test; v006 is judged on live paper alone.
+      backtest:
+        plan.version === 'trend-daily-v005'
+          ? {
+              test: {
+                trades: 243,
+                winRate: 0.337,
+                netExpectancyBps: 153,
+                ci95: [-287, 629],
+              },
+            }
+          : null,
+      symbols: [...bars.keys()],
       channels,
       executionEnabled: false,
     };
@@ -235,8 +248,8 @@ async function live() {
     )) {
       const text =
         e.kind === 'entry'
-          ? `BUY ${e.symbol} at today's open (~${e.price}). 20-day breakout, BTC uptrend. Exit on a close below the 10-day low. Paper signal, not advice.`
-          : `SELL ${e.symbol} at today's open (~${e.price}), ${e.reason}. Paper result ${pct(e.netBps!)}.`;
+          ? `[${plan.version}] BUY ${e.symbol} at today's open (~${e.price}). 20-day breakout, BTC uptrend. Exit on a close below the 10-day low. Paper signal, not advice.`
+          : `[${plan.version}] SELL ${e.symbol} at today's open (~${e.price}), ${e.reason}. Paper result ${pct(e.netBps!)}.`;
       const d = await deliver(sinks, {
         kind: e.kind === 'entry' ? 'signal' : 'paper_exit',
         id: e.id,

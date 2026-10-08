@@ -16,6 +16,7 @@ case "$1" in
   signals-spot) exec node --import tsx apps/residual/src/main.ts live --config configs/residual-spot-v003.json ;;
   signals-perp) exec node --import tsx apps/residual/src/main.ts live --config configs/catchdown-perp-v004.json ;;
   signals-daily) exec node --import tsx apps/trend/src/main.ts live ;;
+  signals-daily-v006) exec node --import tsx apps/trend/src/main.ts live --plan configs/trend-plan-v006.json ;;
   costs)        exec node --import tsx apps/costs/src/main.ts sample --interval-seconds 300 ;;
   context)      exec node --import tsx apps/context/src/main.ts --watch ;;
   *) echo "unknown service $1" >&2; exit 2 ;;

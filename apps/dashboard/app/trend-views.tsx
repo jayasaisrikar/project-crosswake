@@ -1,4 +1,5 @@
 'use client';
+import { useState } from 'react';
 import { Bell, BellOff, CircleAlert, TrendingUp } from 'lucide-react';
 import {
   Card,
@@ -104,13 +105,29 @@ export function TrendSignals({
     >
       <Alert role="note">
         <CircleAlert aria-hidden />
-        <AlertTitle>Promising in testing, now being proven live.</AlertTitle>
-        <AlertDescription>
-          On 2025–2026 data it had never seen: {bt.trades} trades,{' '}
-          {pct(bt.winRate)} wins, {pctBps(bt.netExpectancyBps)} per trade after
-          fees. That result is not yet statistically certain. Paper signals
-          only, not trade advice. Execution is disabled.
-        </AlertDescription>
+        {bt.trades ? (
+          <>
+            <AlertTitle>
+              Promising in testing, now being proven live.
+            </AlertTitle>
+            <AlertDescription>
+              On 2025–2026 data it had never seen: {bt.trades} trades,{' '}
+              {pct(bt.winRate)} wins, {pctBps(bt.netExpectancyBps)} per trade
+              after fees. That result is not yet statistically certain. Paper
+              signals only, not trade advice. Execution is disabled.
+            </AlertDescription>
+          </>
+        ) : (
+          <>
+            <AlertTitle>New universe, judged on live results only.</AlertTitle>
+            <AlertDescription>
+              Same rules as v005 with HYPE and other newer coins added. Most
+              have too little history for a fair backtest, so only live paper
+              trades from {day(data.forwardStart)} count. Paper signals only,
+              not trade advice. Execution is disabled.
+            </AlertDescription>
+          </>
+        )}
       </Alert>
 
       <div className="flex flex-wrap items-center gap-2">
@@ -207,12 +224,14 @@ export function TrendSignals({
           <Stat
             term="Win rate"
             value={pct(s.winRate)}
-            hint={`Backtest ${pct(bt.winRate)}`}
+            hint={bt.trades ? `Backtest ${pct(bt.winRate)}` : undefined}
           />
           <Stat
             term="Per trade, after fees"
             value={pctBps(s.netExpectancyBps)}
-            hint={`Backtest ${pctBps(bt.netExpectancyBps)}`}
+            hint={
+              bt.trades ? `Backtest ${pctBps(bt.netExpectancyBps)}` : undefined
+            }
           />
           <Stat term="Open positions" value={String(data.open?.length ?? 0)} />
         </dl>
@@ -312,5 +331,49 @@ export function TrendSignals({
         </CardContent>
       </Card>
     </section>
+  );
+}
+
+/** Switches between the frozen daily-trend plans that report live state. */
+export function TrendBoard({
+  data,
+  onInspect,
+}: {
+  data: Dict | null;
+  onInspect: (x: unknown) => void;
+}) {
+  const list: Dict[] = data?.strategies ?? [];
+  const [chosen, setChosen] = useState<string | null>(null);
+  const current = list.find((s) => s.version === chosen) ?? list[0] ?? null;
+  return (
+    <div className="grid min-w-0 gap-6">
+      {list.length > 1 && (
+        <div
+          role="tablist"
+          aria-label="Strategy version"
+          className="flex flex-wrap gap-2"
+        >
+          {list.map((s) => (
+            <button
+              key={s.version}
+              role="tab"
+              aria-selected={s.version === current?.version}
+              onClick={() => setChosen(s.version)}
+              className={cn(
+                'min-h-9 rounded-full border px-4 text-sm',
+                s.version === current?.version
+                  ? 'border-primary bg-primary text-primary-foreground'
+                  : 'border-border hover:bg-card',
+              )}
+            >
+              {s.version === 'trend-daily-v005'
+                ? 'v005 · core 28 coins'
+                : `v006 · + HYPE & new coins (${s.universe})`}
+            </button>
+          ))}
+        </div>
+      )}
+      <TrendSignals data={current} onInspect={onInspect} />
+    </div>
   );
 }
