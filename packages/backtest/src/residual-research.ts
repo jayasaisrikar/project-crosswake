@@ -6,6 +6,7 @@ import { metrics } from './index.js';
 import { hash } from './research-plan.js';
 import { residualReport, runResidual, type ResidualTrade } from './residual.js';
 import type { BarStore } from '../../quant/src/residual.js';
+import type { FundingEvent } from '../../market-data/src/klines.js';
 import {
   ResidualEngine,
   configHash,
@@ -34,6 +35,8 @@ export const residualPlanSchema = z
     baseConfig: z.string(),
     grid: z.partialRecord(tunable, z.array(z.unknown()).min(1)),
     dataStart: clock,
+    /** Optional first unseen test clock, e.g. to keep tests after a discovery period. */
+    firstTestStart: clock.optional(),
     walkForwardEnd: clock,
     selectionMs: z.number().int().positive().multipleOf(86400000),
     testMs: z.number().int().positive().multipleOf(86400000),
@@ -139,6 +142,7 @@ export function residualWalkForward(
   store: BarStore,
   plan: ResidualPlan,
   base: unknown,
+  funding?: Map<string, FundingEvent[]>,
 ) {
   const end = Date.parse(plan.walkForwardEnd);
   if (store.closeTimeAt(store.length - 1) > end)
@@ -150,12 +154,24 @@ export function residualWalkForward(
     evalStart = Date.parse(plan.dataStart) + warmup * 60000,
     runs = variants.map((variant) => ({
       variant,
-      ...runResidual(store, variant.config, { startTs: evalStart, endTs: end }),
+      ...runResidual(
+        store,
+        variant.config,
+        { startTs: evalStart, endTs: end },
+        funding,
+      ),
     }));
   const folds = [],
     oos: ResidualTrade[] = [];
+  const firstTest = plan.firstTestStart
+    ? Date.parse(plan.firstTestStart)
+    : evalStart + plan.selectionMs;
+  if (firstTest - plan.selectionMs < evalStart)
+    throw new Error(
+      'First test leaves no complete selection window after warm-up',
+    );
   for (
-    let testStart = evalStart + plan.selectionMs;
+    let testStart = firstTest;
     testStart + plan.testMs <= end;
     testStart += plan.testMs
   ) {
@@ -228,6 +244,7 @@ export async function residualHoldout(
     ResidualWalkForwardReport,
     'planHash' | 'gate' | 'finalSelection'
   >,
+  funding?: Map<string, FundingEvent[]>,
 ) {
   const expected = planHash(plan, base);
   if (walkForward.planHash !== expected)
@@ -274,7 +291,12 @@ export async function residualHoldout(
       2,
     ),
   );
-  const run = runResidual(store, chosen.config, { startTs: start, endTs: end }),
+  const run = runResidual(
+      store,
+      chosen.config,
+      { startTs: start, endTs: end },
+      funding,
+    ),
     trades = run.trades.filter((t) => t.executable);
   return {
     planHash: expected,

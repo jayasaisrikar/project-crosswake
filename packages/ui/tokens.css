@@ -1,0 +1,42 @@
+/* Hallmark · pre-emit critique: P4 H5 E4 S5 R5 V4
+ * genre: modern-minimal · design-system: design.md · tone: calm research
+ */
+:root {
+  --paper: oklch(97.5% 0.006 90);
+  --surface: oklch(99.4% 0.003 90);
+  --surface-muted: oklch(95.5% 0.007 90);
+  --ink: oklch(25% 0.018 260);
+  --ink-secondary: oklch(48% 0.013 260);
+  --rule: oklch(88% 0.008 90);
+  --signal: oklch(51% 0.19 259);
+  --signal-soft: oklch(95% 0.025 259);
+  --signal-ink: oklch(99% 0.003 259);
+  --success: oklch(43% 0.1 157);
+  --success-soft: oklch(95% 0.018 157);
+  --warning: oklch(46% 0.1 75);
+  --warning-soft: oklch(96% 0.025 75);
+  --error: oklch(48% 0.16 25);
+  --error-soft: oklch(96% 0.018 25);
+  --dark-surface: oklch(25% 0.018 260);
+  --dark-ink: oklch(97.5% 0.006 90);
+  --shadow-panel: 0 3px 12px oklch(25% 0.018 260 / 0.035);
+  --shadow-dialog: 0 20px 60px oklch(25% 0.018 260 / 0.15);
+  --font-heading: 'Space Grotesk', sans-serif;
+  --font-display: var(--font-heading);
+  --font-body: 'Inter', sans-serif;
+  --font-record: 'JetBrains Mono', monospace;
+  --space-2xs: 0.25rem;
+  --space-xs: 0.5rem;
+  --space-sm: 0.75rem;
+  --space-md: 1rem;
+  --space-lg: 1.5rem;
+  --space-xl: 2rem;
+  --space-2xl: 3rem;
+  --space-3xl: 5rem;
+  --radius: 0.75rem;
+  --radius-panel: 1rem;
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --dur-short: 160ms;
+  --z-sticky: 20;
+  --z-modal: 50;
+}

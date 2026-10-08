@@ -184,7 +184,8 @@ export function costStress(
               t.grossReturnBps -
               t.feeBps * s.feeMultiplier -
               t.slippageBps * s.slippageMultiplier -
-              s.extraRoundTripBps,
+              s.extraRoundTripBps +
+              (t.fundingBps ?? 0),
           })),
         ),
       };

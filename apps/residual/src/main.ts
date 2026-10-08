@@ -1,3 +1,5 @@
+import { existsSync } from 'node:fs';
+if (existsSync('.env.local')) process.loadEnvFile('.env.local');
 import { parseArgs } from 'node:util';
 import {
   appendFile,
@@ -10,19 +12,26 @@ import { join, resolve } from 'node:path';
 import unzipper from 'unzipper';
 import { downloadArchive } from '../../../packages/market-data/src/archive.js';
 import {
+  fetchFunding,
   fetchKlines,
+  fundingArchiveUrl,
   klineArchiveUrl,
   monthRange,
+  parseFundingCsv,
   parseKlineCsv,
   periodBounds,
+  type FundingEvent,
 } from '../../../packages/market-data/src/klines.js';
 import { dateRange } from '../../../packages/market-data/src/archive.js';
 import {
   barDir,
   loadBarStore,
+  loadFunding,
   readBarManifest,
   writeBarPeriod,
+  writeFundingPeriod,
 } from '../../../packages/storage/src/bars.js';
+import { deliver, sinksFromEnv } from '../../../packages/notify/src/index.js';
 import { BarStore, MINUTE } from '../../../packages/quant/src/residual.js';
 import {
   ResidualEngine,
@@ -79,6 +88,84 @@ async function loadPlan(path: string) {
   return { plan, base };
 }
 
+const marketOf = (c: ResidualConfig) => c.market ?? 'spot';
+/** Verified bars (and funding for perps) for [startTs, endTs). */
+async function loadData(c: ResidualConfig, startTs: number, endTs: number) {
+  const bars = await loadBarStore(root, c.symbols, startTs, endTs, marketOf(c));
+  if (marketOf(c) === 'spot') return { ...bars, funding: undefined };
+  const funding = await loadFunding(root, c.symbols, startTs, endTs);
+  for (const symbol of c.symbols) {
+    const events = funding.book.get(symbol) ?? [];
+    // Funding settles every 8h or faster; a longer silence means missing data, not zero cost.
+    const edges = [startTs, ...events.map((e) => e.ts), endTs];
+    if (edges.some((t, i) => i > 0 && t - edges[i - 1]! > 9 * 3600000))
+      throw new Error(`Funding history for ${symbol} has gaps in range`);
+  }
+  return {
+    ...bars,
+    funding: funding.book,
+    provenance: [
+      ...bars.provenance,
+      ...funding.provenance.map((p) => ({
+        ...p,
+        period: `funding:${p.period}`,
+      })),
+    ],
+  };
+}
+
+async function importFunding(
+  symbols: string[],
+  months: string[],
+  days: string[],
+) {
+  for (const symbol of symbols) {
+    for (const month of months) {
+      const url = fundingArchiveUrl(symbol, month),
+        dir = join(root, 'archives', 'funding', symbol),
+        dest = join(dir, url.split('/').at(-1)!);
+      await mkdir(dir, { recursive: true });
+      let sha256: string;
+      try {
+        sha256 = await downloadArchive(url, dest);
+      } catch (error) {
+        console.log({
+          symbol,
+          month,
+          funding: 'unavailable',
+          error: String(error),
+        });
+        continue;
+      }
+      const zip = await unzipper.Open.file(dest),
+        entry = zip.files.find((f) => f.path.endsWith('.csv'));
+      if (!entry) throw new Error(`No CSV in ${dest}`);
+      const { start, end } = periodBounds(month),
+        events = parseFundingCsv(
+          (await entry.buffer()).toString('utf8'),
+          start,
+          end,
+        );
+      await writeFundingPeriod(root, symbol, month, events, { url, sha256 });
+      console.log({ symbol, month, funding: events.length });
+    }
+    if (days.length) {
+      // Daily funding archives do not exist; recent days come from REST and carry no published checksum.
+      const start = periodBounds(days[0]!).start,
+        end = periodBounds(days.at(-1)!).end,
+        events = await fetchFunding(symbol, start, end);
+      if (events.length) {
+        const period = `${days[0]}_${days.at(-1)}`;
+        await writeFundingPeriod(root, symbol, period, events, {
+          url: 'https://fapi.binance.com/fapi/v1/fundingRate',
+          sha256: null,
+        });
+        console.log({ symbol, period, funding: events.length });
+      }
+    }
+  }
+}
+
 async function history() {
   const config = await loadConfig(values.config!),
     symbols = values.symbols?.split(',') ?? config.symbols;
@@ -92,14 +179,20 @@ async function history() {
     throw new Error(
       'Usage: residual:history -- --from YYYY-MM [--to YYYY-MM] [--days YYYY-MM-DD:YYYY-MM-DD] [--symbols A,B]',
     );
-  const jobs = symbols.flatMap((symbol) =>
-    periods.map((period) => ({ symbol, period })),
-  );
+  const market = marketOf(config),
+    jobs = symbols.flatMap((symbol) =>
+      periods.map((period) => ({ symbol, period })),
+    );
   const worker = async () => {
     for (let job = jobs.shift(); job; job = jobs.shift()) {
       const { symbol, period } = job,
-        url = klineArchiveUrl(symbol, period),
-        dir = join(root, 'archives', 'klines', symbol),
+        url = klineArchiveUrl(symbol, period, market),
+        dir = join(
+          root,
+          'archives',
+          market === 'spot' ? 'klines' : `klines-${market}`,
+          symbol,
+        ),
         dest = join(dir, url.split('/').at(-1)!);
       await mkdir(dir, { recursive: true });
       let sha256: string;
@@ -115,7 +208,7 @@ async function history() {
         continue;
       }
       const existing = await readBarManifest(
-        join(barDir(root, symbol), `period=${period}.parquet`),
+        join(barDir(root, symbol, market), `period=${period}.parquet`),
       );
       if (existing?.source.sha256 === sha256) {
         console.log({ symbol, period, status: 'already_imported' });
@@ -130,14 +223,24 @@ async function history() {
           start,
           end,
         );
-      const manifest = await writeBarPeriod(root, symbol, period, bars, {
-        url,
-        sha256,
-      });
+      const manifest = await writeBarPeriod(
+        root,
+        symbol,
+        period,
+        bars,
+        { url, sha256 },
+        market,
+      );
       console.log({ symbol, period, rows: manifest.rows });
     }
   };
   await Promise.all(Array.from({ length: 4 }, worker));
+  if (market === 'usdm')
+    await importFunding(
+      symbols,
+      periods.filter((p) => p.length === 7),
+      periods.filter((p) => p.length === 10),
+    );
 }
 
 async function backtest() {
@@ -147,13 +250,12 @@ async function backtest() {
   if (!Number.isFinite(startTs) || !Number.isFinite(endTs))
     throw new Error('Supply --from and --to as UTC times');
   const warmup = new ResidualEngine(config).warmupBars * MINUTE,
-    { store, datasetHash, provenance } = await loadBarStore(
-      root,
-      config.symbols,
+    { store, datasetHash, provenance, funding } = await loadData(
+      config,
       startTs - warmup,
       endTs,
     ),
-    run = runResidual(store, config, { startTs, endTs }),
+    run = runResidual(store, config, { startTs, endTs }, funding),
     output = await freshDir(
       values.output ??
         join(root, 'residual', 'backtests', `${config.version}-${Date.now()}`),
@@ -217,9 +319,8 @@ async function study() {
       ),
     ),
     warmup = Math.max(...grid.map((c) => new ResidualEngine(c).warmupBars)),
-    { store, datasetHash } = await loadBarStore(
-      root,
-      config.symbols,
+    { store, datasetHash } = await loadData(
+      config,
       startTs - warmup * MINUTE,
       endTs,
     ),
@@ -260,13 +361,12 @@ async function study() {
 async function walkForward() {
   if (!values.plan) throw new Error('Supply --plan');
   const { plan, base } = await loadPlan(values.plan),
-    { store, datasetHash, provenance } = await loadBarStore(
-      root,
-      (base as ResidualConfig).symbols,
+    { store, datasetHash, provenance, funding } = await loadData(
+      residualSchema.parse(base),
       Date.parse(plan.dataStart),
       Date.parse(plan.walkForwardEnd),
     ),
-    report = residualWalkForward(store, plan, base),
+    report = residualWalkForward(store, plan, base, funding),
     output = await freshDir(
       values.output ??
         join(root, 'residual', 'walk-forward', `${plan.id}-${Date.now()}`),
@@ -301,13 +401,12 @@ async function holdout() {
       new ResidualEngine(
         residualSchema.parse(wf.finalSelection?.config ?? base),
       ).warmupBars * MINUTE,
-    { store, datasetHash } = await loadBarStore(
-      root,
-      (base as ResidualConfig).symbols,
+    { store, datasetHash, funding } = await loadData(
+      residualSchema.parse(base),
       Date.parse(plan.holdout.start) - warmup,
       Date.parse(plan.holdout.end),
     ),
-    result = await residualHoldout(root, store, plan, base, wf),
+    result = await residualHoldout(root, store, plan, base, wf, funding),
     output = await freshDir(
       values.output ??
         join(root, 'residual', 'holdout', `${plan.id}-${Date.now()}`),
@@ -325,7 +424,14 @@ async function holdout() {
 async function live() {
   const config = await loadConfig(values.config!),
     engine = new ResidualEngine(config),
-    sim = new ResidualSimulator(engine),
+    market = marketOf(config),
+    funding = market === 'usdm' ? new Map<string, FundingEvent[]>() : undefined,
+    sim = new ResidualSimulator(
+      engine,
+      { startTs: -Infinity, endTs: Infinity },
+      funding,
+    ),
+    { sinks, channels } = sinksFromEnv(process.env),
     out =
       values.output ??
       join(
@@ -341,29 +447,57 @@ async function live() {
     startTs = minuteNow() - (engine.warmupBars + 1440) * MINUTE,
     store = new BarStore(startTs, config.symbols, engine.warmupBars + 4320),
     lastFetched = new Map<string, number>();
-  async function fetchNew() {
-    const end = minuteNow();
+  /** Runs tasks with bounded concurrency so bootstraps stay inside exchange rate limits. */
+  async function limited<T>(
+    items: T[],
+    task: (item: T) => Promise<void>,
+    width = 3,
+  ) {
+    const queue = [...items];
     await Promise.all(
-      config.symbols.map(async (symbol) => {
-        const from = (lastFetched.get(symbol) ?? startTs - MINUTE) + MINUTE;
-        if (from >= end) return;
-        try {
-          for (const bar of await fetchKlines(symbol, from, end)) {
-            store.set(symbol, bar);
-            lastFetched.set(symbol, bar.ts);
-          }
-        } catch (error) {
-          console.error(
-            `[${iso(Date.now())}] ${symbol} fetch failed: ${error}`,
-          );
-        }
+      Array.from({ length: width }, async () => {
+        for (let item = queue.shift(); item !== undefined; item = queue.shift())
+          await task(item);
       }),
     );
   }
+  async function fetchNew() {
+    const end = minuteNow();
+    await limited(config.symbols, async (symbol) => {
+      const from = (lastFetched.get(symbol) ?? startTs - MINUTE) + MINUTE;
+      if (from >= end) return;
+      try {
+        for (const bar of await fetchKlines(symbol, from, end, { market })) {
+          store.set(symbol, bar);
+          lastFetched.set(symbol, bar.ts);
+        }
+      } catch (error) {
+        console.error(`[${iso(Date.now())}] ${symbol} fetch failed: ${error}`);
+      }
+    });
+  }
+  let fundingFetchedAt = 0;
+  async function refreshFunding() {
+    if (!funding || Date.now() - fundingFetchedAt < 600000) return;
+    await limited(config.symbols, async (symbol) => {
+      try {
+        funding.set(
+          symbol,
+          await fetchFunding(symbol, startTs, Date.now() + 1),
+        );
+      } catch (error) {
+        console.error(
+          `[${iso(Date.now())}] ${symbol} funding fetch failed: ${error}`,
+        );
+      }
+    });
+    fundingFetchedAt = Date.now();
+  }
   console.log(
-    `Bootstrapping ${config.symbols.length} symbols from ${iso(startTs)}…`,
+    `Bootstrapping ${config.symbols.length} ${market} symbols from ${iso(startTs)}; channels: ${channels.map((c) => `${c.name}=${c.enabled ? 'on' : 'off'}`).join(', ')}`,
   );
   await fetchNew();
+  await refreshFunding();
   let saved: { lastCloseTs: number } | null = null;
   try {
     saved = await readJson(statePath);
@@ -411,8 +545,25 @@ async function live() {
         console.log(
           `[${iso(t.exitTs)}] paper exit ${t.side} ${t.symbol} ${t.exitReason} net ${t.netReturnBps.toFixed(1)}bps`,
         );
-      await record('signals.jsonl', step.queued);
+      await record(
+        'signals.jsonl',
+        step.queued.map((s) => ({
+          ...s,
+          publishedAt: Date.now(),
+          message: describeSignal(s, config),
+        })),
+      );
       await record('trades.jsonl', step.closed);
+      for (const s of step.queued)
+        await record(
+          'deliveries.jsonl',
+          await deliver(sinks, {
+            kind: 'signal',
+            id: s.id,
+            at: s.decisionTs,
+            text: describeSignal(s, config),
+          }),
+        );
       await saveState();
     }
     const m = residualReport(sim.trades).executable;
@@ -421,10 +572,21 @@ async function live() {
       JSON.stringify(
         {
           at: Date.now(),
+          version: config.version,
+          configHash: engine.configHash,
+          market,
+          instrument: config.instrument,
+          channels,
           lastStepTs: sim.state.lastCloseTs,
           open: sim.positions.map((p: OpenPosition) => ({
             id: p.signal.id,
+            symbol: p.signal.symbol,
+            side: p.signal.side,
             entryTs: p.entryTs,
+            entryPrice: p.entryPrice,
+            targetBps: p.target * 1e4,
+            stopBps: p.stop * 1e4,
+            exitByTs: p.entryTs + config.holdMs,
           })),
           funnel: engine.diagnostics.funnel,
           rejections: sim.rejections,
@@ -440,6 +602,7 @@ async function live() {
     await new Promise((r) => setTimeout(r, Math.max(1000, wait)));
     if (stop) break;
     await fetchNew();
+    await refreshFunding();
   }
   if (values.once) {
     const i = store.length - 1,

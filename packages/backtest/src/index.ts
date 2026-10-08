@@ -15,6 +15,8 @@ export interface PaperTrade {
   maeBps: number;
   mfeBps: number;
   observedGapMs?: number;
+  /** Funding received (+) or paid (-) while held; already included in netReturnBps. */
+  fundingBps?: number;
   costModel?: string;
   exitReason: 'target' | 'stop' | 'time';
 }

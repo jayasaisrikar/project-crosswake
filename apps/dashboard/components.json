@@ -17,5 +17,9 @@
     "lib": "@/lib",
     "hooks": "@/hooks"
   },
-  "iconLibrary": "lucide"
+  "iconLibrary": "lucide",
+  "registries": {
+    "@watermelon": "https://registry.watermelon.sh/r/{name}.json",
+    "@cult": "https://www.cult-ui.com/r/{name}.json"
+  }
 }

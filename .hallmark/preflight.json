@@ -1,7 +1,7 @@
 {
-  "date": "2026-10-05",
-  "fonts": "none",
-  "palette": "none",
-  "motion": "cut",
-  "framework": "Next.js added for planned evidence dashboard"
+  "date": "2026-10-08",
+  "fonts": ["Space Grotesk", "Inter", "JetBrains Mono"],
+  "palette": "warm pale surfaces, ink, existing blue brand",
+  "motion": "brief state transitions; reduced motion supported",
+  "framework": "two Next.js frontends; shared CSS tokens"
 }

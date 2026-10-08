@@ -15,6 +15,8 @@ export const residualSchema = z
     symbols: z.array(symbolSchema).min(2).max(100),
     /** outright: hold the alt alone. hedged: long/short the alt against beta x BTC (needs a short leg, e.g. perps). */
     instrument: z.enum(['outright', 'hedged']),
+    /** Price and cost venue. usdm (perpetuals) allows shorts and charges funding. Absent means spot. */
+    market: z.enum(['spot', 'usdm']).optional(),
     sides: z.array(z.enum(['LONG', 'SHORT'])).min(1),
     executableSides: z.array(z.enum(['LONG', 'SHORT'])),
     evaluateEveryMs: minutes,
@@ -59,7 +61,11 @@ export const residualSchema = z
       issue('Universe must contain BTC and unique symbols');
     if (c.executableSides.some((s) => !c.sides.includes(s)))
       issue('Executable sides must be generated sides');
-    if (c.instrument === 'outright' && c.executableSides.includes('SHORT'))
+    if (
+      c.instrument === 'outright' &&
+      (c.market ?? 'spot') === 'spot' &&
+      c.executableSides.includes('SHORT')
+    )
       issue('Outright spot positions cannot be executable shorts');
     for (const [name, value] of [
       ['lookbackMs', c.lookbackMs],

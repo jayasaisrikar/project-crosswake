@@ -84,3 +84,13 @@ The data covers 1-minute Binance Spot klines for BTC plus 14 alts (ETH, SOL, BNB
 2. The "catch-down" short (alt held up while BTC fell, 4h horizon, executed on perps) can be frozen now as a new plan version. Test it only on data it was not discovered on: the sealed 1 Aug – 1 Oct 2026 window and prospective live paper via `residual:live` with a hedged or short-enabled config.
 3. Use perp klines and funding for any short or hedged evaluation. Spot prices understate perp basis and funding costs.
 4. Keep the expectancy gate. A 30–50% win rate is only useful when the net payoff ratio clears `1/winRate − 1`.
+
+## Follow-up, 8 October 2026: catch-down short (v004), delivery and operations
+
+**Catch-down short.** `configs/catchdown-perp-v004.json` and `configs/catchdown-plan-v004.json` were committed as a pre-registration (`f42bc39`) before any perp data or Aug–Oct outcomes were loaded. The configuration is a short on USDⓈ-M perps when an alt held up while BTC fell, with a 4h lookback, a 4h hold, z ≥ 1.5 and settled funding charged. Tested on unseen data from 1 Aug to 8 Oct 2026, it produced 349 trades with a 40.7% win rate and **−45.9 bps per trade**. The 95% event-cluster interval was [−71, −18] bps, and the gate failed. The in-sample pattern did not survive. The prospective holdout (8 Oct – 8 Nov) stays sealed.
+
+**Measured costs.** `pnpm costs:sample` / `costs:report` sample REST order books for spot and perps. At $1k–$10k per order, round-trip impact is about 0–9 bps for most coins; ADA's spread is 4 bps and DOT spot's is 9 bps. The assumed backtest costs were realistic. Fees dominate, and the strategies failed on gross edge, not on costs.
+
+**Delivery.** Live signals feed the dashboard at `/signals`, with a live feed and a strategy lab. Telegram (`packages/notify`) is implemented and tested against mocks, but stays off unless `TELEGRAM_ENABLED=true` and both `TELEGRAM_BOT_TOKEN` and `TELEGRAM_CHAT_ID` are set. Users can report their own fill for a signal from the dashboard, which measures real reaction time and slippage. This is the evidence API's only write route and it validates input strictly.
+
+**Operations.** `pnpm services:install|status|logs|restart|uninstall` manages launchd agents for keep-awake, the evidence API, both live signal engines, cost sampling and altFINS context. The market collector is not managed this way, because its restart replays the full journal chain. Late-event bursts were traced upstream: during a burst, exchange-to-receipt latency rises to 2–8 seconds and trade counts collapse, while local bucket closing stays on time. Disk has 34 GB free, and the raw journal grows about 1.7 GB/day.

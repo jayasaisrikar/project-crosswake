@@ -34,7 +34,14 @@
     "residual:walk-forward": "tsx apps/residual/src/main.ts walk-forward",
     "residual:holdout": "tsx apps/residual/src/main.ts holdout",
     "residual:live": "tsx apps/residual/src/main.ts live",
-    "residual:study": "tsx apps/residual/src/main.ts study"
+    "residual:study": "tsx apps/residual/src/main.ts study",
+    "costs:sample": "tsx apps/costs/src/main.ts sample",
+    "costs:report": "tsx apps/costs/src/main.ts report",
+    "services:install": "scripts/services.sh install",
+    "services:uninstall": "scripts/services.sh uninstall",
+    "services:status": "scripts/services.sh status",
+    "services:restart": "scripts/services.sh restart",
+    "services:logs": "scripts/services.sh logs"
   },
   "dependencies": {
     "@ai-sdk/openai": "^4.0.86",

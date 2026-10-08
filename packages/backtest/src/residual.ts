@@ -2,6 +2,7 @@ import { metrics, type PaperTrade } from './index.js';
 import { riskReport } from './reports.js';
 import { costStress } from './robustness.js';
 import { MINUTE, type BarStore } from '../../quant/src/residual.js';
+import type { FundingEvent } from '../../market-data/src/klines.js';
 import {
   ResidualEngine,
   roundTripCostBps,
@@ -80,7 +81,18 @@ export class ResidualSimulator {
       startTs: -Infinity,
       endTs: Infinity,
     },
-  ) {}
+    /** Settled funding per symbol; required for usdm. Live mode may append to it. */
+    readonly funding?: Map<string, FundingEvent[]>,
+  ) {
+    if (engine.config.market === 'usdm' && !funding)
+      throw new Error('Perpetual simulation requires funding history');
+  }
+  private fundingRate(symbol: string, from: number, to: number) {
+    let total = 0;
+    for (const e of this.funding?.get(symbol) ?? [])
+      if (e.ts > from && e.ts <= to) total += e.rate;
+    return total;
+  }
   private reject(reason: string) {
     this.rejections[reason] = (this.rejections[reason] ?? 0) + 1;
   }
@@ -256,7 +268,18 @@ export class ResidualSimulator {
             : price,
         legs = hedged ? 1 + Math.abs(s.beta) : 1,
         feeBps = 2 * c.feeBpsPerSide * legs,
-        slippageBps = roundTripCostBps(c, s.beta) - feeBps;
+        slippageBps = roundTripCostBps(c, s.beta) - feeBps,
+        // Longs pay positive funding and shorts receive it; the hedge leg is the opposite side, sized by beta.
+        fundingBps =
+          c.market === 'usdm'
+            ? 1e4 *
+              (-direction * this.fundingRate(s.symbol, p.entryTs, now) +
+                (hedged
+                  ? direction *
+                    s.beta *
+                    this.fundingRate('BTCUSDT', p.entryTs, now)
+                  : 0))
+            : 0;
       closed.push({
         signalId: s.id,
         btcImpulseId: s.eventId,
@@ -268,7 +291,8 @@ export class ResidualSimulator {
         grossReturnBps: gross,
         feeBps,
         slippageBps,
-        netReturnBps: gross - feeBps - slippageBps,
+        netReturnBps: gross - feeBps - slippageBps + fundingBps,
+        fundingBps,
         maeBps: p.maeBps,
         mfeBps: p.mfeBps,
         observedGapMs: p.observedGapMs,
@@ -303,9 +327,10 @@ export function runResidual(
   store: BarStore,
   config: ResidualConfig,
   range: { startTs: number; endTs: number },
+  funding?: Map<string, FundingEvent[]>,
 ) {
   const engine = new ResidualEngine(config),
-    sim = new ResidualSimulator(engine, range),
+    sim = new ResidualSimulator(engine, range, funding),
     first = Math.max(
       0,
       store.indexClosingAt(Math.max(range.startTs, store.closeTimeAt(0))),
@@ -341,7 +366,8 @@ export function residualReport(
       netReturnBps:
         t.hedgedGrossBps -
         (t.feeBps + t.slippageBps) *
-          (t.instrument === 'hedged' ? 1 : 1 + Math.abs(t.beta)),
+          (t.instrument === 'hedged' ? 1 : 1 + Math.abs(t.beta)) +
+        (t.instrument === 'hedged' ? (t.fundingBps ?? 0) : 0),
     }));
   return {
     executable: { ...metrics(executable), exitReasons: exits(executable) },
@@ -359,7 +385,7 @@ export function residualReport(
     limitations: [
       'Kline closes only: no bid/ask, depth or queue data; spread is an assumed constant',
       'Stops fill at the observed one-minute close; targets fill exactly at target',
-      'Hedged results use spot prices for both legs and ignore funding and borrow',
+      'Spot configs price both hedge legs on spot and ignore funding and borrow; usdm configs use perp closes and settled funding',
       'Equal-notional trade units, not a capital-weighted portfolio',
     ],
   };
