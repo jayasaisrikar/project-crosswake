@@ -1,0 +1,28 @@
+{
+  "version": "trend-daily-v005",
+  "frozenAt": "2026-10-08",
+  "hypothesis": "Daily Donchian breakouts on liquid alts, taken only while BTC is above its 100-day SMA, have positive net expectancy after costs with a 30-50% win rate (few large winners).",
+  "rulesChosenFrom": "Standard trend-following literature (Donchian 20/10, 100d regime). Fixed before any daily data was fetched; no parameter search.",
+  "market": "spot",
+  "interval": "1d",
+  "regimeSymbol": "BTCUSDT",
+  "symbols": ["ETHUSDT","BNBUSDT","XRPUSDT","ADAUSDT","DOGEUSDT","SOLUSDT","DOTUSDT","LINKUSDT","LTCUSDT","BCHUSDT","AVAXUSDT","UNIUSDT","ATOMUSDT","ETCUSDT","XLMUSDT","TRXUSDT","EOSUSDT","FILUSDT","VETUSDT","THETAUSDT","ALGOUSDT","XTZUSDT","NEOUSDT","ZECUSDT","DASHUSDT","IOTAUSDT","AAVEUSDT","MATICUSDT","NEARUSDT","BTCUSDT"],
+  "survivorshipNote": "Includes pairs that were later delisted or renamed (e.g. MATICUSDT); their history simply ends.",
+  "entry": { "breakoutDays": 20, "regimeSmaDays": 100, "requireRegime": true },
+  "exit": { "breakdownDays": 10, "exitOnRegimeOff": true },
+  "execution": "Signal on the daily close (00:00 UTC); fill at the next day's open. One position per symbol, equal size. Long only.",
+  "costBpsRoundTrip": 30,
+  "periods": {
+    "development": ["2020-01-01", "2025-01-01"],
+    "test": ["2025-01-01", "2026-10-01"]
+  },
+  "acceptance": {
+    "period": "test",
+    "minClosedTrades": 200,
+    "winRateRange": [0.30, 0.50],
+    "netExpectancyBpsCi95LowerAbove": 0,
+    "bootstrap": "by entry week, 10000 resamples, seed 5",
+    "profitFactorMin": 1.2
+  },
+  "noRetuning": "If the test fails, the result is recorded as a null. Any new variant gets a new version and a new unseen period (live paper from freeze date)."
+}
