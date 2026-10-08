@@ -33,9 +33,23 @@ All figures are after fees.
 
 The rules were locked before testing and never adjusted to fit the results. On 2025–2026 data the strategy had never seen, it stayed profitable on average, at **+1.5% per trade**. It is now being tracked live to confirm the edge holds up in real time.
 
+## What's running live
+
+Every strategy below runs around the clock on our server as paper trading: signals are recorded and scored, but no real orders are placed.
+
+| Version | What it trades | Why it's running |
+|---|---|---|
+| **v005** | The daily trend strategy above, on 28 established coins | Live confirmation of the tested edge, from 1 Oct 2026 |
+| **v006** | The same rules, unchanged, on 36 coins including HYPE and other newer listings | More coins means more signals. Most new coins lack enough history to test, so it's judged on live results only, from 9 Oct 2026 |
+| **v007** | BTC, ETH and SOL futures: 15-minute RSI rebounds taken in the direction of the 4-hour trend | A faster strategy that **failed** its test (see below). It runs for observation only |
+
 ## How we got here
 
-We tested and rejected three faster strategies before this one, including signals that tried to profit from altcoins lagging Bitcoin by seconds or hours. They either moved too fast for a person to act on or lost money after fees. Discarding ideas that don't hold up is the core of the product.
+We tested and rejected three faster strategies before this one, including signals that tried to profit from altcoins lagging Bitcoin by seconds or hours. They either moved too fast for a person to act on or lost money after fees.
+
+In October 2026 we tested a fourth, a popular short-term futures setup (v007). Its rules were locked before any data was fetched. On 2025–2026 data it made only 32 trades in 21 months, won 28% of them, and lost 0.15× its risk per trade after fees and funding. It fails, and we say so.
+
+Discarding ideas that don't hold up is the core of the product.
 
 ## Status
 
@@ -43,7 +57,8 @@ We tested and rejected three faster strategies before this one, including signal
 |---|---|
 | Data collection and research engine | ✅ Live |
 | Signal dashboard | ✅ Live |
-| Strategy validation | 🟡 Live paper tracking |
+| 24/7 hosting | ✅ Live on our server |
+| Strategy validation | 🟡 Live paper tracking (v005, v006, v007) |
 | Telegram alerts | ⏳ Built, launching after validation |
 
 ---
