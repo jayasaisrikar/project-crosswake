@@ -1,0 +1,74 @@
+{
+  "version": "htf-rsi-v007",
+  "frozenAt": "2026-10-09",
+  "hypothesis": "On BTC/ETH/SOL perps, 15m RSI(14) re-crosses out of oversold/overbought taken only in the direction of a clean 4h EMA trend have positive net expectancy in R after costs and funding, with a 45-55% win rate from asymmetric payoff.",
+  "rulesChosenFrom": "User-supplied spec (HTF trend + LTF RSI mean-reversion), 9 Oct 2026. Every open choice in that spec is pinned below before any 15m/4h data was fetched; no parameter search.",
+  "market": "usdm",
+  "symbols": ["BTCUSDT", "ETHUSDT", "SOLUSDT"],
+  "filter": {
+    "interval": "4h",
+    "note": "4h bars aggregated from 15m bars (00/04/08/12/16/20 UTC). A 15m close at t sees only 4h bars that closed at or before t.",
+    "emaFast": 20,
+    "emaSlow": 50,
+    "minEmaSpreadFrac": 0.003,
+    "adxPeriod": 14,
+    "adxMin": 20,
+    "adxGate": "on (the spec's optional gate is enabled)"
+  },
+  "entry": {
+    "interval": "15m",
+    "rsiPeriod": 14,
+    "long": "filter bullish AND RSI[t-1] <= 30 AND RSI[t] > 30 AND close[t] > VWAP[t]",
+    "short": "filter bearish AND RSI[t-1] >= 70 AND RSI[t] < 70 AND close[t] < VWAP[t]",
+    "vwap": "Session VWAP of typical price (h+l+c)/3 weighted by base volume, reset at 00:00 UTC.",
+    "cooldownHours": 4,
+    "cooldownNote": "At most one signal per symbol per 4h, counted from the previous signal's candle, whether or not it was taken.",
+    "fundingMaxAgainst": 0.0005,
+    "fundingNote": "Uses the last settled funding rate at signal time. Skip long if rate > 0.0005; skip short if rate < -0.0005.",
+    "fill": "Next 15m bar's open. Skip if the open is already at or beyond the stop."
+  },
+  "stop": {
+    "atrPeriod": 14,
+    "atrMult": 1.2,
+    "swing": "Long: lowest low of the dip, i.e. the run of consecutive bars with RSI <= 30 ending at t-1, plus bar t. Short: mirror with highs and RSI >= 70.",
+    "choice": "Tighter (closer to price) of the swing stop and close -/+ 1.2*ATR(15m).",
+    "maxStopFrac": 0.012,
+    "rDistance": "|fill - stop|"
+  },
+  "sizing": {
+    "riskPerTradeFrac": 0.005,
+    "formula": "qty = equity * riskPerTradeFrac / |fill - stop|",
+    "maxConcurrent": 2,
+    "concurrencyNote": "Portfolio-wide across the three symbols. A signal arriving while 2 positions are open is logged as skipped (max_concurrent)."
+  },
+  "exits": {
+    "scaleOutR": 1.5,
+    "scaleOutFrac": 0.5,
+    "breakevenAfterR": 1.0,
+    "trail": "After the scale-out only: 2*ATR(14) chandelier from the highest high (long) / lowest low (short) since entry, ratcheting only in the trade's favour, never looser than breakeven.",
+    "timeStopBars": 16,
+    "timeStopNote": "If neither the stop nor 1.5R is hit within 16 bars after the fill, exit at the close of bar 16. Once 1.5R is hit the time stop no longer applies.",
+    "intrabar": "Conservative: when one bar touches both a stop and a target, the stop is assumed first. Stop moves (breakeven, trail) take effect from the next bar. Gaps fill at the bar open.",
+    "realizedR": "Weighted over both halves, minus costs and funding expressed in R."
+  },
+  "costs": {
+    "costBpsRoundTrip": 10,
+    "note": "Spec minimum is 5 bps; 10 bps (taker both sides) is used as the headline because Binance USD-M taker is ~5 bps per side. Funding accrued at each 8h settlement while open is charged too. A 5 bps result is reported for comparison only."
+  },
+  "periods": {
+    "development": ["2022-01-01", "2025-01-01"],
+    "test": ["2025-01-01", "2026-10-01"],
+    "liveFrom": "2026-10-09"
+  },
+  "acceptance": {
+    "period": "test",
+    "minClosedTrades": 200,
+    "winRateRange": [0.45, 0.55],
+    "netExpectancyRCi95LowerAbove": 0,
+    "bootstrap": "by entry week, 10000 resamples, seed 7",
+    "profitFactorMin": 1.2,
+    "winDefinition": "realized R > 0"
+  },
+  "noRetuning": "If the test fails it is recorded as a null and the live engine still runs as paper only for observation. Any changed rule is a new version with a new unseen period.",
+  "disclaimer": "Research and paper signals only, not financial advice. Execution stays disabled."
+}
