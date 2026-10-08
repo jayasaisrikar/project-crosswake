@@ -1,5 +1,5 @@
 export interface Notice {
-  kind: 'signal' | 'paper_exit';
+  kind: 'signal' | 'paper_exit' | 'analysis';
   id: string;
   /** When the underlying decision or exit happened. */
   at: number;

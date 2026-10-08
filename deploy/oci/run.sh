@@ -18,6 +18,7 @@ case "$1" in
   signals-daily) exec node --import tsx apps/trend/src/main.ts live ;;
   signals-daily-v006) exec node --import tsx apps/trend/src/main.ts live --plan configs/trend-plan-v006.json ;;
   signals-htf-v007) exec node --import tsx apps/htf/src/main.ts live ;;
+  digest) exec node --import tsx apps/digest/src/main.ts ;;
   costs)        exec node --import tsx apps/costs/src/main.ts sample --interval-seconds 300 ;;
   context)      exec node --import tsx apps/context/src/main.ts --watch ;;
   *) echo "unknown service $1" >&2; exit 2 ;;

@@ -48,6 +48,7 @@
     "htf:history": "tsx apps/htf/src/main.ts history",
     "htf:test": "tsx apps/htf/src/main.ts test",
     "htf:live": "tsx apps/htf/src/main.ts live",
+    "digest:live": "tsx apps/digest/src/main.ts",
     "data:retention": "tsx apps/retention/src/main.ts"
   },
   "dependencies": {
