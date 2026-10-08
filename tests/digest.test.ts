@@ -14,7 +14,7 @@ describe('digest', () => {
     expect(facts.lines[0]).toBe('BTC 81,731, 4h RSI 31.0 (soft), MACD below signal (momentum fading)');
     expect(facts.lines[1]).toContain('firm');
     expect(facts.breadth).toBe('1 of 2 coins have 4h RSI above 50');
-    expect(facts.engineLines[0]).toContain('v005: no open positions, BTC below its 100-day average');
+    expect(facts.engineLines[0]).toContain('v005: no open positions, daily BTC trend filter off');
   });
   it('the template passes its own check', () => {
     expect(checkDraft(templatePost(facts), facts)).toEqual({ ok: true });

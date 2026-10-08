@@ -38,17 +38,32 @@ export const fmtPrice = (p: number) =>
       ? p.toFixed(2)
       : p.toPrecision(4);
 const zone = (rsi: number) =>
-  rsi >= 70 ? 'overbought' : rsi <= 30 ? 'oversold' : rsi >= 55 ? 'firm' : rsi <= 45 ? 'soft' : 'neutral';
+  rsi >= 70
+    ? 'overbought'
+    : rsi <= 30
+      ? 'oversold'
+      : rsi >= 55
+        ? 'firm'
+        : rsi <= 45
+          ? 'soft'
+          : 'neutral';
 
 /** One line per coin plus our engines; every number a post may contain appears here. */
-export function factSheet(coins: CoinFact[], engines: EngineFact[], at: number) {
+export function factSheet(
+  coins: CoinFact[],
+  engines: EngineFact[],
+  at: number,
+) {
   const lines = coins
     .filter((c) => Number.isFinite(c.price))
     .map((c) => {
       const parts = [`${c.symbol} ${fmtPrice(c.price)}`];
-      if (c.rsi !== null) parts.push(`4h RSI ${c.rsi.toFixed(1)} (${zone(c.rsi)})`);
+      if (c.rsi !== null)
+        parts.push(`4h RSI ${c.rsi.toFixed(1)} (${zone(c.rsi)})`);
       if (c.macd !== null && c.macdSignal !== null)
-        parts.push(`MACD ${c.macd > c.macdSignal ? 'above' : 'below'} signal (momentum ${c.macd > c.macdSignal ? 'improving' : 'fading'})`);
+        parts.push(
+          `MACD ${c.macd > c.macdSignal ? 'above' : 'below'} signal (momentum ${c.macd > c.macdSignal ? 'improving' : 'fading'})`,
+        );
       return parts.join(', ');
     });
   const rsis = coins.map((c) => c.rsi).filter((x): x is number => x !== null),
@@ -60,10 +75,16 @@ export function factSheet(coins: CoinFact[], engines: EngineFact[], at: number) 
       const open = e.open.length
         ? `holding ${e.open.map((o) => `${o.symbol.replace(/USDT$/, '')}${o.side ? ` ${o.side}` : ''}`).join(', ')}`
         : 'no open positions';
-      const regime = e.regimeOn === undefined ? '' : e.regimeOn ? ', BTC above its 100-day average' : ', BTC below its 100-day average (no new entries)';
+      const regime =
+        e.regimeOn === undefined
+          ? ''
+          : e.regimeOn
+            ? ', daily BTC trend filter on (BTC above its 100-day average, so new entries are allowed)'
+            : ', daily BTC trend filter off (BTC below its 100-day average, so no new entries)';
       return `Crosswake ${name}: ${open}${regime}`;
     });
-  const stamp = new Date(at).toISOString().slice(0, 16).replace('T', ' ') + ' UTC';
+  const stamp =
+    new Date(at).toISOString().slice(0, 16).replace('T', ' ') + ' UTC';
   return { stamp, lines, breadth, engineLines };
 }
 export type Facts = ReturnType<typeof factSheet>;
@@ -77,7 +98,9 @@ export function templatePost(f: Facts) {
     '',
     ...f.lines.map((l) => `• ${l}`),
     ...(f.breadth ? ['', `Breadth: ${f.breadth}.`] : []),
-    ...(f.engineLines.length ? ['', ...f.engineLines.map((l) => `🤖 ${l}`)] : []),
+    ...(f.engineLines.length
+      ? ['', ...f.engineLines.map((l) => `🤖 ${l}`)]
+      : []),
     '',
     `Source: altFINS 4h indicators. ${DISCLAIMER}`,
   ].join('\n');
@@ -93,25 +116,36 @@ RULES
 - Use only numbers that appear in FACTS, written exactly as they appear. Add no new numbers, percentages, targets or dates.
 - Say what the indicators show (strength, weakness, mixed). No buy/sell calls, no predictions, no price targets.
 - Open with a one-line headline, then 3-6 short lines. Plain text, a few emoji at most.
-- Mention what the Crosswake engines are doing in one line.
+- Mention what the Crosswake engines are doing in one line, in plain words.
+- If the daily BTC trend filter is on while 4h RSI readings are weak or oversold, say plainly that the longer daily trend is still up while short-term 4h momentum is weak. Do not present the two as contradicting each other.
 - End with exactly: "Source: altFINS 4h indicators. ${DISCLAIMER}"`;
 
 const numbersIn = (s: string) =>
   (s.match(/\d[\d,]*(?:\.\d+)?/g) ?? []).map((x) => x.replace(/,/g, ''));
-const BANNED = /\b(buy now|sell now|price target|will (?:hit|reach|pump|dump)|guarantee|100x|moon)\b/i;
+const BANNED =
+  /\b(buy now|sell now|price target|will (?:hit|reach|pump|dump)|guarantee|100x|moon)\b/i;
 
 /** Accepts a model draft only if every number in it came from the facts and it carries the disclaimer. */
-export function checkDraft(draft: string, f: Facts): { ok: true } | { ok: false; reason: string } {
+export function checkDraft(
+  draft: string,
+  f: Facts,
+): { ok: true } | { ok: false; reason: string } {
   const text = draft.trim();
   if (!text) return { ok: false, reason: 'empty' };
   if (text.length > 1500) return { ok: false, reason: 'too_long' };
-  if (!text.includes(DISCLAIMER)) return { ok: false, reason: 'missing_disclaimer' };
+  if (!text.includes(DISCLAIMER))
+    return { ok: false, reason: 'missing_disclaimer' };
   if (BANNED.test(text)) return { ok: false, reason: 'advice_language' };
   const allowed = new Set(numbersIn(templatePost(f)));
   const stray = numbersIn(text).filter((n) => !allowed.has(n));
-  if (stray.length) return { ok: false, reason: `unsourced_numbers:${stray.slice(0, 5).join(',')}` };
+  if (stray.length)
+    return {
+      ok: false,
+      reason: `unsourced_numbers:${stray.slice(0, 5).join(',')}`,
+    };
   return { ok: true };
 }
 
 /** Start of the 4h slot a post belongs to; posts go out a few minutes after each 4h close. */
-export const slotOf = (ts: number, hours = 4) => Math.floor(ts / (hours * 3_600_000)) * hours * 3_600_000;
+export const slotOf = (ts: number, hours = 4) =>
+  Math.floor(ts / (hours * 3_600_000)) * hours * 3_600_000;
