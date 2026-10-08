@@ -7,9 +7,22 @@ const allowed = new Set([
   'protocols',
   'signals',
   'research',
+  'data',
+  'backtests',
 ]);
 const segment = /^[A-Za-z0-9_-]+$/;
 function apiBase() {
+  const explicit = process.env.RESEARCH_API_BASE;
+  if (explicit) {
+    try {
+      const url = new URL(explicit);
+      if (url.protocol === 'http:' || url.protocol === 'https:')
+        return url.origin;
+    } catch {
+      return null;
+    }
+    return null;
+  }
   const port = process.env.RESEARCH_API_PORT ?? '4112';
   return /^\d{4,5}$/.test(port) ? `http://127.0.0.1:${port}` : null;
 }

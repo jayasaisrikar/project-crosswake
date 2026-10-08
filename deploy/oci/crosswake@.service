@@ -1,0 +1,20 @@
+[Unit]
+Description=Crosswake %i
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User=ubuntu
+WorkingDirectory=/opt/crosswake
+EnvironmentFile=-/opt/crosswake/deploy/oci/env/%i.env
+ExecStart=/usr/bin/env bash /opt/crosswake/deploy/oci/run.sh %i
+Restart=always
+RestartSec=15
+# The collector flushes and releases its lock on SIGTERM.
+KillSignal=SIGTERM
+TimeoutStopSec=60
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

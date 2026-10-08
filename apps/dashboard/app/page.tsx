@@ -49,6 +49,7 @@ import { CodeBlock } from '@/components/base-ui/code-block';
 import { Brand, Status } from '@/components/crosswake/brand';
 import { cn } from '@/lib/utils';
 import { TradeSignals, StrategyLab } from './residual-views';
+import { DataWorkbench } from './data-views';
 
 type Dict = Record<string, any>;
 const number = (x: unknown) =>
@@ -129,6 +130,14 @@ const VIEWS = [
     title: 'Market context',
     description:
       'Timestamped altFINS observations, kept alongside the primary market evidence.',
+  },
+  {
+    id: 'Data',
+    icon: Database,
+    caption: 'What we hold, and what it showed',
+    title: 'Datasets and backtests',
+    description:
+      'Every dataset on disk with its coverage, and every backtest run with its measured outcome.',
   },
 ] as const;
 type View = (typeof VIEWS)[number]['id'];
@@ -249,7 +258,9 @@ export default function Workbench() {
     [cursor, setCursor] = useState(0),
     [runLoading, setRunLoading] = useState(false);
   const [signals, setSignals] = useState<Dict | null>(null),
-    [research, setResearch] = useState<Dict | null>(null);
+    [research, setResearch] = useState<Dict | null>(null),
+    [dataset, setDataset] = useState<Dict | null>(null),
+    [backtests, setBacktests] = useState<Dict | null>(null);
   const searchButtonRef = useRef<HTMLButtonElement>(null),
     detailOpenerRef = useRef<HTMLElement | null>(null);
   const showDetail = (record: Dict) => {
@@ -262,17 +273,22 @@ export default function Workbench() {
     const id = ++requestId.current;
     setLoading(true);
     try {
-      const [l, p, r, signalData, researchData] = await Promise.all([
-        read('live'),
-        read('protocols'),
-        read('experiments'),
-        read('signals').catch(() => null),
-        read('research').catch(() => null),
-      ]);
+      const [l, p, r, signalData, researchData, datasetData, backtestData] =
+        await Promise.all([
+          read('live'),
+          read('protocols'),
+          read('experiments'),
+          read('signals').catch(() => null),
+          read('research').catch(() => null),
+          read('data').catch(() => null),
+          read('backtests').catch(() => null),
+        ]);
       if (id !== requestId.current) return;
       setLive(l);
       setSignals(signalData);
       setResearch(researchData);
+      setDataset(datasetData);
+      setBacktests(backtestData);
       setProtocols(Array.isArray(p.protocols) ? p.protocols : []);
       setRuns(Array.isArray(r.experiments) ? r.experiments : []);
       setError('');
@@ -1262,6 +1278,13 @@ export default function Workbench() {
                         </div>
                       </div>
                     </section>
+                  )}
+                  {tab === 'Data' && (
+                    <DataWorkbench
+                      dataset={dataset}
+                      backtests={backtests}
+                      onInspect={showDetail}
+                    />
                   )}
                 </motion.div>
               </AnimatePresence>

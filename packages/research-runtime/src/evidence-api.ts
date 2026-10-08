@@ -17,7 +17,18 @@ import {
   readProtocol,
   type RuntimePaths,
 } from './experiments.js';
+import { backtestRuns, datasetInventory } from './dataset-evidence.js';
+/** Dataset sweeps touch thousands of small manifests; they change slowly. */
+const CACHE_TTL_MS = 30_000;
 export function createEvidenceServer(paths: RuntimePaths): Server {
+  const cache = new Map<string, { at: number; value: unknown }>();
+  const cached = async <T>(key: string, load: () => Promise<T>) => {
+    const hit = cache.get(key);
+    if (hit && Date.now() - hit.at < CACHE_TTL_MS) return hit.value as T;
+    const value = await load();
+    cache.set(key, { at: Date.now(), value });
+    return value;
+  };
   return createServer(async (request, response) => {
     response.setHeader('Content-Type', 'application/json; charset=utf-8');
     response.setHeader('Cache-Control', 'no-store');
@@ -105,6 +116,10 @@ export function createEvidenceServer(paths: RuntimePaths): Server {
         send(200, await residualResearch(paths.dataDir));
       else if (segments.length === 1 && segments[0] === 'context')
         send(200, await latestContext(paths.dataDir));
+      else if (segments.length === 1 && segments[0] === 'data')
+        send(200, await cached('data', () => datasetInventory(paths.dataDir)));
+      else if (segments.length === 1 && segments[0] === 'backtests')
+        send(200, await cached('backtests', () => backtestRuns(paths.dataDir)));
       else send(404, { error: 'not_found' });
     } catch (error) {
       if (error instanceof z.ZodError || error instanceof URIError)

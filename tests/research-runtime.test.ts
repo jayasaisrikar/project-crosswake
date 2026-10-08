@@ -258,11 +258,166 @@ it('serves local evidence read-only and rejects mutation and arbitrary file path
       researchStatus: 'UNVALIDATED',
       executionEnabled: false,
     });
+    const emptyData = await (await fetch(base + '/data')).json();
+    expect(emptyData.sources).toEqual([]);
+    expect(emptyData.totalBytes).toBe(0);
+    expect((await (await fetch(base + '/backtests')).json()).runs).toEqual([]);
   } finally {
     await new Promise<void>((resolve, reject) =>
       server.close((error) => (error ? reject(error) : resolve())),
     );
     await rm(f.root, { recursive: true, force: true });
+  }
+});
+
+it('summarises dataset coverage and backtest runs from local files', async () => {
+  const root = await mkdtemp(join(tmpdir(), 'crosswake-data-')),
+    protocolDir = join(root, 'protocols');
+  await mkdir(protocolDir);
+  const bars = join(
+    root,
+    'bars',
+    'venue=binance',
+    'market=spot',
+    'interval=1m',
+    'symbol=BTCUSDT',
+  );
+  await mkdir(bars, { recursive: true });
+  await writeFile(join(bars, 'period=2026-09.parquet'), 'bars');
+  await writeFile(
+    join(bars, 'period=2026-09.parquet.manifest.json'),
+    JSON.stringify({
+      schemaVersion: 1,
+      symbol: 'BTCUSDT',
+      period: '2026-09',
+      rows: 43200,
+      firstTs: 1000,
+      lastTs: 2592000000,
+    }),
+  );
+  const live = join(
+    root,
+    'normalized',
+    'venue=binance',
+    'market=spot',
+    'date=2026-10-01',
+    'symbol=ETHUSDT',
+  );
+  await mkdir(live, { recursive: true });
+  await writeFile(join(live, 'a.parquet'), 'x');
+  await writeFile(
+    join(live, 'a.parquet.manifest.json'),
+    JSON.stringify({
+      schemaVersion: 2,
+      rows: 3600,
+      quoteEvidence: true,
+      firstTs: 1000,
+      lastTs: 3600000,
+    }),
+  );
+  await mkdir(join(root, 'raw'));
+  await writeFile(join(root, 'raw', '2026-10-01-abc.jsonl'), 'x'.repeat(2048));
+  const exploratory = join(root, 'backtests', 'run1');
+  await mkdir(exploratory, { recursive: true });
+  await writeFile(
+    join(exploratory, 'report.json'),
+    JSON.stringify({
+      config: { version: 'catch-up-v001-exploratory' },
+      source: 'live',
+      snapshots: 594645,
+      candidates: 0,
+      closedTrades: 0,
+      winRate: null,
+      netExpectancyBps: null,
+      validationStatus: 'EXPLORATORY_NOT_OUT_OF_SAMPLE',
+      firstTs: 1000,
+      lastTs: 2000,
+      limitations: ['exploratory'],
+    }),
+  );
+  const residual = join(root, 'residual', 'backtests', 'run2');
+  await mkdir(residual, { recursive: true });
+  await writeFile(
+    join(residual, 'report.json'),
+    JSON.stringify({
+      config: { version: 'residual-spot-v003' },
+      validationStatus: 'EXPLORATORY_NOT_OUT_OF_SAMPLE',
+      range: { startTs: 1000, endTs: 2000 },
+      signals: 7622,
+      executable: {
+        closedTrades: 10,
+        wins: 8,
+        losses: 2,
+        winRate: 0.8,
+        netExpectancyBps: 71.8,
+        profitFactor: 2.67,
+        btcEventCount: 6,
+        eventClusterBootstrap: { netExpectancyBps95: [-58.5, 218.7] },
+      },
+      researchOnly: {
+        closedTrades: 8,
+        wins: 5,
+        losses: 3,
+        winRate: 0.625,
+        netExpectancyBps: -38.1,
+      },
+      funnel: { accepted: 184 },
+      limitations: ['paper only'],
+    }),
+  );
+  const server = createEvidenceServer({ dataDir: root, protocolDir });
+  server.listen(0, '127.0.0.1');
+  await once(server, 'listening');
+  const address = server.address();
+  if (!address || typeof address === 'string')
+    throw new Error('Missing listener');
+  const base = `http://127.0.0.1:${address.port}`;
+  try {
+    const data = await (await fetch(base + '/data')).json();
+    expect(data.sources.map((s: any) => s.id).sort()).toEqual([
+      'bars',
+      'journals',
+      'live',
+    ]);
+    const barSource = data.sources.find((s: any) => s.id === 'bars');
+    expect(barSource.rows).toBe(43200);
+    expect(barSource.symbols).toEqual([
+      expect.objectContaining({ symbol: 'BTCUSDT', rows: 43200 }),
+    ]);
+    const liveSource = data.sources.find((s: any) => s.id === 'live');
+    expect(liveSource.market).toBe('spot');
+    expect(liveSource.symbols[0]).toMatchObject({
+      symbol: 'ETHUSDT',
+      rows: 3600,
+      firstTs: 1000,
+      lastTs: 3600000,
+    });
+    const journalSource = data.sources.find((s: any) => s.id === 'journals');
+    expect(journalSource.files).toBe(1);
+    expect(journalSource.bytes).toBe(2048);
+    expect(data.totalBytes).toBeGreaterThan(0);
+    const runs = (await (await fetch(base + '/backtests')).json()).runs;
+    expect(runs).toHaveLength(2);
+    const exploratoryRun = runs.find((r: any) => r.kind === 'exploratory');
+    expect(exploratoryRun.strategy).toBe('catch-up-v001-exploratory');
+    expect(exploratoryRun.units).toEqual({
+      label: 'snapshots',
+      value: 594645,
+    });
+    expect(exploratoryRun.trades.closed).toBe(0);
+    expect(exploratoryRun.trades.winRate).toBeNull();
+    const residualRun = runs.find((r: any) => r.kind === 'residual');
+    expect(residualRun.strategy).toBe('residual-spot-v003');
+    expect(residualRun.trades.closed).toBe(10);
+    expect(residualRun.trades.winRate).toBe(0.8);
+    expect(residualRun.trades.expectancy95).toEqual([-58.5, 218.7]);
+    expect(residualRun.researchOnly.closed).toBe(8);
+    expect(residualRun.limitations).toEqual(['paper only']);
+  } finally {
+    await new Promise<void>((resolve, reject) =>
+      server.close((error) => (error ? reject(error) : resolve())),
+    );
+    await rm(root, { recursive: true, force: true });
   }
 });
 
