@@ -13,7 +13,24 @@ after install: collector `connected: true` on BTC/ETH/SOL, `late: 0`, `rejected:
 
 The instance is provisioned at **1 OCPU / 6 GB with a 45 GB boot volume**, not the agreed
 2 OCPU / 12 GB and 150 GB. Those are OCI control-plane changes and cannot be made over
-SSH — the box has no API credentials. 45 GB fills in roughly 26 days at 1.7 GB/day.
+SSH — the box has no API credentials.
+
+**The disk has been fixed.** The boot volume was grown to 150 GB in the console, then the
+guest was rescanned (`/sys/class/block/sda/device/rescan`), the partition extended with
+`growpart /dev/sda 1` and the filesystem grown online with `resize2fs`. The layout happened
+to be the easy case — root (`sda1`) is the *last* partition, with the free space directly
+after it, so no partition shuffling was needed. `df` now reports 145 GB total, 141 GB free.
+
+Growth is **~5–7 GB/day** (two measurements: 5.14 and ~7.3; market activity varies), so
+141 GB is roughly **3–4 weeks**. All seven units stayed healthy through the resize.
+
+Measured consumption against the Always Free caps: A1 at 1/6 of 2/12 (50%), block volume
+150 of 200 GB (75%), egress 25.8 GB/month of 10 TB (0.26%). A full disk **cannot** produce
+a bill — block volumes do not auto-expand — it just stops the collector. The only ways to
+be charged are creating or expanding resources past these caps.
+
+CPU is not the constraint: all six units together sit around **0.3% CPU** with `late: 0`,
+so the shape resize is optional rather than necessary.
 
 The laptop stack was stopped, then restarted to demo the workbench, so **both machines
 currently collect BTC/ETH/SOL** into separate data directories.
@@ -30,8 +47,9 @@ directory is missing.
   "try another AD" advice is unavailable. Capacity is the only blocker.
 - **Backend only** on the box: `collector`, `api`, `signals-spot`, `signals-perp`,
   `costs`, `context`. Every one binds `127.0.0.1`.
-- **UI on Vercel**, reaching the evidence API through `RESEARCH_API_BASE`. The
-  `dashboard` systemd unit stays disabled on the box.
+- **UI served from the box for now**, reached over an SSH tunnel; the `dashboard` unit is
+  enabled there. Vercel remains the intended home, reaching the API through
+  `RESEARCH_API_BASE` once the API has a public HTTPS hostname.
 - Account upgraded to **Pay As You Go** (see the upgrade note below).
 - Boot volume **150 GB**, not the 50 GB default — see disk growth.
 
@@ -45,7 +63,7 @@ directory is missing.
 | 4   | Write the deploy runbook and `update.sh`                     | Done                               |
 | 5 | Create the instance | Done — **1 OCPU / 6 GB, 45 GB boot** |
 | 6 | Run `setup.sh`, copy `.env.local`, enable backend units | Done — six units active, 0 restarts |
-| 7 | Publish the evidence API + set `RESEARCH_API_BASE` on Vercel | Pending — UI still local |
+| 7 | Publish the evidence API + set `RESEARCH_API_BASE` on Vercel | Pending — UI now served from the box over a tunnel |
 | 8 | Start the 24h coverage run | **Running since 08 Oct 14:16 UTC on OCI** |
 
 ## Blocker: A1 capacity, and the PAYG upgrade is asynchronous
