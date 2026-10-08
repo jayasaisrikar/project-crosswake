@@ -33,9 +33,9 @@ rm -f "$tmp"
 echo "Written to $ENV_FILE (mode 600)."
 
 echo 'Restarting the signal engines...'
-sudo systemctl restart crosswake@signals-spot crosswake@signals-perp
+sudo systemctl restart crosswake@signals-spot crosswake@signals-perp crosswake@signals-daily
 sleep 25
-for unit in signals-spot signals-perp; do
+for unit in signals-spot signals-perp signals-daily; do
   printf '  %-14s %s\n' "$unit" "$(systemctl is-active "crosswake@$unit")"
   journalctl -u "crosswake@$unit" -n 6 --no-pager |
     grep -o 'channels:.*' | tail -1 | sed 's/^/    /' || true

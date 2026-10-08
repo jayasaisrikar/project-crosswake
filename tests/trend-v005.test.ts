@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { regimeByDay, runTrend, trendStats, type DailyBar } from '../packages/backtest/src/trend.js';
+import { regimeByDay, runTrend, trendLedger, trendStats, type DailyBar } from '../packages/backtest/src/trend.js';
 
 const DAY = 86_400_000;
 const series = (closes: number[]): DailyBar[] =>
@@ -44,5 +44,18 @@ describe('trend v005', () => {
       expect(s.profitFactor).toBeCloseTo(1.5);
       expect(s.ci95[0]).toBeLessThanOrEqual(s.ci95[1]);
     }
+  });
+  it('builds a forward ledger with open positions, exits and today-first events', () => {
+    const on = (b: DailyBar[]) => new Map(b.map((x) => [x.ts, true]));
+    const a = series([10, 10, 10, 11, 12, 13, 12, 11, 10, 10]),
+      b = series([5, 5, 5, 5, 5, 5, 5, 6, 7, 8]),
+      early = series([1, 1, 1, 2, 3, 4, 5, 6, 7, 8]);
+    const L = trendLedger(new Map([['A', a], ['B', b], ['E', early]]), on(a), rules, 5 * DAY);
+    expect(L.closed.map((t) => t.symbol)).toEqual([]);
+    expect(L.open.map((t) => t.symbol)).toEqual(['B']);
+    expect(L.open[0]!.markBps).toBeCloseTo((8 / 7 - 1) * 1e4 - 30);
+    const all = trendLedger(new Map([['A', a]]), on(a), rules, 0);
+    expect(all.events.map((e) => e.kind)).toEqual(['exit', 'entry']);
+    expect(all.events[0]!.decidedAt).toBe(all.events[0]!.fillAt - DAY);
   });
 });

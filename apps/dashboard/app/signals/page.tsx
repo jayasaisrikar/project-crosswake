@@ -1,7 +1,13 @@
 'use client';
 import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, BellRing, Microscope, RefreshCw } from 'lucide-react';
+import {
+  ArrowLeft,
+  BellRing,
+  Microscope,
+  RefreshCw,
+  TrendingUp,
+} from 'lucide-react';
 import { Button } from '@/components/base-ui/button';
 import {
   Alert,
@@ -18,10 +24,12 @@ import {
 import { CodeBlock } from '@/components/base-ui/code-block';
 import { cn } from '@/lib/utils';
 import { StrategyLab, TradeSignals } from '../residual-views';
+import { TrendSignals } from '../trend-views';
 
 type Dict = Record<string, any>;
 const VIEWS = [
-  { id: 'signals', label: 'Live signals', icon: BellRing },
+  { id: 'daily', label: 'Daily signals', icon: TrendingUp },
+  { id: 'signals', label: 'Intraday (v003)', icon: BellRing },
   { id: 'lab', label: 'Strategy lab', icon: Microscope },
 ] as const;
 async function read(path: string) {
@@ -36,9 +44,10 @@ async function read(path: string) {
 }
 
 export default function SignalsPage() {
-  const [view, setView] = useState<(typeof VIEWS)[number]['id']>('signals'),
+  const [view, setView] = useState<(typeof VIEWS)[number]['id']>('daily'),
     [signals, setSignals] = useState<Dict | null>(null),
     [research, setResearch] = useState<Dict | null>(null),
+    [trend, setTrend] = useState<Dict | null>(null),
     [detail, setDetail] = useState<unknown>(null),
     [error, setError] = useState(''),
     [loading, setLoading] = useState(true),
@@ -46,7 +55,12 @@ export default function SignalsPage() {
   const refresh = useCallback(async () => {
     setLoading(true);
     try {
-      const [s, r] = await Promise.all([read('signals'), read('research')]);
+      const [s, r, t] = await Promise.all([
+        read('signals'),
+        read('research'),
+        read('trend').catch(() => null),
+      ]);
+      setTrend(t);
       setSignals(s);
       setResearch(r);
       setError('');
@@ -126,19 +140,25 @@ export default function SignalsPage() {
       >
         <div className="mb-8 max-w-2xl">
           <p className="mb-2 font-mono text-[10px] tracking-[0.07em] text-muted-foreground uppercase">
-            {view === 'signals'
-              ? 'BTC-relative signals · paper only'
-              : 'Out-of-sample evidence'}
+            {view === 'daily'
+              ? 'Daily trend breakout · v005 · paper only'
+              : view === 'signals'
+                ? 'BTC-relative signals · paper only'
+                : 'Out-of-sample evidence'}
           </p>
           <h1 className="font-display text-3xl font-semibold tracking-tight">
-            {view === 'signals'
-              ? 'Every signal, as it fires.'
-              : 'What actually held up.'}
+            {view === 'daily'
+              ? 'Strong coins, only in a BTC uptrend.'
+              : view === 'signals'
+                ? 'Every signal, as it fires.'
+                : 'What actually held up.'}
           </h1>
           <p className="mt-2 text-sm text-muted-foreground">
-            {view === 'signals'
-              ? 'Signals from the live engines with simulated outcomes. Telegram delivery is a future option; this feed is the channel today.'
-              : 'Walk-forward results on unseen periods, the filter-free edge study and measured order-book costs.'}
+            {view === 'daily'
+              ? 'Buy a coin that closes at a 20-day high while Bitcoin is above its 100-day average; sell when it closes at a 10-day low. Checked once a day after the 00:00 UTC close.'
+              : view === 'signals'
+                ? 'Signals from the live engines with simulated outcomes. Telegram delivery is a future option; this feed is the channel today.'
+                : 'Walk-forward results on unseen periods, the filter-free edge study and measured order-book costs.'}
           </p>
         </div>
         {error && (
@@ -147,7 +167,9 @@ export default function SignalsPage() {
             <AlertDescription>{error}</AlertDescription>
           </Alert>
         )}
-        {view === 'signals' ? (
+        {view === 'daily' ? (
+          <TrendSignals data={trend} onInspect={setDetail} />
+        ) : view === 'signals' ? (
           <TradeSignals
             data={signals}
             research={research}

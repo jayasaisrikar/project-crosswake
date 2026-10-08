@@ -6,6 +6,7 @@ const allowed = new Set([
   'experiments',
   'protocols',
   'signals',
+  'trend',
   'research',
   'data',
   'backtests',

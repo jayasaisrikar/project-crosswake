@@ -100,7 +100,7 @@ function close(
 
 function rng(seed: number) {
   let s = seed >>> 0;
-  return () => ((s = (s * 1664525 + 1013904223) >>> 0) / 2 ** 32);
+  return () => (s = (s * 1664525 + 1013904223) >>> 0) / 2 ** 32;
 }
 /** Trade statistics with a bootstrap over entry-week clusters (correlated breakouts share a week). */
 export function trendStats(trades: TrendTrade[], resamples = 10000, seed = 5) {
@@ -145,4 +145,60 @@ export function trendStats(trades: TrendTrade[], resamples = 10000, seed = 5) {
       trades.reduce((a, t) => a + (t.exitTs - t.entryTs), 0) / n / DAY,
     clusters: clusters.length,
   };
+}
+
+export interface TrendEvent {
+  id: string;
+  kind: 'entry' | 'exit';
+  symbol: string;
+  /** Daily close that produced the decision; the fill is the next day's open. */
+  decidedAt: number;
+  fillAt: number;
+  price: number;
+  netBps?: number;
+  reason?: TrendTrade['reason'];
+}
+/**
+ * Forward paper ledger: replays the frozen rules over all bars (for warm-up) and keeps only
+ * positions entered on or after `forwardStart`. Deterministic, so every run rebuilds the same ledger.
+ */
+export function trendLedger(
+  bars: Map<string, DailyBar[]>,
+  regime: Map<number, boolean>,
+  rules: TrendRules,
+  forwardStart: number,
+) {
+  const open: (TrendTrade & { markBps: number; lastClose: number })[] = [],
+    closed: TrendTrade[] = [],
+    events: TrendEvent[] = [];
+  for (const [symbol, series] of bars) {
+    for (const t of runTrend(symbol, series, regime, rules, true)) {
+      if (t.entryTs < forwardStart) continue;
+      events.push({
+        id: `${symbol}-${t.entryTs}-entry`,
+        kind: 'entry',
+        symbol,
+        decidedAt: t.entryTs - DAY,
+        fillAt: t.entryTs,
+        price: t.entry,
+      });
+      if (t.reason === 'open') {
+        open.push({ ...t, markBps: t.netBps, lastClose: t.exit });
+        continue;
+      }
+      closed.push(t);
+      events.push({
+        id: `${symbol}-${t.entryTs}-exit`,
+        kind: 'exit',
+        symbol,
+        decidedAt: t.exitTs - DAY,
+        fillAt: t.exitTs,
+        price: t.exit,
+        netBps: t.netBps,
+        reason: t.reason,
+      });
+    }
+  }
+  events.sort((a, b) => b.decidedAt - a.decidedAt || a.id.localeCompare(b.id));
+  return { open, closed, events };
 }

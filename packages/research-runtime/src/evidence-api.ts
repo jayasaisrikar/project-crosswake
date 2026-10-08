@@ -112,6 +112,13 @@ export function createEvidenceServer(paths: RuntimePaths): Server {
         send(200, await liveEvidence(paths.dataDir));
       else if (segments.length === 1 && segments[0] === 'signals')
         send(200, await residualSignals(paths.dataDir));
+      else if (segments.length === 1 && segments[0] === 'trend')
+        send(
+          200,
+          JSON.parse(
+            await readFile(join(paths.dataDir, 'trend', 'live', 'state.json'), 'utf8'),
+          ),
+        );
       else if (segments.length === 1 && segments[0] === 'research')
         send(200, await residualResearch(paths.dataDir));
       else if (segments.length === 1 && segments[0] === 'context')

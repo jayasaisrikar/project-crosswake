@@ -17,6 +17,7 @@ UNITS=(
   "dashboard:384M:512M"
   "signals-spot:384M:512M"
   "signals-perp:384M:512M"
+  "signals-daily:256M:384M"
   "costs:384M:512M"
   "context:384M:512M"
 )

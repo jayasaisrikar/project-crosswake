@@ -13,6 +13,7 @@ case "$1" in
   dashboard)    cd apps/dashboard && exec node node_modules/next/dist/bin/next start --hostname 127.0.0.1 --port 3000 ;;
   signals-spot) exec node --import tsx apps/residual/src/main.ts live --config configs/residual-spot-v003.json ;;
   signals-perp) exec node --import tsx apps/residual/src/main.ts live --config configs/catchdown-perp-v004.json ;;
+  signals-daily) exec node --import tsx apps/trend/src/main.ts live ;;
   costs)        exec node --import tsx apps/costs/src/main.ts sample --interval-seconds 300 ;;
   context)      exec node --import tsx apps/context/src/main.ts --watch ;;
   *) echo "unknown service $1" >&2; exit 2 ;;
