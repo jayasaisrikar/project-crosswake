@@ -94,3 +94,14 @@ The data covers 1-minute Binance Spot klines for BTC plus 14 alts (ETH, SOL, BNB
 **Delivery.** Live signals feed the dashboard at `/signals`, with a live feed and a strategy lab. Telegram (`packages/notify`) is implemented and tested against mocks, but stays off unless `TELEGRAM_ENABLED=true` and both `TELEGRAM_BOT_TOKEN` and `TELEGRAM_CHAT_ID` are set. Users can report their own fill for a signal from the dashboard, which measures real reaction time and slippage. This is the evidence API's only write route and it validates input strictly.
 
 **Operations.** `pnpm services:install|status|logs|restart|uninstall` manages launchd agents for keep-awake, the evidence API, both live signal engines, cost sampling and altFINS context. The market collector is not managed this way, because its restart replays the full journal chain. Late-event bursts were traced upstream: during a burst, exchange-to-receipt latency rises to 2–8 seconds and trade counts collapse, while local bucket closing stays on time. Disk has 34 GB free, and the raw journal grows about 1.7 GB/day.
+
+## v005 daily trend breakout (frozen 8 Oct 2026, commit d8f7643)
+
+Rules fixed before any daily data was fetched: Donchian 20-day close breakout, 10-day breakdown exit, only while BTC > 100-day SMA, next-open fills, 30 bps round trip, 29 alts + BTC including later-delisted pairs. `pnpm tsx apps/trend/src/main.ts history|test`.
+
+| Period | Trades | Win rate | Net bps/trade | 95% CI (entry-week bootstrap) | PF |
+|---|---|---|---|---|---|
+| Development 2020–2024 | 910 | 43.3% | +1386 | [+621, +2326] | 3.86 |
+| Test 2025-01 → 2026-09 | 243 | 33.7% | +153 | [−287, +629] | 1.32 |
+
+Verdict: **fails the pre-registered gate (expectancy CI includes zero)**, but unlike v003/v004 the point estimate is positive and the win rate lands in the 30–50% target. Only 33 independent entry-weeks in the test, so it is underpowered rather than falsified. Development numbers are dominated by the 2020–21 bull market. Next step without retuning: live paper forward from 1 Oct 2026.
