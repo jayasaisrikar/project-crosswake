@@ -69,6 +69,28 @@ function Stat({
   );
 }
 
+/** One line saying why the board looks the way it does, most blocking reason first. */
+function statusLine(data: Dict, fresh: boolean, today: Dict[]): string {
+  const r: Dict = data.regime ?? {},
+    open = data.open?.length ?? 0;
+  if (!fresh)
+    return `Engine stale: last report ${day(data.updatedAt)}. Restart it with pnpm trend:live.`;
+  if (Date.now() < data.forwardStart)
+    return `Not started: live paper trading begins ${day(data.forwardStart)} at 00:00 UTC. Empty until then.`;
+  if (!r.on) {
+    const gap =
+      typeof r.btcClose === 'number' && typeof r.btcSma === 'number'
+        ? ` BTC ${price(r.btcClose)} is ${(((r.btcSma - r.btcClose) / r.btcSma) * 100).toFixed(1)}% below its 100-day average of ${price(r.btcSma)}.`
+        : '';
+    return `Regime off: no new entries until BTC closes above its 100-day average.${gap}`;
+  }
+  if (today.length)
+    return `${today.length} new signal${today.length > 1 ? 's' : ''} today.`;
+  return open
+    ? `Regime on, holding ${open} position${open > 1 ? 's' : ''}. No coin broke its 20-day high today.`
+    : 'Regime on and watching. No coin broke its 20-day high today.';
+}
+
 /** v005 daily breakout: today's signals, open paper positions and the forward record against the backtest. */
 export function TrendSignals({
   data,
@@ -165,6 +187,13 @@ export function TrendSignals({
           </Badge>
         ))}
       </div>
+
+      <p
+        role="status"
+        className="rounded-lg border border-border bg-card px-4 py-3 text-sm font-medium"
+      >
+        {statusLine(data, fresh, today)}
+      </p>
 
       <Card>
         <CardHeader>
