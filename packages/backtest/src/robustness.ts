@@ -244,7 +244,7 @@ export class FixedHorizonTracker {
       const row = map.get(p.candidate.symbol),
         price = row && referencePrice(row);
       if (p.startTs === null) {
-        if (ts <= p.candidate.decisionTs) {
+        if (ts <= (p.candidate.entryEligibleTs ?? p.candidate.decisionTs)) {
           remaining.push(p);
           continue;
         }

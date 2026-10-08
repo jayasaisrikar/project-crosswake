@@ -55,6 +55,10 @@ Dataset snapshots verify manifests and can be replayed repeatedly with range fil
 
 Reports include per-asset/month outcomes, equal-notional drawdown, concentration and losing streaks. The conservative statistical gate checks sample count, win-rate confidence bounds, event-cluster expectancy, profit factor and unfinished positions. These summaries are not portfolio capital simulation. Passing statistical gates still requires forward paper reconciliation and never authorizes real execution.
 
+## BTC-relative residual strategy (v003)
+
+`configs/residual-spot-v003.json` and `configs/residual-hedged-v003.json` define a 1–4 hour strategy that tests whether alts catch up after lagging their BTC beta. It runs on verified 1-minute kline Parquet under `data/bars`. `pnpm residual:history`, `residual:study`, `residual:backtest`, `residual:walk-forward`, `residual:holdout` and `residual:live` share one causal engine and paper simulator. Live mode prints signals for users and records paper outcomes from Binance REST. The October 2025–July 2026 walk-forward failed both plans. See [the v003 record](docs/residual-strategy-v003.md) before using any signal.
+
 ## Interactive research with Mastra
 
 Mastra AgentController hosts the Research Supervisor. Set `RESEARCH_MODEL` to your chosen `provider/model` ID and set that provider's API-key environment variable. No model is selected implicitly. Collection and deterministic experiments do not need a model key. The optional project-root `.env.local` is loaded by these commands; `.env.example` remains a template.
@@ -78,3 +82,7 @@ The workflow verifies protocol and dataset, calls the existing pure TypeScript e
 - `pnpm ops:report -- --from 2026-10-06T00:00:00Z --to 2026-10-07T00:00:00Z --symbols BTCUSDT,ETHUSDT,SOLUSDT` measures an explicit whole-second interval. Every requested wall-clock second is in the coverage denominator, including downtime. Reports contain health-sampled late/rejected deltas, reconnects, sampled peak memory and current disk bytes. A run shorter than 24 hours cannot pass the gate; compare disk reports for growth. Legacy journals without health samples cannot establish historical late-event totals.
 
 The available dashboard does not establish a profitable strategy. Configure provider credentials for real Supervisor/delegation checks, then accumulate the frozen prospective periods and forward evidence. The current BTC/ETH/SOL seed is explicitly declared; expansion to a past-only liquidity-selected universe needs its own recorded metadata and capacity assessment.
+
+## Forward-entry strategy v002
+
+See [the v002 implementation and validation record](docs/signal-improvements-v002.md) for the causal forward-return model, human entry timing, cost-aware reward/risk checks, liquidity filters, diagnostics, same-event controls and expectancy-led acceptance. `configs/forward-v002.json` and `research/frozen/v002.json` are opt-in; existing v001 collection and replay retain their original configuration. V002 remains unvalidated paper research. Walk-forward reports include diagnostic user delays of 5, 15, 30, 60 and 120 seconds without selecting from unseen outcomes.

@@ -77,6 +77,8 @@ Cost models use sampled BBO and past volume/volatility proxies. They cannot esta
 - Tranche 4: approved Mastra runtime, persistent Supervisor, constrained specialists, deterministic Workflow and read-only API. Provider calls remained unconfigured.
 - Tranche 5: completed research/cost diagnostics, fixed horizons, acknowledged restart recovery, altFINS adapter/cache, operations CLI and dashboard. Verified 57 tests/build/browser; migrated the live collector while preserving legacy late-event evidence. Updated canonical docs and run commands.
 
+- 8 Oct 2026, residual v003: implemented 1–4h BTC-relative residual strategy (kline archive import, aligned minute store, anchored causal fits, shared paper simulator, walk-forward, one-use holdout, filter-free study, live REST signals). 16 new tests; 95 total pass. Real walk-forward over Oct 2025–Jul 2026 for 15 symbols failed: spot produced no qualified selections; hedged OOS −43.3 bps/trade (CI [−84, −4]). All 36 variants lost in-sample. Holdout unconsumed. Record: [residual-strategy-v003.md](residual-strategy-v003.md).
+
 ## Update protocol
 
 Update after each verified engineering change or new observed result. Required commands and configuration are documented in README.md. Mark acceptance gates complete only when their specified observed evidence is recorded. Code, test and documentation files are committed and pushed to jayasaisrikar/project-crosswake (main); ignored market data, logs, runtime state and credentials remain outside Git. Re-verified 6 October on Node 25.8.2: root typecheck, dashboard typecheck, production dashboard build, formatting and all 57 tests pass.

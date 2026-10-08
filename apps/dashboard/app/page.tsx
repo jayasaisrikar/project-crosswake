@@ -380,7 +380,7 @@ export default function Workbench() {
                       </div>
                       <dl className="grid grid-cols-2 gap-6">
                         {[
-                          ['Accepted candidates', roll(shadow?.candidates)],
+                          ['Candidates evaluated', roll(shadow?.candidates)],
                           ['Closed paper trades', roll(shadow?.closedTrades)],
                           ['Open positions', roll(shadow?.openPositions)],
                           ['Late market events', roll(health?.late)],
@@ -393,6 +393,41 @@ export default function Workbench() {
                           </div>
                         ))}
                       </dl>
+                    </CardContent>
+                  </Card>
+                  <Card className="mb-10">
+                    <CardHeader>
+                      <CardTitle>Signal readiness</CardTitle>
+                      <CardDescription>
+                        Filter counts can overlap. Scores are heuristics, not
+                        win probabilities.
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="mb-4 text-sm">
+                        Fitted assets:{' '}
+                        {number(shadow?.engine?.relationshipCount)}
+                      </p>
+                      {shadow?.engine?.funnel ? (
+                        <dl className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                          {Object.entries(shadow.engine.funnel).map(
+                            ([reason, count]) => (
+                              <div key={reason} className="min-w-0">
+                                <dt className="text-xs text-muted-foreground">
+                                  {reason.replaceAll('_', ' ')}
+                                </dt>
+                                <dd className="text-sm tabular-nums">
+                                  {number(count)}
+                                </dd>
+                              </div>
+                            ),
+                          )}
+                        </dl>
+                      ) : (
+                        <p className="text-sm text-muted-foreground">
+                          This collector session predates filter diagnostics.
+                        </p>
+                      )}
                     </CardContent>
                   </Card>
                   <div className="mb-10 grid gap-6 [&>*]:min-w-0 lg:grid-cols-[1.25fr_1fr]">

@@ -61,6 +61,7 @@ export interface Point {
   price: number | null;
   complete: boolean;
   quoteVolume: number;
+  availableAt?: number;
 }
 /** Exact clock lookups, bounded retention, and no interpolation across gaps. */
 export class PriceSeries {
@@ -82,7 +83,7 @@ export class PriceSeries {
   get(ts: number) {
     return this.points.get(ts);
   }
-  returnAt(ts: number, horizonMs: number): number | null {
+  returnAt(ts: number, horizonMs: number, knownAt?: number): number | null {
     if (horizonMs < 1000 || horizonMs % 1000)
       throw new Error('Horizon must be whole seconds');
     const current = this.points.get(ts),
@@ -91,11 +92,17 @@ export class PriceSeries {
       !current?.complete ||
       !prior?.complete ||
       current.price === null ||
-      prior.price === null
+      prior.price === null ||
+      (knownAt !== undefined && (prior.availableAt ?? prior.ts) > knownAt)
     )
       return null;
     for (let t = ts - horizonMs + 1000; t <= ts; t += 1000)
-      if (!this.points.get(t)?.complete) return null;
+      if (
+        !this.points.get(t)?.complete ||
+        (knownAt !== undefined &&
+          (this.points.get(t)!.availableAt ?? t) > knownAt)
+      )
+        return null;
     return logReturn(current.price, prior.price);
   }
   volumeAt(ts: number, horizonMs: number) {

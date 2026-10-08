@@ -40,11 +40,16 @@ export class PaperBacktester {
       volumes: number[];
     }
   >();
-  private fillCost(symbol: string) {
+  private fillCost(symbol: string, ts: number) {
     const model = this.config.executionCost;
     if (!model) return this.config.slippageBpsPerSide;
     const h = this.liquidity.get(symbol);
-    if (!h || h.returns.length < 30) return null;
+    if (
+      !h ||
+      h.returns.length < 30 ||
+      (this.config.forward !== undefined && h.ts !== ts - 1000)
+    )
+      return null;
     const volume = h.volumes.reduce((a, b) => a + b, 0);
     const participation = model.notionalUsdt / Math.max(volume, 1e-12);
     if (participation > model.maxParticipation) return null;
@@ -79,14 +84,21 @@ export class PaperBacktester {
     quoteTs: number;
   }[] = [];
   readonly rejections: { signalId: string; reason: string }[] = [];
-  constructor(private config: StrategyConfig) {}
+  constructor(
+    private config: StrategyConfig,
+    private fixedHorizonBaseline = false,
+  ) {}
   submit(candidates: Candidate[]) {
     this.pending.push(
       ...candidates
         .filter((c) => c.executable && c.accepted && c.side === 'LONG')
         .sort(
           (a, b) =>
-            b.confidence - a.confidence || a.symbol.localeCompare(b.symbol),
+            (this.config.forward
+              ? (b.predictedNetBps ?? -Infinity) -
+                (a.predictedNetBps ?? -Infinity)
+              : b.confidence - a.confidence) ||
+            a.symbol.localeCompare(b.symbol),
         ),
     );
   }
@@ -100,10 +112,12 @@ export class PaperBacktester {
         !row?.isComplete ||
         row.bestBid === null ||
         row.quoteTs == null ||
-        row.quoteTs <= p.entryTs
+        row.quoteTs <= p.entryTs ||
+        (this.config.forward !== undefined &&
+          (row.quoteTs > ts || ts - row.quoteTs > 1000))
       )
         continue;
-      const exitSlippage = this.fillCost(symbol);
+      const exitSlippage = this.fillCost(symbol, ts);
       if (exitSlippage === null) continue;
       p.observedGapMs += Math.max(0, ts - p.lastObservedTs - 1000);
       p.lastObservedTs = ts;
@@ -111,11 +125,16 @@ export class PaperBacktester {
       p.mae = Math.min(p.mae, gross);
       p.mfe = Math.max(p.mfe, gross);
       let reason: PaperTrade['exitReason'] | undefined;
-      if (gross <= -this.config.stopLossBps) reason = 'stop';
+      if (!this.fixedHorizonBaseline && gross <= -this.config.stopLossBps)
+        reason = 'stop';
       else if (
+        !this.fixedHorizonBaseline &&
         row.bestBid >=
-        p.signal.decisionPrice *
-          Math.exp(p.signal.reactionGap * this.config.takeProfitGapFraction)
+          (p.signal.targetPrice ??
+            p.signal.decisionPrice *
+              Math.exp(
+                p.signal.reactionGap * this.config.takeProfitGapFraction,
+              ))
       )
         reason = 'target';
       else if (ts - p.entryTs >= this.config.maxHoldMs) reason = 'time';
@@ -147,11 +166,16 @@ export class PaperBacktester {
     }
     const remaining: Candidate[] = [];
     for (const signal of this.pending) {
-      if (ts <= signal.decisionTs) {
+      const eligibleAt = signal.entryEligibleTs ?? signal.decisionTs;
+      if (signal.expiresAt !== undefined && ts >= signal.expiresAt) {
+        this.rejections.push({ signalId: signal.id, reason: 'signal_expired' });
+        continue;
+      }
+      if (ts <= eligibleAt) {
         remaining.push(signal);
         continue;
       }
-      if (ts - signal.decisionTs > this.config.maxEntryWaitMs) {
+      if (ts - eligibleAt > this.config.maxEntryWaitMs) {
         this.rejections.push({
           signalId: signal.id,
           reason: 'entry_quote_timeout',
@@ -160,7 +184,9 @@ export class PaperBacktester {
       }
       if (
         this.usedEvents.has(signal.btcImpulseId) ||
-        this.positions.has(signal.symbol)
+        this.positions.has(signal.symbol) ||
+        (this.config.forward !== undefined &&
+          this.positions.size >= this.config.forward.maxConcurrentPositions)
       ) {
         this.rejections.push({ signalId: signal.id, reason: 'exposure_limit' });
         continue;
@@ -171,8 +197,10 @@ export class PaperBacktester {
         continue;
       }
       if (
+        !this.fixedHorizonBaseline &&
         Math.log(referencePrice(btc)! / signal.btcDecisionPrice) <
-        -Math.abs(signal.btcImpulseReturn) * this.config.btcRetraceInvalidation
+          -Math.abs(signal.btcImpulseReturn) *
+            this.config.btcRetraceInvalidation
       ) {
         this.rejections.push({
           signalId: signal.id,
@@ -186,7 +214,9 @@ export class PaperBacktester {
         row.bestAsk === null ||
         row.bestBid === null ||
         row.quoteTs == null ||
-        row.quoteTs <= signal.decisionTs ||
+        row.quoteTs <= eligibleAt ||
+        (this.config.forward !== undefined &&
+          (row.quoteTs > ts || ts - row.quoteTs > 1000)) ||
         row.spreadBps === null ||
         row.spreadBps > this.config.maxSpreadBps
       ) {
@@ -194,9 +224,11 @@ export class PaperBacktester {
         continue;
       }
       if (
+        !this.fixedHorizonBaseline &&
         row.bestAsk >=
-        signal.decisionPrice *
-          Math.exp(signal.reactionGap * this.config.takeProfitGapFraction)
+          (signal.targetPrice ??
+            signal.decisionPrice *
+              Math.exp(signal.reactionGap * this.config.takeProfitGapFraction))
       ) {
         this.rejections.push({
           signalId: signal.id,
@@ -204,7 +236,18 @@ export class PaperBacktester {
         });
         continue;
       }
-      const entrySlippage = this.fillCost(signal.symbol);
+      if (
+        !this.fixedHorizonBaseline &&
+        signal.entryPriceLimit !== undefined &&
+        row.bestAsk > signal.entryPriceLimit
+      ) {
+        this.rejections.push({
+          signalId: signal.id,
+          reason: 'entry_price_limit',
+        });
+        continue;
+      }
+      const entrySlippage = this.fillCost(signal.symbol, ts);
       if (entrySlippage === null) {
         this.rejections.push({
           signalId: signal.id,
@@ -217,7 +260,41 @@ export class PaperBacktester {
         10000;
       const entryCost =
         row.spreadBps + 2 * (this.config.feeBpsPerSide + entrySlippage);
-      if (remainingEdge < entryCost * this.config.costSafetyMultiple) {
+      if (this.config.forward && !this.fixedHorizonBaseline) {
+        const target = signal.targetPrice;
+        if (
+          target === undefined ||
+          signal.expiresAt === undefined ||
+          signal.entryEligibleTs === undefined ||
+          signal.entryPriceLimit === undefined
+        ) {
+          this.rejections.push({
+            signalId: signal.id,
+            reason: 'missing_forward_execution_contract',
+          });
+          continue;
+        }
+        const grossReward = (target / row.bestAsk - 1) * 10000;
+        // Ask-to-target-bid reward already embeds spread. Fees and slippage are charged once.
+        const costs = 2 * (this.config.feeBpsPerSide + entrySlippage);
+        const netReward = grossReward - costs,
+          netLoss = this.config.stopLossBps + costs;
+        if (
+          grossReward < costs * this.config.costSafetyMultiple ||
+          netReward / netLoss < this.config.forward.minNetRewardRisk
+        ) {
+          this.rejections.push({
+            signalId: signal.id,
+            reason: 'entry_net_reward_risk_too_low',
+          });
+          continue;
+        }
+      }
+      if (
+        !this.fixedHorizonBaseline &&
+        !this.config.forward &&
+        remainingEdge < entryCost * this.config.costSafetyMultiple
+      ) {
         this.rejections.push({
           signalId: signal.id,
           reason: 'gap_closed_before_entry',
@@ -312,6 +389,18 @@ export function metrics(trades: PaperTrade[]) {
     winRate: trades.length ? wins.length / trades.length : null,
     wilson95: wilson(wins.length, trades.length),
     netExpectancyBps: trades.length ? sum(returns) / trades.length : null,
+    averageNetWinBps: wins.length ? sum(wins) / wins.length : null,
+    averageNetLossBps: losses.length ? -sum(losses) / losses.length : null,
+    netPayoffRatio:
+      wins.length && losses.length
+        ? sum(wins) / wins.length / (-sum(losses) / losses.length)
+        : null,
+    breakevenWinRate:
+      wins.length && losses.length
+        ? -sum(losses) /
+          losses.length /
+          (sum(wins) / wins.length + -sum(losses) / losses.length)
+        : null,
     profitFactor: losses.length ? sum(wins) / -sum(losses) : null,
     btcEventCount: new Set(trades.map((t) => t.btcImpulseId)).size,
     eventClusterBootstrap: clusterBootstrap(trades),

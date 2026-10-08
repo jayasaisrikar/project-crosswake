@@ -1,3 +1,4 @@
+import { SameEventBenchmarks } from './comparisons.js';
 import { FixedHorizonTracker, costStress } from './robustness.js';
 import type { Snapshot } from '../../domain/src/index.js';
 import {
@@ -15,6 +16,8 @@ export interface WindowResult {
   trades: PaperTrade[];
   metrics: ReturnType<typeof metrics>;
   candidates: number;
+  diagnostics: SignalEngine['diagnostics'];
+  benchmarks?: ReturnType<SameEventBenchmarks['report']>;
   boundaryPurged: number;
   unfinished: { pending: number; openPositions: number };
   trainingRelationships: ReturnType<SignalEngine['freezeRelationships']>;
@@ -33,6 +36,7 @@ export async function evaluateWindow(
 ): Promise<WindowResult> {
   const engine = new SignalEngine(config),
     paper = new PaperBacktester(config),
+    benchmarks = config.forward ? new SameEventBenchmarks(config) : undefined,
     horizons = new FixedHorizonTracker();
   let frozen = false,
     candidates = 0,
@@ -56,20 +60,29 @@ export async function evaluateWindow(
       frozen = true;
     }
     paper.update(rows);
+    benchmarks?.update(rows);
     horizons.update(rows);
     const signals = engine.update(rows);
     candidates += signals.length;
     const eligible: Candidate[] = [];
     for (const signal of signals) {
-      if (signal.decisionTs + config.maxEntryWaitMs + config.maxHoldMs >= end)
+      if (
+        (signal.entryEligibleTs ?? signal.decisionTs) +
+          config.maxEntryWaitMs +
+          config.maxHoldMs >=
+        end
+      )
         boundaryPurged++;
       else eligible.push(signal);
     }
     paper.submit(eligible);
+    benchmarks?.submit(eligible);
     horizons.submit(eligible);
   }
   horizons.close();
   return {
+    ...(benchmarks ? { benchmarks: benchmarks.report() } : {}),
+    diagnostics: engine.diagnostics,
     horizonOutcomes: horizons.summary(),
     costStress: costStress(paper.trades),
     trades: paper.trades,
@@ -129,6 +142,7 @@ export async function walkForward(load: DatasetLoader, frozen: FrozenResearch) {
     validations: ValidationEntry[];
     selection: ReturnType<typeof selectVariant>;
     test: WindowResult;
+    delayStress?: Awaited<ReturnType<typeof evaluateDelayStress>>;
   }[] = [];
   const validations: ValidationEntry[] = [];
   for (const fold of frozen.plan.folds) {
@@ -159,7 +173,22 @@ export async function walkForward(load: DatasetLoader, frozen: FrozenResearch) {
       testStart,
       testEnd,
     );
-    folds.push({ id: fold.id, validations: current, selection, test });
+    const delayStress = selection.chosen.config.forward
+      ? await evaluateDelayStress(
+          load,
+          selection.chosen.config,
+          trainStart,
+          testStart,
+          testEnd,
+        )
+      : undefined;
+    folds.push({
+      id: fold.id,
+      validations: current,
+      selection,
+      test,
+      ...(delayStress ? { delayStress } : {}),
+    });
     validations.push(...current);
   }
   const selected = selectVariant(
@@ -178,5 +207,46 @@ export async function walkForward(load: DatasetLoader, frozen: FrozenResearch) {
     unqualifiedFolds: folds
       .filter((f) => !f.selection.qualified)
       .map((f) => f.id),
+  };
+}
+
+/** Diagnostic only: never feed unseen delay results back into variant selection. Each delay refits its own causal labels. */
+export async function evaluateDelayStress(
+  load: DatasetLoader,
+  config: StrategyConfig,
+  trainStart: number,
+  start: number,
+  end: number,
+  delays = [5000, 15000, 30000, 60000, 120000],
+) {
+  if (!config.forward)
+    throw new Error('Delay stress requires a forward strategy');
+  if (
+    !delays.length ||
+    delays.some((d) => !Number.isInteger(d) || d < 0 || d % 1000) ||
+    new Set(delays).size !== delays.length
+  )
+    throw new Error('Invalid entry delays');
+  const results = [];
+  for (const entryDelayMs of delays) {
+    const stressed = {
+      ...config,
+      forward: { ...config.forward, entryDelayMs },
+    };
+    const result = await evaluateWindow(load, stressed, trainStart, start, end);
+    results.push({
+      entryDelayMs,
+      metrics: result.metrics,
+      costStress: result.costStress,
+      unfinished: result.unfinished,
+      boundaryPurged: result.boundaryPurged,
+      diagnostics: result.diagnostics,
+      benchmarks: result.benchmarks,
+    });
+  }
+  return {
+    researchOnly: true,
+    selectionUse: 'DIAGNOSTIC_ONLY_NOT_FOR_OOS_SELECTION',
+    results,
   };
 }

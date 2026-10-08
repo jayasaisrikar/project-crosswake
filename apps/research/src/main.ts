@@ -1,3 +1,5 @@
+import { SameEventBenchmarks } from '../../../packages/backtest/src/comparisons.js';
+import { riskReport } from '../../../packages/backtest/src/reports.js';
 import {
   FixedHorizonTracker,
   RelationshipStudy,
@@ -23,11 +25,31 @@ const { values } = parseArgs({
     source: { type: 'string', default: 'live' },
     config: { type: 'string', default: 'configs/catch-up-v001.json' },
     output: { type: 'string' },
+    from: { type: 'string' },
+    to: { type: 'string' },
   },
 });
 if (values.source !== 'live' && values.source !== 'historical')
   throw new Error(
     'Source must be live or historical; sources may not be silently mixed',
+  );
+const range =
+  values.from || values.to
+    ? {
+        startTs: Date.parse(values.from ?? ''),
+        endTs: Date.parse(values.to ?? ''),
+      }
+    : undefined;
+if (
+  range &&
+  (!Number.isSafeInteger(range.startTs) ||
+    !Number.isSafeInteger(range.endTs) ||
+    range.startTs % 1000 ||
+    range.endTs % 1000 ||
+    range.startTs >= range.endTs)
+)
+  throw new Error(
+    'Supply both --from and --to as increasing whole-second timestamps',
   );
 const config = strategySchema.parse(
     JSON.parse(await readFile(values.config!, 'utf8')),
@@ -37,8 +59,13 @@ const config = strategySchema.parse(
   studies = new RelationshipStudy(),
   dataset = await openDataset(values['data-dir']!, values.source),
   backtest = new PaperBacktester(config),
+  benchmarks = config.forward ? new SameEventBenchmarks(config) : undefined,
   runHash = createHash('sha256')
-    .update(dataset.datasetHash + engine.configHash)
+    .update(
+      dataset.datasetHash +
+        engine.configHash +
+        (range ? JSON.stringify(range) : ''),
+    )
     .digest('hex'),
   output =
     values.output ??
@@ -50,15 +77,17 @@ let snapshots = 0,
   firstTs: number | undefined,
   lastTs: number | undefined;
 try {
-  for await (const rows of dataset.batches()) {
+  for await (const rows of dataset.batches(range)) {
     snapshots += rows.length;
     firstTs ??= rows[0]!.ts;
     lastTs = rows[0]!.ts;
     backtest.update(rows);
+    benchmarks?.update(rows);
     horizons.update(rows);
     studies.update(rows);
     const signals = engine.update(rows);
     backtest.submit(signals);
+    benchmarks?.submit(signals);
     horizons.submit(signals);
     candidates += signals.length;
     if (signals.length)
@@ -74,6 +103,9 @@ try {
   );
   horizons.close();
   const report = {
+    signalDiagnostics: engine.diagnostics,
+    ...(benchmarks ? { benchmarks: benchmarks.report() } : {}),
+    risk: riskReport(backtest.trades),
     horizonOutcomes: horizons.summary(),
     relationshipStudies: lastTs ? studies.report(lastTs) : [],
     costStress: costStress(backtest.trades),
@@ -82,6 +114,7 @@ try {
     configHash: engine.configHash,
     config,
     source: values.source,
+    requestedRange: range ?? null,
     quoteBacked: values.source === 'live',
     firstTs,
     lastTs,

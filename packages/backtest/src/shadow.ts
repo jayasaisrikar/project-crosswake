@@ -35,8 +35,24 @@ export class ShadowRuntime {
     )
       throw new Error('Shadow clock precedes availability or moved backwards');
     this.lastDecisionAt = decisionAt;
-    for (const candidate of candidates)
+    for (const candidate of candidates) {
       candidate.decisionTs = Math.max(candidate.decisionTs, decisionAt);
+      if (this.engine.config.forward) {
+        candidate.entryEligibleTs = Math.max(
+          candidate.entryEligibleTs ?? 0,
+          candidate.decisionTs + this.engine.config.forward.entryDelayMs,
+        );
+        if (
+          decisionAt - candidate.ts >
+          this.engine.config.forward.dataLatencyBudgetMs +
+            this.engine.config.decisionLatencyMs
+        ) {
+          candidate.accepted = false;
+          candidate.executable = false;
+          candidate.reasons.push('processing_latency_budget_exceeded');
+        }
+      }
+    }
     this.paper.submit(candidates);
     this.stepCount++;
     this.lastTs = ts;

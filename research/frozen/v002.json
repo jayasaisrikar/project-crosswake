@@ -1,0 +1,104 @@
+{
+  "schemaVersion": 1,
+  "createdAt": "2026-10-08T10:28:42.816Z",
+  "plan": {
+    "id": "crosswake-forward-v002",
+    "source": "live",
+    "symbols": ["BTCUSDT", "ETHUSDT", "SOLUSDT"],
+    "baseConfig": "forward-v002.json",
+    "variants": [
+      {
+        "id": "manual-30s",
+        "overrides": {}
+      }
+    ],
+    "minValidationTrades": 30,
+    "folds": [
+      {
+        "id": "fold-1",
+        "trainStart": "2026-10-09T00:00:00Z",
+        "trainEnd": "2026-10-16T00:00:00Z",
+        "validationEnd": "2026-10-23T00:00:00Z",
+        "testEnd": "2026-10-30T00:00:00Z"
+      },
+      {
+        "id": "fold-2",
+        "trainStart": "2026-10-16T00:00:00Z",
+        "trainEnd": "2026-10-23T00:00:00Z",
+        "validationEnd": "2026-10-30T00:00:00Z",
+        "testEnd": "2026-11-06T00:00:00Z"
+      }
+    ],
+    "holdout": {
+      "trainStart": "2026-10-30T00:00:00Z",
+      "start": "2026-11-06T00:00:00Z",
+      "end": "2026-11-20T00:00:00Z"
+    },
+    "acceptance": {
+      "policy": "net-expectancy",
+      "maxDrawdownBps": 2000,
+      "maxAssetPnlShare": 0.75,
+      "minClosedTrades": 500,
+      "minWinRate": 0,
+      "minProfitFactor": 1.3,
+      "minEvents": 500,
+      "minAssets": 2
+    }
+  },
+  "variants": [
+    {
+      "id": "manual-30s",
+      "config": {
+        "version": "forward-v002-exploratory-manual-30s",
+        "relationshipRefreshMs": 300000,
+        "btcRetraceInvalidation": 0.5,
+        "horizonMs": 60000,
+        "windowMs": 86400000,
+        "minSamples": 60,
+        "minLagMs": 15000,
+        "maxLagMs": 180000,
+        "minLagCorrelation": 0.4,
+        "lagGridMs": [1000, 5000, 15000, 30000, 60000, 120000, 180000, 300000],
+        "correlationFloor": 0.65,
+        "minStability": 0.75,
+        "impulseMinMove": 0.002,
+        "impulseZMin": 2,
+        "minBtcQuoteVolume": 100000,
+        "gapZMin": 1.25,
+        "maxSpreadBps": 10,
+        "feeBpsPerSide": 10,
+        "slippageBpsPerSide": 2,
+        "costSafetyMultiple": 3,
+        "minConfidence": 80,
+        "cooldownMs": 60000,
+        "decisionLatencyMs": 2000,
+        "maxHoldMs": 300000,
+        "maxEntryWaitMs": 1000,
+        "takeProfitGapFraction": 0.7,
+        "stopLossBps": 50,
+        "forward": {
+          "entryDelayMs": 30000,
+          "dataLatencyBudgetMs": 8000,
+          "outcomeHorizonMs": 300000,
+          "minValidationSamples": 20,
+          "minIncrementalSkill": 0.05,
+          "minNetRewardRisk": 2,
+          "maxEntryDriftBps": 20,
+          "signalTtlMs": 180000,
+          "universeWindowMs": 3600000,
+          "minAssetQuoteVolume": 1000000,
+          "minQuoteCoverage": 0.99,
+          "maxConcurrentPositions": 1
+        },
+        "executionCost": {
+          "notionalUsdt": 100,
+          "maxParticipation": 0.001,
+          "impactCoefficientBps": 10,
+          "volatilityMultiplier": 0.1
+        }
+      },
+      "configHash": "50ac7b174f82eb744d511dc3dc16381911087b8baf8c9819fac6a1fba867d5d5"
+    }
+  ],
+  "planHash": "21a3464accda044bd48fcc2be7244fd8ee065d62e7688f97edf1391e340782be"
+}

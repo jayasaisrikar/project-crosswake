@@ -35,6 +35,9 @@ export const planSchema = z
     folds: z.array(foldSchema).min(1),
     holdout: z.object({ trainStart: clock, start: clock, end: clock }),
     acceptance: z.object({
+      policy: z.enum(['legacy-win-rate', 'net-expectancy']).optional(),
+      maxDrawdownBps: z.number().positive().optional(),
+      maxAssetPnlShare: z.number().positive().max(1).optional(),
       minClosedTrades: z.number().int().min(1),
       minWinRate: z.number().min(0).max(1),
       minProfitFactor: z.number().positive(),
@@ -68,6 +71,12 @@ export const planSchema = z
       if (c! < previousTestEnd) issue('Unseen test blocks overlap');
       previousTestEnd = d!;
     }
+    if (
+      p.acceptance.policy === 'net-expectancy' &&
+      (p.acceptance.maxDrawdownBps === undefined ||
+        p.acceptance.maxAssetPnlShare === undefined)
+    )
+      issue('Expectancy policy requires drawdown and concentration limits');
     const h = p.holdout;
     if (!(
       Date.parse(h.trainStart) < Date.parse(h.start) &&

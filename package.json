@@ -28,7 +28,13 @@
     "dashboard:build": "pnpm --filter @crosswake/dashboard build",
     "context:collect": "tsx apps/context/src/main.ts",
     "typecheck:dashboard": "tsc --noEmit -p apps/dashboard/tsconfig.json",
-    "ops:report": "tsx apps/operations/src/main.ts"
+    "ops:report": "tsx apps/operations/src/main.ts",
+    "residual:history": "tsx apps/residual/src/main.ts history",
+    "residual:backtest": "tsx apps/residual/src/main.ts backtest",
+    "residual:walk-forward": "tsx apps/residual/src/main.ts walk-forward",
+    "residual:holdout": "tsx apps/residual/src/main.ts holdout",
+    "residual:live": "tsx apps/residual/src/main.ts live",
+    "residual:study": "tsx apps/residual/src/main.ts study"
   },
   "dependencies": {
     "@ai-sdk/openai": "^4.0.86",

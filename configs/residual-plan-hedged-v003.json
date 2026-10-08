@@ -1,0 +1,28 @@
+{
+  "id": "residual-hedged-v003",
+  "baseConfig": "residual-hedged-v003.json",
+  "grid": {
+    "lookbackMs": [3600000, 7200000, 14400000],
+    "holdMs": [7200000, 14400000],
+    "entryZ": [1.5, 2, 2.5]
+  },
+  "dataStart": "2025-10-01T00:00:00Z",
+  "walkForwardEnd": "2026-08-01T00:00:00Z",
+  "selectionMs": 5184000000,
+  "testMs": 2592000000,
+  "minSelectionTrades": 30,
+  "holdout": {
+    "start": "2026-08-01T00:00:00Z",
+    "end": "2026-10-01T00:00:00Z"
+  },
+  "acceptance": {
+    "policy": "net-expectancy",
+    "minClosedTrades": 500,
+    "minWinRate": 0.3,
+    "minProfitFactor": 1.3,
+    "minEvents": 200,
+    "minAssets": 3,
+    "maxDrawdownBps": 3000,
+    "maxAssetPnlShare": 0.4
+  }
+}
