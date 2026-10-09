@@ -28,19 +28,19 @@ export function telegramSignal(s: ResidualSignal, c: ResidualConfig) {
       ? [
           `${long ? '🟢' : '🔴'} <b>${s.side} ${alt}</b> · spot`,
           '',
-          `▸ <b>Ref</b>      <code>${px(s.referencePrice)}</code>`,
-          `▸ <b>Enter</b>    ~${hhmm(s.entryAtTs)} UTC, skip above <code>${px(s.entryPriceLimit!)}</code>`,
-          `▸ <b>Target</b>   <code>${px(s.targetPrice!)}</code>  (+${pct(s.targetBps)})`,
-          `▸ <b>Stop</b>     <code>${px(s.stopPrice!)}</code>  (-${pct(s.stopBps)})`,
-          `▸ <b>Exit by</b>  ${hhmm(s.entryAtTs + s.holdMs)} UTC`,
+          `▸ <b>Ref</b> <code>${px(s.referencePrice)}</code>`,
+          `▸ <b>Enter</b> ~${hhmm(s.entryAtTs)} UTC, skip above <code>${px(s.entryPriceLimit!)}</code>`,
+          `▸ <b>Target</b> <code>${px(s.targetPrice!)}</code> (+${pct(s.targetBps)})`,
+          `▸ <b>Stop</b> <code>${px(s.stopPrice!)}</code> (-${pct(s.stopBps)})`,
+          `▸ <b>Exit by</b> ${hhmm(s.entryAtTs + s.holdMs)} UTC`,
         ]
       : [
           `⚖️ <b>PAIR ${s.side} ${alt}</b> / ${long ? 'SHORT' : 'LONG'} BTC`,
           '',
-          `▸ <b>Size</b>     ${s.beta.toFixed(2)}x BTC per 1x ${alt}`,
-          `▸ <b>Target</b>   spread +${pct(s.targetBps)}`,
-          `▸ <b>Stop</b>     spread -${pct(s.stopBps)}`,
-          `▸ <b>Exit by</b>  ${hhmm(s.entryAtTs + s.holdMs)} UTC`,
+          `▸ <b>Size</b> ${s.beta.toFixed(2)}x BTC per 1x ${alt}`,
+          `▸ <b>Target</b> spread +${pct(s.targetBps)}`,
+          `▸ <b>Stop</b> spread -${pct(s.stopBps)}`,
+          `▸ <b>Exit by</b> ${hhmm(s.entryAtTs + s.holdMs)} UTC`,
         ];
   return [
     ...body,

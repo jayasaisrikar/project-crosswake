@@ -2,6 +2,8 @@
  * 4-hourly market digest for the Telegram channel. Facts are computed here from altFINS and the
  * engines' own state; a model may only rephrase them, and any number it invents rejects its draft.
  */
+import { escapeHtml } from '../../notify/src/index.js';
+
 export interface CoinFact {
   symbol: string;
   price: number;
@@ -115,7 +117,7 @@ ${templatePost(f)}
 RULES
 - Use only numbers that appear in FACTS, written exactly as they appear. Add no new numbers, percentages, targets or dates.
 - Say what the indicators show (strength, weakness, mixed). No buy/sell calls, no predictions, no price targets.
-- Open with a one-line headline, then 3-6 short lines. Plain text, a few emoji at most.
+- Open with a one-line headline, then 3-6 short lines. Plain prose, a few emoji at most: no markdown, no asterisks, no hashes.
 - Mention what the Crosswake engines are doing in one line, in plain words.
 - If the daily BTC trend filter is on while 4h RSI readings are weak or oversold, say plainly that the longer daily trend is still up while short-term 4h momentum is weak. Do not present the two as contradicting each other.
 - End with exactly: "Source: altFINS 4h indicators. ${DISCLAIMER}"`;
@@ -149,3 +151,21 @@ export function checkDraft(
 /** Start of the 4h slot a post belongs to; posts go out a few minutes after each 4h close. */
 export const slotOf = (ts: number, hours = 4) =>
   Math.floor(ts / (hours * 3_600_000)) * hours * 3_600_000;
+
+/**
+ * Telegram HTML card for an analysis post. The model writes plain prose, so the markup stays ours:
+ * bold the headline, italicise the source line, escape the rest. A draft therefore cannot produce
+ * malformed HTML, which Telegram rejects outright instead of rendering.
+ */
+export function postToHtml(text: string) {
+  const lines = text.split('\n').map((l) => l.trimEnd()),
+    head = lines.findIndex((l) => l.trim().length > 0);
+  return lines
+    .map((line, i) => {
+      const body = escapeHtml(line);
+      if (i === head) return `<b>${body}</b>`;
+      if (/^Source:/i.test(line.trim())) return `<i>${body}</i>`;
+      return body;
+    })
+    .join('\n');
+}
