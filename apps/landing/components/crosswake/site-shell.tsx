@@ -80,4 +80,4 @@ export function SiteHeader() {
     </header>
   );
 }
-export function SiteFooter(){return <footer className="cw-footer"><div className="cw-footer-top"><Brand/><p>Read the market.<br/>Respect the evidence.</p><div><Link href="/docs">Documentation ↗</Link><Link href="/docs/strategies">Strategy catalog ↗</Link><Link href="/docs/validation">Research standards ↗</Link></div></div><div className="cw-footer-bottom"><span>© {new Date().getFullYear()} Crosswake</span><span>Research software. Paper signals only.</span><a href="#main">Back to top ↑</a></div></footer>}
+export function SiteFooter(){return <footer className="cw-footer"><div className="cw-footer-top"><Brand/><p>Clear signals.<br/>Public results.</p><div><Link href="/docs">Documentation ↗</Link><Link href="/docs/strategies">Strategy catalog ↗</Link><Link href="/docs/validation">Research standards ↗</Link></div></div><div className="cw-footer-bottom"><span>© {new Date().getFullYear()} Crosswake</span><span>Research software. Paper signals only.</span><a href="#main">Back to top ↑</a></div></footer>}

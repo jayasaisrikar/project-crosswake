@@ -70,7 +70,7 @@ export function DashboardDemo() {
         <div className="demo-split">
           <div className="demo-panel">
             <header>
-              <span>Watchlist · 30 coins</span>
+              <span>Watchlist · 36 coins</span>
               <span>24h</span>
             </header>
             <table>

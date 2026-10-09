@@ -4,7 +4,7 @@ const steps = [
   {
     icon: Activity,
     title: 'We watch the market.',
-    text: 'Crosswake checks 30 major coins every day. Bitcoin sets the direction: when it is below its 100-day average, we stay out.',
+    text: 'Crosswake scans 36 major coins after every daily close. Bitcoin sets the direction: when it is below its 100-day average, we stay out.',
   },
   {
     icon: BellRing,

@@ -39,7 +39,7 @@ const tickerItems = [
   ['20D', 'breakout entry'],
   ['10D', 'low exit'],
   ['4H', 'market updates'],
-  ['30', 'coins watched'],
+  ['36', 'coins scanned daily'],
   ['0', 'hidden failures'],
   ['PAPER', 'tracked live'],
 ];
@@ -56,8 +56,8 @@ export default function Page() {
           <HeroParallax>
             <div className="kinetic-hero-copy">
               <div className="hero-edition hero-rise">
-                <span className="cw-status-dot" /> ALTCOIN TREND SIGNALS · TELEGRAM
-                + DASHBOARD
+                <span className="cw-status-dot" /> ALTCOIN TREND SIGNALS · FREE ON
+                TELEGRAM
               </div>
               <h1 className="hero-rise">
                 Ride the
@@ -65,14 +65,13 @@ export default function Page() {
                 trend<span className="hero-period">.</span>
               </h1>
               <div className="hero-subline hero-rise">
-                <span className="hero-line" />
-                <span>Signals with the receipts.</span>
+                <span>Know what to buy, and when to get out.</span>
               </div>
               <p className="hero-rise">
-                Crosswake tells you which altcoin to buy, when to enter and
-                when to exit, only while Bitcoin is in an uptrend. Every rule
-                is public, every result includes fees, and every signal is
-                tracked live on paper.
+                Crosswake scans 36 major coins after every daily close. When an
+                altcoin breaks out while Bitcoin is in an uptrend, you get the
+                coin, the entry and the exit rule on Telegram. Every result is
+                published after fees, losses included.
               </p>
               <div className="cw-actions hero-rise">
                 <Link className="cw-button" href="#signals">
@@ -84,13 +83,13 @@ export default function Page() {
               </div>
               <ul className="hero-facts hero-rise" aria-label="At a glance">
                 <li>
-                  <strong>30</strong> coins watched
+                  <strong>36</strong> coins scanned daily
                 </li>
                 <li>
                   <strong>Days–weeks</strong> per trade
                 </li>
                 <li>
-                  <strong>Fees</strong> in every result
+                  <strong>Every</strong> result published
                 </li>
               </ul>
             </div>
