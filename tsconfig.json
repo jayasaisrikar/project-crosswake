@@ -11,5 +11,5 @@
     "resolveJsonModule": true
   },
   "include": ["apps/**/*.ts", "packages/**/*.ts", "tests/**/*.ts"],
-  "exclude": ["apps/dashboard"]
+  "exclude": ["apps/dashboard", "apps/landing"]
 }

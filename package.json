@@ -31,6 +31,7 @@
     "dashboard:build": "pnpm --filter @crosswake/dashboard build",
     "context:collect": "tsx apps/context/src/main.ts",
     "typecheck:dashboard": "tsc --noEmit -p apps/dashboard/tsconfig.json",
+    "typecheck:landing": "tsc --noEmit -p apps/landing/tsconfig.json",
     "ops:report": "tsx apps/operations/src/main.ts",
     "residual:history": "tsx apps/residual/src/main.ts history",
     "residual:backtest": "tsx apps/residual/src/main.ts backtest",
