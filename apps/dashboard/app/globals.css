@@ -2020,25 +2020,25 @@ h3 {
 
 /* ---------- Crosswake dark theme, matching the landing page ---------- */
 :root {
-  --paper: oklch(8% 0.004 165);
-  --surface: oklch(12.5% 0.006 165);
-  --surface-muted: oklch(17% 0.008 165);
-  --ink: oklch(96% 0.006 160);
-  --ink-secondary: oklch(70% 0.012 165);
-  --rule: oklch(24% 0.01 165);
-  --signal: oklch(80% 0.15 162);
-  --signal-soft: oklch(80% 0.15 162 / 0.14);
-  --signal-ink: oklch(14% 0.03 165);
-  --success: oklch(78% 0.17 148);
-  --success-soft: oklch(78% 0.17 148 / 0.14);
-  --warning: oklch(80% 0.14 80);
-  --warning-soft: oklch(80% 0.14 80 / 0.14);
-  --error: oklch(70% 0.17 25);
-  --error-soft: oklch(70% 0.17 25 / 0.14);
-  --dark-surface: oklch(6% 0.003 165);
-  --dark-ink: oklch(96% 0.006 160);
-  --shadow-panel: 0 12px 40px oklch(3% 0.004 165 / 0.45);
-  --shadow-dialog: 0 30px 80px oklch(3% 0.004 165 / 0.6);
+  --paper: #000000;
+  --surface: #0d0d0d;
+  --surface-muted: #181818;
+  --ink: #f2f2ee;
+  --ink-secondary: #9a9a94;
+  --rule: #232323;
+  --signal: #7ac74f;
+  --signal-soft: rgb(122 199 79 / 0.14);
+  --signal-ink: #0b1206;
+  --success: #a1cf6b;
+  --success-soft: rgb(161 207 107 / 0.14);
+  --warning: #e0c879;
+  --warning-soft: rgb(224 200 121 / 0.14);
+  --error: #e87461;
+  --error-soft: rgb(232 116 97 / 0.14);
+  --dark-surface: #050505;
+  --dark-ink: #f2f2ee;
+  --shadow-panel: 0 12px 40px rgb(0 0 0 / 0.45);
+  --shadow-dialog: 0 30px 80px rgb(0 0 0 / 0.6);
   --font-heading: var(--font-geist), 'Inter', system-ui, sans-serif;
   --font-body: var(--font-geist), 'Inter', system-ui, sans-serif;
   --font-record: var(--font-geist-mono), 'JetBrains Mono', ui-monospace, monospace;
@@ -2059,12 +2059,12 @@ body {
   width: 28px;
   height: 28px;
   border-radius: 9px;
-  box-shadow: 0 6px 18px oklch(72% 0.15 162 / 0.22);
+  box-shadow: 0 6px 18px rgb(122 199 79 / 0.22);
 }
 
 /* ---------- Market view ---------- */
 .mv {
-  background: oklch(6.5% 0.003 165);
+  background: #050505;
   border: 1px solid var(--rule);
   border-radius: 12px;
   overflow: hidden;
@@ -2093,7 +2093,7 @@ body {
 .mv-tag {
   margin-left: auto;
   padding: 2px 10px;
-  border: 1px solid oklch(80% 0.15 162 / 0.35);
+  border: 1px solid rgb(122 199 79 / 0.35);
   border-radius: 999px;
   color: var(--signal);
 }
@@ -2203,8 +2203,8 @@ body {
 }
 .mv-chip.is-near,
 .mv-chip.is-hold {
-  background: var(--signal-soft);
-  color: var(--signal);
+  background: rgb(213 216 135 / 0.14);
+  color: #d5d887;
 }
 .mv-pos {
   width: 100%;

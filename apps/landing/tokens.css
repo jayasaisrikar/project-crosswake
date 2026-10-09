@@ -1,20 +1,20 @@
 /* Hallmark · pre-emit critique: P4 H5 E4 S5 R4 V4 */
 :root {
-  --paper: oklch(8% 0.004 165);
-  --surface: oklch(12.5% 0.006 165);
-  --surface-muted: oklch(17% 0.008 165);
-  --ink: oklch(96% 0.006 160);
-  --ink-secondary: oklch(70% 0.012 165);
-  --rule: oklch(24% 0.01 165);
-  --signal: oklch(80% 0.15 162);
-  --signal-soft: oklch(22% 0.04 162);
-  --signal-ink: oklch(14% 0.03 165);
-  --color-glow: oklch(72% 0.15 162);
-  --color-glow-soft: oklch(72% 0.15 162 / 0.12);
-  --color-clear: oklch(8% 0.004 165 / 0);
-  --color-grid: oklch(70% 0.03 165 / 0.08);
-  --success: oklch(78% 0.17 148);
-  --warning: var(--signal);
+  --paper: #000000;
+  --surface: #0d0d0d;
+  --surface-muted: #181818;
+  --ink: #f2f2ee;
+  --ink-secondary: #9a9a94;
+  --rule: #232323;
+  --signal: #7ac74f;
+  --signal-soft: rgb(122 199 79 / 0.14);
+  --signal-ink: #0b1206;
+  --color-glow: #7ac74f;
+  --color-glow-soft: rgb(122 199 79 / 0.12);
+  --color-clear: rgb(0 0 0 / 0);
+  --color-grid: rgb(255 255 255 / 0.05);
+  --success: #a1cf6b;
+  --warning: #e0c879;
   --font-display: var(--font-heading);
   --ease-in: cubic-bezier(0.4, 0, 1, 1);
   --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
