@@ -3,6 +3,7 @@ data/
 .env
 .env.local
 .env.vercel
+deploy/oci/state/
 coverage/
 *.log
 

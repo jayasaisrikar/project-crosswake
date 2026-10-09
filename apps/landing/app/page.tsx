@@ -60,9 +60,9 @@ export default function Page() {
                 TELEGRAM
               </div>
               <h1 className="hero-rise">
-                Ride the
+                Signals you
                 <br />
-                trend<span className="hero-period">.</span>
+                can verify<span className="hero-period">.</span>
               </h1>
               <div className="hero-subline hero-rise">
                 <span>Know what to buy, and when to get out.</span>
@@ -157,20 +157,42 @@ export default function Page() {
               </div>
               <svg
                 viewBox="0 0 620 265"
+                className="rule-chart"
                 role="img"
                 aria-label="Illustrative breakout above a prior high, followed by a trend and exit"
               >
+                <defs>
+                  <linearGradient id="rule-fill" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0" stopColor="#7ac74f" stopOpacity=".28" />
+                    <stop offset="1" stopColor="#7ac74f" stopOpacity="0" />
+                  </linearGradient>
+                </defs>
                 <path
                   className="cw-chart-grid"
                   d="M0 60H620M0 120H620M0 180H620M0 240H620M80 0V265M200 0V265M320 0V265M440 0V265M560 0V265"
                 />
+                <rect className="rule-hold" x="210" y="0" width="365" height="265" />
                 <path className="cw-chart-threshold" d="M0 170H620" />
+                <text className="rule-label" x="8" y="162">20-day high</text>
+                <path
+                  className="rule-area"
+                  d="M210 146L235 157L260 119L282 131L305 88L331 107L355 70L380 80L404 44L429 62L452 36L477 67L500 52L525 91L551 82L575 123V265H210Z"
+                />
                 <path
                   className="cw-chart-line"
+                  pathLength={1}
                   d="M0 226L24 220L45 236L70 208L92 218L118 187L140 202L162 179L186 191L210 146L235 157L260 119L282 131L305 88L331 107L355 70L380 80L404 44L429 62L452 36L477 67L500 52L525 91L551 82L575 123L598 111L620 145"
                 />
-                <circle cx="210" cy="146" r="6" className="cw-chart-point" />
-                <circle cx="575" cy="123" r="6" className="cw-chart-point" />
+                <g className="rule-marker rule-entry">
+                  <circle cx="210" cy="146" r="14" className="rule-pulse" />
+                  <circle cx="210" cy="146" r="6" className="cw-chart-point" />
+                  <text x="210" y="126" textAnchor="middle">BUY</text>
+                </g>
+                <g className="rule-marker rule-exit">
+                  <circle cx="575" cy="123" r="14" className="rule-pulse" />
+                  <circle cx="575" cy="123" r="6" className="cw-chart-point is-exit" />
+                  <text x="575" y="103" textAnchor="middle">SELL</text>
+                </g>
               </svg>
               <div className="cw-chart-caption">
                 <span>20-day breakout ↗</span>

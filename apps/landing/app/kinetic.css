@@ -1660,3 +1660,205 @@
 .brand-accent {
   color: #2ee6c5;
 }
+
+/* ---------- Rule chart animation (plays when #approach reveals) ---------- */
+.rule-chart {
+  overflow: visible;
+}
+.rule-chart .cw-chart-line {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+}
+.rule-hold {
+  fill: rgb(122 199 79 / 0.06);
+  transform-box: fill-box;
+  transform-origin: left;
+  transform: scaleX(0);
+}
+.rule-area {
+  fill: url(#rule-fill);
+  opacity: 0;
+}
+.rule-label,
+.rule-marker text {
+  font-family: var(--font-record);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  fill: var(--ink-secondary);
+}
+.rule-marker text {
+  fill: var(--signal);
+  font-weight: 500;
+}
+.rule-exit text {
+  fill: #e87461;
+}
+.cw-chart-point.is-exit {
+  fill: #e87461;
+}
+.rule-marker {
+  opacity: 0;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+.rule-pulse {
+  fill: none;
+  stroke: var(--signal);
+  stroke-width: 1.5;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+.rule-exit .rule-pulse {
+  stroke: #e87461;
+}
+.cw-chart-caption span {
+  opacity: 0;
+  transform: translateY(8px);
+  transition:
+    opacity 0.6s,
+    transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.is-in .rule-chart .cw-chart-line {
+  animation: rule-draw 2.6s cubic-bezier(0.45, 0, 0.2, 1) 0.3s forwards;
+}
+.is-in .rule-hold {
+  transition: transform 1.6s cubic-bezier(0.45, 0, 0.2, 1) 1.2s;
+  transform: scaleX(1);
+}
+.is-in .rule-area {
+  transition: opacity 1s 2.2s;
+  opacity: 1;
+}
+.is-in .rule-entry {
+  animation: rule-pop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) 1.15s forwards;
+}
+.is-in .rule-exit {
+  animation: rule-pop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) 2.55s forwards;
+}
+.is-in .rule-pulse {
+  animation: rule-ping 2.4s ease-out 3s infinite;
+}
+.is-in .cw-chart-caption span {
+  opacity: 1;
+  transform: none;
+}
+.is-in .cw-chart-caption span:nth-child(1) { transition-delay: 1.2s; }
+.is-in .cw-chart-caption span:nth-child(2) { transition-delay: 1.9s; }
+.is-in .cw-chart-caption span:nth-child(3) { transition-delay: 2.6s; }
+@keyframes rule-draw {
+  to { stroke-dashoffset: 0; }
+}
+@keyframes rule-pop {
+  from { opacity: 0; transform: scale(0.4); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes rule-ping {
+  0% { opacity: 0.8; transform: scale(0.5); }
+  70%, 100% { opacity: 0; transform: scale(1.6); }
+}
+
+/* ---------- Themed backgrounds ---------- */
+.kinetic-hero,
+.cw-landing .cw-how,
+.cw-landing .cw-tg,
+.cw-landing .cw-research,
+.cw-landing .cw-docs-callout {
+  position: relative;
+  isolation: isolate;
+}
+/* Hero: fine market grid fading out, with a soft green glow behind the scene */
+.cw-landing .kinetic-hero::before {
+  content: '';
+  position: absolute;
+  inset: -120px 0 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(60% 55% at 72% 45%, rgb(122 199 79 / 0.12), transparent 70%),
+    radial-gradient(40% 40% at 8% 10%, rgb(213 216 135 / 0.05), transparent 70%),
+    linear-gradient(rgb(255 255 255 / 0.035) 1px, transparent 1px) 0 0 / 64px 64px,
+    linear-gradient(90deg, rgb(255 255 255 / 0.035) 1px, transparent 1px) 0 0 / 64px 64px;
+  mask-image: radial-gradient(80% 70% at 50% 40%, #000 30%, transparent 85%);
+}
+/* How it works: a faint candlestick skyline rising behind the steps */
+.cw-landing .cw-how::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 70%;
+  z-index: -1;
+  pointer-events: none;
+  background: url('/bg/candles.svg') center bottom / 100% 100% no-repeat;
+  opacity: 0.55;
+  mask-image: linear-gradient(transparent, #000 45%, #000 70%, transparent);
+}
+/* Telegram + docs: crossing wake lines echoing the logo */
+.cw-landing .cw-tg::before,
+.cw-landing .cw-docs-callout::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(45% 60% at 80% 50%, rgb(122 199 79 / 0.1), transparent 70%),
+    url('/bg/wake.svg') center / cover no-repeat;
+  mask-image: radial-gradient(90% 90% at 60% 50%, #000 40%, transparent 90%);
+}
+.cw-landing .cw-docs-callout {
+  overflow: hidden;
+}
+/* Results: a low glow under the numbers */
+.cw-landing .cw-research::before {
+  content: '';
+  position: absolute;
+  inset: 10% 0 0;
+  z-index: -1;
+  pointer-events: none;
+  background: radial-gradient(50% 45% at 30% 40%, rgb(161 207 107 / 0.08), transparent 70%);
+}
+@media (prefers-reduced-motion: reduce) {
+  .rule-chart .cw-chart-line { stroke-dashoffset: 0; animation: none !important; }
+  .rule-hold { transform: none; }
+  .rule-area,
+  .rule-marker,
+  .cw-chart-caption span { opacity: 1; transform: none; animation: none !important; }
+  .rule-pulse { animation: none !important; }
+}
+.cw-landing .kinetic-hero h1 {
+  font-size: clamp(64px, 7.4vw, 118px);
+  max-width: 760px;
+}
+.cw-landing .cw-how::before {
+  height: 38%;
+  opacity: 0.45;
+  mask-image: linear-gradient(transparent, #000 50%, transparent);
+}
+@media (max-width: 768px) {
+  .cw-landing .kinetic-hero h1 {
+    font-size: clamp(52px, 13vw, 84px);
+  }
+}
+.cw-landing .cw-docs-callout {
+  background: #070907;
+  color: var(--ink);
+  border: 1px solid rgb(122 199 79 / 0.28);
+  border-radius: 10px;
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.04);
+}
+.cw-landing .cw-docs-callout p {
+  color: var(--ink-secondary);
+}
+.cw-landing .cw-docs-callout .cw-button {
+  background: var(--signal);
+  color: #0b1206;
+}
+.cw-landing .cw-docs-callout::before {
+  background:
+    radial-gradient(50% 80% at 85% 50%, rgb(122 199 79 / 0.16), transparent 70%),
+    url('/bg/wake.svg') center / cover no-repeat;
+  mask-image: none;
+  opacity: 0.9;
+}

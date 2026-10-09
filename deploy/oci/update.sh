@@ -3,7 +3,7 @@
 #
 # Usage:  bash deploy/oci/update.sh [service...]      explicit list wins
 #         SKIP_COLLECTOR=1 bash deploy/oci/update.sh  never touch the collector
-#         DRY_RUN=1 bash deploy/oci/update.sh         print the derived set and stop
+#         DRY_RUN=1 bash deploy/oci/update.sh         print the derived set, change nothing
 #
 # With no arguments the restart set is DERIVED from the diff instead of hardcoded:
 #   apps/<app>/...      the units that run that app
@@ -12,10 +12,14 @@
 #   configs/<file>      the unit whose run.sh line names that config
 #   anything else       no restart (docs, tests, deploy scripts)
 #
-# A hardcoded list silently leaves units on stale code whenever a commit looks unrelated
-# to them; that has already happened twice here - the journal/WAL change and the trend
-# engine change. Deriving the set is the difference between a deploy you can trust and one
-# that quietly keeps serving last week's logic.
+# A hardcoded list silently leaves units on stale code whenever a commit looks unrelated to
+# them; that has already happened twice here - the journal/WAL change and the trend engine
+# change.
+#
+# The baseline is deploy/oci/state/last-sha, written only after a deploy reaches its restart
+# step. Using HEAD instead would lose track of units in three cases: a DRY_RUN, a deploy that
+# fails at typecheck/test (the tree has already moved), and SKIP_COLLECTOR. In all three the
+# next deploy would see no diff and silently leave units stale.
 #
 # Two things this still does deliberately:
 #   * `git pull --ff-only` cannot work on a host that carries any local difference, and the
@@ -25,6 +29,9 @@
 set -euo pipefail
 APP=${APP:-/opt/crosswake}
 cd "$APP"
+
+STATE=deploy/oci/state
+mkdir -p "$STATE"
 
 units_for_app() {
   case "$1" in
@@ -65,26 +72,32 @@ transitive_packages() {
   echo "$found"
 }
 
-BEFORE=$(git rev-parse HEAD)
+BEFORE=$(cat "$STATE/last-sha" 2>/dev/null || git rev-parse HEAD)
 git fetch origin main --quiet
 AFTER=$(git rev-parse origin/main)
-git clean -fd -e deploy/oci/env
-git reset -q --hard origin/main
-echo "== $(git log --oneline -1)"
+echo "== $(git log --oneline -1 "$AFTER")"
+explicit=0
+if [ $# -gt 0 ]; then explicit=1; fi
+if [ "$BEFORE" = "$AFTER" ] && [ $explicit -eq 0 ]; then
+  echo "== already deployed ($AFTER); nothing to do"
+  bash deploy/oci/services.sh status
+  exit 0
+fi
 
 changed=$(git diff --name-only "$BEFORE" "$AFTER")
 apps_changed=$(printf '%s\n' "$changed" | sed -n 's|^apps/\([a-z0-9-]*\)/.*|\1|p' | sort -u)
 pkgs_changed=$(printf '%s\n' "$changed" | sed -n 's|^packages/\([a-z0-9-]*\)/.*|\1|p' | sort -u)
 cfgs_changed=$(printf '%s\n' "$changed" | sed -n 's|^configs/\([^/]*\)$|\1|p' | sort -u)
 
+if [ "${DRY_RUN:-0}" = '1' ]; then
+  echo '== DRY RUN: working tree left untouched'
+else
+  git clean -fd -e deploy/oci/env -e "$STATE"
+  git reset -q --hard "$AFTER"
+fi
+
 targets=("$@")
 if [ ${#targets[@]} -eq 0 ]; then
-  if [ -z "$changed" ]; then
-    echo '== no file changes; nothing to build or restart'
-    bash deploy/oci/services.sh status
-    exit 0
-  fi
-
   pkgs_all=$(printf '%s\n%s\n' "$pkgs_changed" \
     "$(transitive_packages "$(printf '%s ' $pkgs_changed)")" | sort -u | tr '\n' ' ')
 
@@ -114,9 +127,11 @@ ${dir#apps/}"
   echo "== configs:  $(printf '%s ' $cfgs_changed)"
 fi
 
-if [ "${SKIP_COLLECTOR:-0}" = '1' ]; then
+skipped=0
+if [ "${SKIP_COLLECTOR:-0}" = '1' ] && printf '%s\n' "${targets[@]:-}" | grep -qx collector; then
+  skipped=1
   targets=($(printf '%s\n' "${targets[@]:-}" | grep -v '^collector$' || true))
-  echo '== SKIP_COLLECTOR=1: collector left running (restart it deliberately if its code moved)'
+  echo '== SKIP_COLLECTOR=1: collector left running'
 fi
 
 if [ "${DRY_RUN:-0}" = '1' ]; then
@@ -142,5 +157,11 @@ if [ ${#targets[@]} -eq 0 ]; then
 else
   echo "== restarting: ${targets[*]}"
   bash deploy/oci/services.sh restart "${targets[@]}"
+fi
+
+if [ $skipped -eq 1 ]; then
+  echo "== not advancing $STATE/last-sha: the collector is still behind, so the next deploy moves it"
+else
+  echo "$AFTER" >"$STATE/last-sha"
 fi
 bash deploy/oci/services.sh status
