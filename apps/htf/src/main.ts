@@ -8,7 +8,7 @@ import {
   fundingArchiveUrl,
   getJson,
 } from '../../../packages/market-data/src/klines.js';
-import { deliver, sinksFromEnv } from '../../../packages/notify/src/index.js';
+import { deliver, escapeHtml, sinksFromEnv } from '../../../packages/notify/src/index.js';
 import {
   M15,
   rStats,
@@ -263,15 +263,40 @@ async function live() {
     for (const s of all.filter((s) => s.status === 'taken')) {
       const key = s.exitReason === 'open' ? `${s.id}-entry` : `${s.id}-exit`;
       if (sent.has(key) || (s.exitReason !== 'open' && !sent.has(`${s.id}-entry`) && Date.now() - s.exitTs! > 3_600_000)) continue;
+      const coin = escapeHtml(s.symbol.replace(/USDT$/, '')),
+        long = s.side === 'long',
+        r = s.realizedR ?? 0;
       const text =
         s.exitReason === 'open'
-          ? `[${plan.version}] ${s.side.toUpperCase()} ${s.symbol} perp at the next 15m open (~${fmt(s.entry!)}). Stop ${fmt(s.stop)} (${((s.rDistance! / s.entry!) * 100).toFixed(2)}%), 50% off at 1.5R, BE after 1R, 16-bar time stop. RSI ${s.rsiPrev.toFixed(1)}→${s.rsi.toFixed(1)}, 4h ADX ${s.adx4h.toFixed(1)}. Paper signal, not advice.`
-          : `[${plan.version}] EXIT ${s.symbol} ${s.side} (${s.exitReason}${s.scaled ? ', half taken at 1.5R' : ''}). Paper result ${s.realizedR! >= 0 ? '+' : ''}${s.realizedR!.toFixed(2)}R.`;
+          ? [
+              `${long ? '🟢' : '🔴'} <b>${long ? 'LONG' : 'SHORT'} ${coin}</b> · perp · 15m`,
+              '',
+              `▸ <b>Entry</b>   <code>~${fmt(s.entry!)}</code>  (next 15m open)`,
+              `▸ <b>Stop</b>    <code>${fmt(s.stop)}</code>  (${((s.rDistance! / s.entry!) * 100).toFixed(2)}%)`,
+              '',
+              '<b>Plan</b>',
+              '• Take 50% off at 1.5R',
+              '• Move stop to breakeven after 1R',
+              '• Close after 16 bars (4h) if still open',
+              '',
+              `<b>Why</b>  RSI ${s.rsiPrev.toFixed(1)} → ${s.rsi.toFixed(1)} · 4h ADX ${s.adx4h.toFixed(1)}`,
+              '',
+              `<i>${escapeHtml(plan.version)} · paper signal, not advice</i>`,
+            ].join('\n')
+          : [
+              `${r >= 0 ? '✅' : '❌'} <b>EXIT ${coin}</b> ${s.side}`,
+              '',
+              `▸ <b>Result</b>  <code>${r >= 0 ? '+' : ''}${r.toFixed(2)}R</code>`,
+              `▸ <b>Reason</b>  ${escapeHtml(String(s.exitReason))}${s.scaled ? ' (half taken at 1.5R)' : ''}`,
+              '',
+              `<i>${escapeHtml(plan.version)} · paper result</i>`,
+            ].join('\n');
       const d = await deliver(sinks, {
         kind: s.exitReason === 'open' ? 'signal' : 'paper_exit',
         id: key,
         at: s.exitReason === 'open' ? s.ts : s.exitTs!,
         text,
+        html: true,
       });
       await writeFile(join(out, 'deliveries.jsonl'), d.map((x) => JSON.stringify(x) + '\n').join(''), { flag: 'a' });
       sent.add(key);

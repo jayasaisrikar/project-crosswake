@@ -6,7 +6,7 @@ import { epochMs } from '../../../packages/domain/src/index.js';
 import { existsSync } from 'node:fs';
 import { rename } from 'node:fs/promises';
 import { getJson } from '../../../packages/market-data/src/klines.js';
-import { deliver, sinksFromEnv } from '../../../packages/notify/src/index.js';
+import { deliver, escapeHtml, sinksFromEnv } from '../../../packages/notify/src/index.js';
 import {
   trendLedger,
   regimeByDay,
@@ -246,15 +246,34 @@ async function live() {
     for (const e of ledger.events.filter(
       (e) => e.decidedAt >= lastClose.ts && !sent.has(e.id),
     )) {
+      const coin = escapeHtml(e.symbol.replace(/USDT$/, ''));
       const text =
         e.kind === 'entry'
-          ? `[${plan.version}] BUY ${e.symbol} at today's open (~${e.price}). 20-day breakout, BTC uptrend. Exit on a close below the 10-day low. Paper signal, not advice.`
-          : `[${plan.version}] SELL ${e.symbol} at today's open (~${e.price}), ${e.reason}. Paper result ${pct(e.netBps!)}.`;
+          ? [
+              `🟢 <b>BUY ${coin}</b> · spot · daily`,
+              '',
+              `▸ <b>Entry</b>  <code>~${e.price}</code>  (today's open)`,
+              `▸ <b>Exit</b>   daily close below the 10-day low`,
+              '',
+              '<b>Why</b>  20-day breakout with BTC in an uptrend',
+              '',
+              `<i>${escapeHtml(plan.version)} · paper signal, not advice</i>`,
+            ].join('\n')
+          : [
+              `${e.netBps! >= 0 ? '✅' : '❌'} <b>SELL ${coin}</b> · spot`,
+              '',
+              `▸ <b>Exit</b>    <code>~${e.price}</code>  (today's open)`,
+              `▸ <b>Result</b>  <code>${pct(e.netBps!)}</code>`,
+              `▸ <b>Reason</b>  ${escapeHtml(String(e.reason))}`,
+              '',
+              `<i>${escapeHtml(plan.version)} · paper result</i>`,
+            ].join('\n');
       const d = await deliver(sinks, {
         kind: e.kind === 'entry' ? 'signal' : 'paper_exit',
         id: e.id,
         at: e.fillAt,
         text,
+        html: true,
       });
       await writeFile(
         join(out, 'deliveries.jsonl'),

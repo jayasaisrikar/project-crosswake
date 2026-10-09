@@ -4,7 +4,11 @@ export interface Notice {
   /** When the underlying decision or exit happened. */
   at: number;
   text: string;
+  /** Text is Telegram HTML (<b>, <i>, <code>); escape dynamic parts with escapeHtml. */
+  html?: boolean;
 }
+export const escapeHtml = (s: string) =>
+  s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 export interface Sink {
   readonly name: string;
   send(notice: Notice): Promise<void>;
@@ -48,6 +52,7 @@ export class TelegramSink implements Sink {
           body: JSON.stringify({
             chat_id: this.chatId,
             text: notice.text.slice(0, 4000),
+            ...(notice.html ? { parse_mode: 'HTML' } : {}),
             disable_web_page_preview: true,
           }),
           signal: AbortSignal.timeout(10000),

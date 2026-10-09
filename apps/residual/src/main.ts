@@ -51,7 +51,7 @@ import {
   residualWalkForward,
 } from '../../../packages/backtest/src/residual-research.js';
 import { residualStudy } from '../../../packages/backtest/src/residual-study.js';
-import { describeSignal, px } from './format.js';
+import { describeSignal, px, telegramSignal } from './format.js';
 
 const [command, ...rest] = process.argv.slice(2).filter((x) => x !== '--');
 const { values } = parseArgs({
@@ -561,7 +561,8 @@ async function live() {
             kind: 'signal',
             id: s.id,
             at: s.decisionTs,
-            text: describeSignal(s, config),
+            text: telegramSignal(s, config),
+            html: true,
           }),
         );
       await saveState();
