@@ -11,6 +11,7 @@ import { SiteHeader, SiteFooter } from '@/components/crosswake/site-shell';
 import { ScrollEffects } from '@/components/crosswake/scroll-effects';
 import { MarketScene } from '@/components/crosswake/market-scene';
 import { TelegramFeed } from '@/components/crosswake/telegram-feed';
+import { HyperliquidBanner } from '@/components/crosswake/hyperliquid-banner';
 import { HowItWorks } from '@/components/crosswake/how-it-works';
 import {
   HeroParallax,
@@ -82,6 +83,7 @@ export default function Page() {
         <section className="cw-hero kinetic-hero">
           <HeroParallax>
             <div className="kinetic-hero-copy">
+              <HyperliquidBanner className="hero-rise" />
               <div className="hero-edition hero-rise">
                 <span className="cw-status-dot" /> ALTCOIN TREND SIGNALS · FREE ON
                 TELEGRAM

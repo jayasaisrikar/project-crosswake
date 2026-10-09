@@ -38,6 +38,14 @@ export const docs: {
         ],
       },
       {
+        id: 'hyperliquid',
+        title: 'Hyperliquid integration',
+        paragraphs: [
+          'Crosswake is integrating Hyperliquid, an on-chain perpetuals exchange. The first step is market data: Hyperliquid prices, funding and open interest, starting with HYPE, cross-checked against our Binance data.',
+          'Later, once a strategy passes live paper confirmation, Hyperliquid could make results publicly verifiable: every order and fill sits on-chain under a public address. Until then, nothing changes: all strategies stay in paper mode and no real orders are placed.',
+        ],
+      },
+      {
         id: 'status',
         title: 'Current stage',
         paragraphs: [
