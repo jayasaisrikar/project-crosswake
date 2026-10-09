@@ -2782,3 +2782,8 @@
     gap: 8px;
   }
 }
+.cw-footer-bottom,
+.cw-footer-bottom a,
+.cw-footer-bottom span {
+  font-size: 11px;
+}

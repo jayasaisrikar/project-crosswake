@@ -42,9 +42,26 @@ const plain = (x: number, digits = 1) => `${(x * 100).toFixed(digits)}%`;
 const month = (ms: number) => new Date(ms).toLocaleDateString('en-GB', { month: 'short', year: '2-digit', timeZone: 'UTC' });
 const day = (ms: number) => new Date(ms).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' });
 
-const W = 960, PAD = { l: 56, r: 128, t: 16, b: 32 };
+const PAD_WIDE = { l: 56, r: 128, t: 16, b: 32 },
+  PAD_NARROW = { l: 40, r: 108, t: 12, b: 28 };
 
-function useHover(n: number) {
+/** Draws at the container's real width so labels render at their true size on phones. */
+function useWidth() {
+  const [el, setEl] = useState<HTMLDivElement | null>(null);
+  const [w, setW] = useState(960);
+  useEffect(() => {
+    if (!el) return;
+    const measure = () => setW(Math.max(280, Math.round(el.clientWidth - 16)));
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [el]);
+  const narrow = w < 600;
+  return { ref: setEl, W: w, PAD: narrow ? PAD_NARROW : PAD_WIDE, narrow };
+}
+
+function useHover(n: number, W: number, PAD: typeof PAD_WIDE) {
   const [i, setI] = useState<number | null>(null);
   const ref = useRef<SVGSVGElement>(null);
   const onMove = (e: React.PointerEvent) => {
@@ -65,21 +82,25 @@ function ticks(lo: number, hi: number, count = 5) {
 }
 
 function EquityChart({ points }: { points: Point[] }) {
-  const H = 340, n = points.length;
+  const { ref: box, W, PAD, narrow } = useWidth();
+  const H = narrow ? 260 : 340, n = points.length;
   const all = points.flatMap((p) => [p.strategy, p.btc, p.basket]);
   const lo = Math.min(...all) * 0.97, hi = Math.max(...all) * 1.03;
   const x = (k: number) => PAD.l + (k / (n - 1)) * (W - PAD.l - PAD.r);
   const y = (v: number) => PAD.t + (1 - (v - lo) / (hi - lo)) * (H - PAD.t - PAD.b);
   const path = (key: 'strategy' | 'btc' | 'basket') =>
     points.map((p, k) => `${k ? 'L' : 'M'}${x(k).toFixed(1)} ${y(p[key]).toFixed(1)}`).join('');
-  const hover = useHover(n);
-  const months = points.map((p, k) => [p, k] as const).filter(([p], k) => k === 0 || new Date(p.t).getUTCDate() === 1).filter((_, j) => j % 3 === 0);
+  const hover = useHover(n, W, PAD);
+  const months = points
+    .map((p, k) => [p, k] as const)
+    .filter(([p], k) => k === 0 || new Date(p.t).getUTCDate() === 1)
+    .filter((_, j) => j % (narrow ? 6 : 3) === 0);
   // End labels, nudged apart so they never collide.
   const ends = SERIES.map((s) => ({ ...s, y: y(points[n - 1]![s.key]) })).sort((a, b) => a.y - b.y);
   for (let j = 1; j < ends.length; j++) if (ends[j]!.y - ends[j - 1]!.y < 16) ends[j]!.y = ends[j - 1]!.y + 16;
   const h = hover.i !== null ? points[hover.i]! : null;
   return (
-    <div className="pf-chart">
+    <div className="pf-chart" ref={box}>
       <svg
         ref={hover.ref}
         viewBox={`0 0 ${W} ${H}`}
@@ -138,15 +159,16 @@ function EquityChart({ points }: { points: Point[] }) {
 }
 
 function DrawdownChart({ points }: { points: Point[] }) {
+  const { ref: box, W, PAD } = useWidth();
   const H = 150, n = points.length;
   const lo = Math.min(...points.map((p) => p.drawdown)) * 1.1;
   const x = (k: number) => PAD.l + (k / (n - 1)) * (W - PAD.l - PAD.r);
   const y = (v: number) => PAD.t + (v / lo) * (H - PAD.t - PAD.b);
   const area = `M${x(0)} ${y(0)}` + points.map((p, k) => `L${x(k).toFixed(1)} ${y(p.drawdown).toFixed(1)}`).join('') + `L${x(n - 1)} ${y(0)}Z`;
-  const hover = useHover(n);
+  const hover = useHover(n, W, PAD);
   const h = hover.i !== null ? points[hover.i]! : null;
   return (
-    <div className="pf-chart">
+    <div className="pf-chart" ref={box}>
       <svg ref={hover.ref} viewBox={`0 0 ${W} ${H}`} role="img" aria-label="Strategy drawdown from its previous peak" onPointerMove={hover.onMove} onPointerLeave={hover.onLeave}>
         {ticks(lo, 0, 3).map((v) => (
           <g key={v}>
