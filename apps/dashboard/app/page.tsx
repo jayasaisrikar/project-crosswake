@@ -21,6 +21,7 @@ import {
   ShieldCheck,
   Signal,
   SlidersHorizontal,
+  Waves,
   X,
 } from 'lucide-react';
 import { Button } from '@/components/base-ui/button';
@@ -51,6 +52,11 @@ import { cn } from '@/lib/utils';
 import { TradeSignals, StrategyLab } from './residual-views';
 import { DataWorkbench } from './data-views';
 import { MarketView } from './market-view';
+import {
+  BacktestLab,
+  ExperimentLauncher,
+  HyperliquidView,
+} from './research-views';
 
 type Dict = Record<string, any>;
 const number = (x: unknown) =>
@@ -91,6 +97,22 @@ const VIEWS = [
     title: 'Market dashboard',
     description:
       'The BTC filter, coins closest to a breakout, open paper trades and every signal sent to Telegram.',
+  },
+  {
+    id: 'Hyperliquid',
+    icon: Waves,
+    caption: 'Venue data · HYPE',
+    title: 'Hyperliquid',
+    description:
+      'HYPE against its breakout level, live funding and open interest, and the daily Binance price check.',
+  },
+  {
+    id: 'Backtest lab',
+    icon: SlidersHorizontal,
+    caption: 'Exploratory, not evidence',
+    title: 'Backtest lab',
+    description:
+      'Try the daily trend rules with your own settings. Every run is labelled exploratory and kept apart from frozen results.',
   },
   {
     id: 'Trade signals',
@@ -548,6 +570,8 @@ export default function Workbench() {
                       onInspect={(x) => showDetail(x)}
                     />
                   )}
+                  {tab === 'Hyperliquid' && <HyperliquidView />}
+                  {tab === 'Backtest lab' && <BacktestLab />}
                   {tab === 'Trade signals' && (
                     <div className="residual-surface">
                       <TradeSignals
@@ -1066,6 +1090,10 @@ export default function Workbench() {
                               />
                             )}
                           </CardContent>
+                          <ExperimentLauncher
+                            protocols={protocols}
+                            onFinished={refresh}
+                          />
                           <div className="protocol-index">
                             <p className="eyebrow">Available protocols</p>
                             {protocols.length ? (

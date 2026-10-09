@@ -7,12 +7,15 @@ import { Mastra } from '@mastra/core/mastra';
 import { LibSQLStore } from '@mastra/libsql';
 import {
   createExperimentWorkflow,
+  identifier,
   newExperimentId,
 } from '../../../packages/research-runtime/src/experiments.js';
 const { values } = parseArgs({
   args: process.argv.slice(2).filter((x) => x !== '--'),
   options: {
     protocol: { type: 'string', default: 'v001' },
+    // Lets the dashboard launcher know the run id before the run starts.
+    id: { type: 'string' },
     'data-dir': { type: 'string', default: process.env.DATA_DIR ?? './data' },
     'protocol-dir': { type: 'string', default: 'research/frozen' },
   },
@@ -30,7 +33,7 @@ const workflow = createExperimentWorkflow({
 const mastra = new Mastra({ storage, workflows: { experiment: workflow } });
 try {
   const run = await workflow.createRun({
-    runId: newExperimentId(),
+    runId: values.id ? identifier.parse(values.id) : newExperimentId(),
     resourceId: 'crosswake',
   });
   const result = await run.start({

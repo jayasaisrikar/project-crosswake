@@ -3,10 +3,11 @@
  *
  *   pnpm venue:check [--days 30] [--threshold-bps 50]
  *
- * Writes output/venue/price-check-<date>.json and exits 1 when any coin is
+ * Writes <CROSSWAKE_DATA>/venue/price-check-<date>.json (default data/) and exits 1 when any coin is
  * flagged, so a scheduler can alert on it. Read-only: places no orders.
  */
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
+import { join } from 'node:path';
 import { parseArgs } from 'node:util';
 import { getJson } from '../../../packages/market-data/src/klines.js';
 import {
@@ -74,8 +75,9 @@ const report = {
   },
   checks,
 };
-await mkdir('output/venue', { recursive: true });
-const file = `output/venue/price-check-${report.window.to}.json`;
+const dir = join(process.env.CROSSWAKE_DATA ?? 'data', 'venue');
+await mkdir(dir, { recursive: true });
+const file = join(dir, `price-check-${report.window.to}.json`);
 await writeFile(file, JSON.stringify(report, null, 2) + '\n');
 
 const pad = (s: string | number, n: number) => String(s).padStart(n);

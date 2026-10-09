@@ -19,6 +19,10 @@ import {
   type RuntimePaths,
 } from './experiments.js';
 import { backtestRuns, datasetInventory } from './dataset-evidence.js';
+import { hyperliquidEvidence } from './hyperliquid-evidence.js';
+import { listSandboxRuns, runSandbox, sandboxSymbols } from './sandbox.js';
+import { launchExperiment, listJobs } from './experiment-jobs.js';
+import { resolve } from 'node:path';
 /** Dataset sweeps touch thousands of small manifests; they change slowly. */
 const CACHE_TTL_MS = 30_000;
 export function createEvidenceServer(
@@ -56,11 +60,14 @@ export function createEvidenceServer(
         return;
       }
     }
-    // Loopback API. Its only mutation records a user's own reported fill for a published
-    // paper signal; it never places orders, returns credentials or serves arbitrary files.
+    // Loopback API. Its mutations: a user's own reported fill for a published paper signal,
+    // an exploratory sandbox backtest (stored apart from evidence), and starting a frozen
+    // protocol's experiment. It never places orders, returns credentials or serves arbitrary files.
     const url = new URL(request.url ?? '/', 'http://localhost'),
-      fillRoute = /^\/signals\/[^/]+\/fills$/.test(url.pathname);
-    if (request.method !== 'GET' && !(request.method === 'POST' && fillRoute)) {
+      fillRoute = /^\/signals\/[^/]+\/fills$/.test(url.pathname),
+      postRoute =
+        fillRoute || url.pathname === '/sandbox' || url.pathname === '/jobs';
+    if (request.method !== 'GET' && !(request.method === 'POST' && postRoute)) {
       send(405, { error: 'read_only_api' });
       return;
     }
@@ -95,13 +102,23 @@ export function createEvidenceServer(
           send(400, { error: 'invalid_request' });
           return;
         }
-        try {
-          send(201, await recordFill(paths.dataDir, segments[1]!, input));
-        } catch (error) {
-          if ((error as NodeJS.ErrnoException).code === 'EEXIST')
-            send(409, { error: 'fill_already_recorded' });
-          else throw error;
-        }
+        if (segments[0] === 'sandbox') send(201, await runSandbox(paths.dataDir, input));
+        else if (segments[0] === 'jobs')
+          try {
+            send(202, await launchExperiment(paths, input));
+          } catch (error) {
+            if ((error as NodeJS.ErrnoException).code === 'EBUSY')
+              send(409, { error: 'experiment_already_running' });
+            else throw error;
+          }
+        else
+          try {
+            send(201, await recordFill(paths.dataDir, segments[1]!, input));
+          } catch (error) {
+            if ((error as NodeJS.ErrnoException).code === 'EEXIST')
+              send(409, { error: 'fill_already_recorded' });
+            else throw error;
+          }
       } else if (segments.length === 1 && segments[0] === 'health') {
         let collector: unknown = null;
         try {
@@ -141,6 +158,33 @@ export function createEvidenceServer(
         send(200, await cached('data', () => datasetInventory(paths.dataDir)));
       else if (segments.length === 1 && segments[0] === 'backtests')
         send(200, await cached('backtests', () => backtestRuns(paths.dataDir)));
+      else if (segments.length === 1 && segments[0] === 'hyperliquid')
+        send(
+          200,
+          await cached('hyperliquid', () =>
+            hyperliquidEvidence(
+              paths.dataDir,
+              resolve(process.env.HL_PLAN ?? 'configs/trend-plan-v006.json'),
+            ),
+          ),
+        );
+      else if (segments.length === 1 && segments[0] === 'sandbox')
+        send(200, {
+          ...(await listSandboxRuns(paths.dataDir)),
+          symbols: await sandboxSymbols(paths.dataDir),
+        });
+      else if (segments.length === 2 && segments[0] === 'sandbox')
+        send(
+          200,
+          JSON.parse(
+            await readFile(
+              join(paths.dataDir, 'sandbox', `${z.string().regex(/^sandbox-[\w-]+$/).parse(segments[1])}.json`),
+              'utf8',
+            ),
+          ),
+        );
+      else if (segments.length === 1 && segments[0] === 'jobs')
+        send(200, await listJobs(paths));
       else send(404, { error: 'not_found' });
     } catch (error) {
       if (error instanceof z.ZodError || error instanceof URIError)

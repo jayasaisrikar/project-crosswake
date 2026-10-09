@@ -10,6 +10,9 @@ const allowed = new Set([
   'research',
   'data',
   'backtests',
+  'hyperliquid',
+  'sandbox',
+  'jobs',
 ]);
 const segment = /^[A-Za-z0-9_-]+$/;
 function apiBase() {
@@ -72,18 +75,21 @@ export async function GET(
     return NextResponse.json({ error: 'invalid_api_port' }, { status: 503 });
   return forward(`${base}/${path.join('/')}`);
 }
-/** Only a user's own fill report for a published signal may be written, from this origin. */
+/** Same-origin writes only: a user's own fill report, a sandbox backtest, or an experiment launch. */
 export async function POST(
   request: Request,
   context: { params: Promise<{ path: string[] }> },
 ) {
   const { path } = await context.params;
-  if (
-    path.length !== 3 ||
-    path[0] !== 'signals' ||
-    path[2] !== 'fills' ||
-    !segment.test(path[1] ?? '')
-  )
+  const fill =
+      path.length === 3 &&
+      path[0] === 'signals' &&
+      path[2] === 'fills' &&
+      segment.test(path[1] ?? ''),
+    // Exploratory backtests and frozen-protocol experiment launches.
+    research =
+      path.length === 1 && (path[0] === 'sandbox' || path[0] === 'jobs');
+  if (!fill && !research)
     return NextResponse.json(
       { error: 'invalid_evidence_route' },
       { status: 400 },

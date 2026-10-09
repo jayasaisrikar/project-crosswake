@@ -2286,3 +2286,213 @@ body {
 .brand-accent {
   color: #2ee6c5;
 }
+
+/* ---------- Research views: Hyperliquid, backtest lab, experiment launcher ---------- */
+.rv-chart {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+.rv-grid {
+  stroke: var(--rule);
+  stroke-width: 1;
+}
+.rv-zero {
+  stroke: var(--ink-secondary);
+  stroke-width: 1;
+  stroke-dasharray: 2 4;
+}
+.rv-ref {
+  stroke: #d5d887;
+  stroke-width: 1;
+  stroke-dasharray: 5 5;
+}
+.rv-ref-label {
+  fill: #d5d887;
+  font-size: 11px;
+}
+.rv-axis {
+  fill: var(--ink-secondary);
+  font-size: 11px;
+  font-family: var(--font-record);
+}
+.rv-line {
+  fill: none;
+  stroke: var(--success);
+  stroke-width: 1.75;
+  stroke-linejoin: round;
+}
+.rv-line.is-down {
+  stroke: var(--error);
+}
+.rv-dot {
+  fill: var(--ink);
+}
+.mv tr.rv-hl td {
+  background: var(--success-soft);
+}
+.rv-warn {
+  border: 1px solid rgb(213 216 135 / 0.35);
+  background: rgb(213 216 135 / 0.08);
+  border-radius: 10px;
+  padding: 12px 16px;
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--ink-secondary);
+}
+.rv-warn strong {
+  color: #d5d887;
+}
+.rv-form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+.rv-form label {
+  display: grid;
+  gap: 5px;
+  font-size: 12px;
+}
+.rv-form label em {
+  font-style: normal;
+  color: #d5d887;
+}
+.rv-form small {
+  font-size: 11px;
+  color: var(--ink-secondary);
+}
+.rv-form input,
+.rv-launch select {
+  background: var(--surface-muted);
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+  padding: 8px 10px;
+  color: var(--ink);
+  font: inherit;
+  font-family: var(--font-record);
+  min-width: 0;
+}
+.rv-form fieldset {
+  grid-column: 1 / -1;
+  border: 0;
+  padding: 0;
+  margin: 0;
+}
+.rv-form legend {
+  font-size: 12px;
+  margin-bottom: 8px;
+}
+.rv-coins {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.rv-coins button,
+.rv-actions button,
+.rv-launch button {
+  border: 1px solid var(--rule);
+  background: none;
+  color: var(--ink-secondary);
+  border-radius: 999px;
+  padding: 4px 11px;
+  font: inherit;
+  font-size: 11px;
+  cursor: pointer;
+}
+.rv-coins button[aria-pressed='true'] {
+  border-color: var(--signal);
+  color: var(--signal);
+  background: var(--success-soft);
+}
+.rv-actions {
+  grid-column: 1 / -1;
+  display: flex;
+  gap: 10px;
+}
+.rv-actions .rv-primary,
+.rv-launch .rv-primary {
+  background: var(--signal);
+  border-color: var(--signal);
+  color: #050505;
+  font-weight: 600;
+  padding: 8px 16px;
+  font-size: 12px;
+}
+.rv-primary:disabled {
+  opacity: 0.5;
+  cursor: progress;
+}
+.rv-error {
+  grid-column: 1 / -1;
+  color: var(--error);
+  font-size: 12px;
+  margin: 0;
+}
+.rv-bars {
+  display: grid;
+  gap: 6px;
+}
+.rv-bar {
+  display: grid;
+  grid-template-columns: 56px 1fr 120px;
+  align-items: center;
+  gap: 10px;
+  font-size: 12px;
+}
+.rv-bar span {
+  height: 8px;
+  background: var(--surface-muted);
+  border-radius: 4px;
+  overflow: hidden;
+}
+.rv-bar i {
+  display: block;
+  height: 100%;
+  background: var(--success);
+}
+.rv-bar i.is-down {
+  background: var(--error);
+}
+.rv-bar em {
+  font-style: normal;
+}
+.rv-launch {
+  display: grid;
+  gap: 10px;
+  padding: 16px 20px;
+  border-top: 1px solid var(--rule);
+}
+.rv-launch-row {
+  display: flex;
+  gap: 8px;
+}
+.rv-launch-row select {
+  flex: 1;
+}
+.rv-launch small {
+  font-size: 11px;
+  color: var(--ink-secondary);
+  line-height: 1.5;
+}
+.rv-job summary {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  font-size: 12px;
+  cursor: pointer;
+}
+.rv-job pre {
+  max-height: 160px;
+  overflow: auto;
+  font-size: 10px;
+  white-space: pre-wrap;
+  color: var(--ink-secondary);
+  background: var(--surface-muted);
+  padding: 8px;
+  border-radius: 6px;
+}
+@media (max-width: 900px) {
+  .rv-form {
+    grid-template-columns: 1fr;
+  }
+}
