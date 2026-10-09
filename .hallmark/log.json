@@ -1,5 +1,25 @@
 [
   {
+    "date": "2026-10-09",
+    "scope": "landing revision",
+    "macrostructure": "Feature Stack",
+    "theme": "slate and orange kinetic",
+    "enrichment": "animated particle torus, real screenshots, parallax, pinned walkthrough",
+    "brief": "Replace subtle template with visible scroll-driven product experience",
+    "critique": "P4 H5 E5 S5 R4 V5"
+  },
+  {
+    "date": "2026-10-09",
+    "scope": "landing and public docs",
+    "macrostructure": "Marquee Hero / Long Document",
+    "theme": "Midnight amber",
+    "nav": "floating navigation",
+    "footer": "masthead",
+    "enrichment": "animated market field and illustrative strategy chart",
+    "brief": "Crypto landing redesign with public docs and no repository mentions",
+    "critique": "P4 H5 E4 S5 R4 V4"
+  },
+  {
     "date": "2026-10-05",
     "macrostructure": "Workbench",
     "theme": "Cobalt",

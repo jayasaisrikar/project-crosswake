@@ -44,7 +44,7 @@ export function Footer1({
             <div className="space-y-4">
               <h3 className="text-foreground font-medium">{newsletterTitle}</h3>
               <a
-                href="https://github.com/jayasaisrikar/project-crosswake"
+                href="/docs"
                 className="bg-muted focus-visible:ring-primary inline-flex w-full max-w-sm items-center justify-center rounded-none px-6 py-3 text-sm font-medium shadow-sm outline-none focus-visible:ring-1"
               >
                 {newsletterButtonText}

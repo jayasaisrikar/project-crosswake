@@ -29,3 +29,10 @@ Verify 320/375/414/768/1440px widths. Root overflow uses clip. Sidebar becomes a
 ## Review
 
 Every frontend in this repo means `apps/landing` and `apps/dashboard`, including all six workspace views, search, evidence dialogs, empty/error/loading states, and framework error/loading/not-found screens. Command-line programs are outside this visual redesign.
+
+## Public website variant — October 2026
+
+The landing app uses an atmospheric Midnight variant: graphite surfaces, amber accents, Space Grotesk display and Inter body. Marketing uses a Marquee Hero with a market-field illustration, floating navigation and masthead footer. Docs use a persistent topic index and long-form articles. Landing-specific tokens live in `apps/landing/tokens.css`; the dashboard retains the shared research theme. Scroll reveals progressively enhance visible HTML; ambient transforms and opacity honor reduced motion. Public copy reflects daily trend research, all paper only, including inconclusive and failed results. No repository links or local workspace URLs are exposed.
+
+### Kinetic landing revision
+The public landing now uses a screenshot-led Feature Stack: asymmetric typography, an animated projected particle torus, a scroll-tilted product capture, and a pinned three-stage walkthrough. Slate-black and orange replace brown/amber on marketing only. Motion is intentionally visible, with a pause control and reduced-motion fallbacks. Actual local product captures are labelled with their data limitations; never fabricate populated records. Docs keep their reading layout.

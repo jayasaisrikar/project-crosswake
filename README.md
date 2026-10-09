@@ -36,7 +36,7 @@ The rules were locked before testing and never adjusted to fit the results. On 2
 
 ## What's running live
 
-Every strategy below runs around the clock on our server as paper trading: signals are recorded and scored, but no real orders are placed.
+Every strategy below runs around the clock on our server as paper trading: signals are recorded and scored, but no real orders are placed. Full rules and results for every version, including the ones that failed, are in the [strategy catalog](docs/strategies.md).
 
 | Version | What it trades | Why it's running |
 |---|---|---|

@@ -1,306 +1,332 @@
-'use client';
-import { MotionConfig } from 'motion/react';
+import Link from 'next/link';
 import {
-  ArrowUpRight,
   ArrowRight,
-  Radio,
-  Clock3,
-  ScanLine,
-  FileCheck2,
+  ArrowUpRight,
+  ShieldCheck,
+  MoveUpRight,
 } from 'lucide-react';
-import { Brand } from '@/components/crosswake/brand';
-import { Button } from '@/components/ui/button';
-import { MinimalCard } from '@/components/ui/minimal-card';
-import { RollingNumber } from '@/components/ui/rolling-number';
+import { SiteHeader, SiteFooter } from '@/components/crosswake/site-shell';
+import { ScrollEffects } from '@/components/crosswake/scroll-effects';
+import { MarketScene } from '@/components/crosswake/market-scene';
+import { HowItWorks } from '@/components/crosswake/how-it-works';
 import {
-  Accordion,
-  AccordionItem,
-  AccordionTrigger,
-  AccordionContent,
-} from '@/components/ui/accordion';
-const REPO = 'https://github.com/jayasaisrikar/project-crosswake';
-const workspace =
-  process.env.NEXT_PUBLIC_WORKSPACE_URL || 'http://127.0.0.1:3000';
-const steps = [
-  {
-    icon: Radio,
-    title: 'Observe the move.',
-    body: 'Collect Bitcoin and altcoin trades with their own timestamps. Gaps and stale quotes remain visible in the record.',
-    detail: 'Market data → timestamped journals',
-  },
-  {
-    icon: ScanLine,
-    title: 'Measure what follows.',
-    body: 'Test whether a Bitcoin impulse leaves a tradable response in another asset. Relationships are fitted on prior data, with costs and entry delay included.',
-    detail: 'Prior evidence → candidate or rejection',
-  },
-  {
-    icon: FileCheck2,
-    title: 'Make the evidence earn trust.',
-    body: 'Freeze the protocol. Evaluate chronologically, reserve unseen data, and reconcile forward paper outcomes before drawing conclusions.',
-    detail: 'Frozen protocol → reproducible result',
-  },
+  HeroParallax,
+  ProductEntrance,
+  ProductExperience,
+} from '@/components/crosswake/product-experience';
+const questions = [
+  [
+    'Does Crosswake place trades?',
+    'No. Every strategy currently runs in paper mode. Signals are recorded and tracked, but Crosswake does not place real orders.',
+  ],
+  [
+    'How long does a signal last?',
+    'The main daily trend strategy is designed for moves lasting days to weeks. Entries and exits follow daily candle rules, rather than second-by-second price changes.',
+  ],
+  [
+    'Has the strategy proven an edge?',
+    'Not yet. The main strategy was profitable on average in its unseen-data test, but its confidence interval includes zero. Live paper tracking is gathering more evidence.',
+  ],
+  [
+    'What are the market updates?',
+    'Market summaries cover ten major coins every four hours. They describe observed momentum and paper positions. They are separate from strategy-generated trade signals.',
+  ],
 ];
-const faq = [
-  [
-    'Does correlation mean a trade will work?',
-    'No. Correlation describes co-movement. A useful signal also needs a repeatable lead–lag relationship, enough remaining response after entry delay, and positive outcomes after costs.',
-  ],
-  [
-    'Is this a live trading service?',
-    'Crosswake is a research and paper-validation workspace. Execution is disabled. Candidate scores are research measurements, not calibrated probabilities or promises of profit.',
-  ],
-  [
-    'What can I inspect?',
-    'The workspace exposes collection health, accepted and rejected candidates, frozen protocols, experiment results, and external context provenance. Raw records remain available for inspection.',
-  ],
-  [
-    'What does a useful win rate look like?',
-    'Win rate alone is incomplete. A 30–50% win rate can still lose money if losses and trading costs outweigh wins. Research must evaluate net expectancy, drawdown, sample size, and performance on unseen data together.',
-  ],
+const tickerItems = [
+  ['BTC', 'sets the direction'],
+  ['100D', 'market filter'],
+  ['20D', 'breakout entry'],
+  ['10D', 'low exit'],
+  ['4H', 'market updates'],
+  ['30', 'coins watched'],
+  ['0', 'hidden failures'],
+  ['PAPER', 'tracked live'],
 ];
 export default function Page() {
   return (
-    <MotionConfig reducedMotion="user">
-      <div className="site">
-        <a className="skip-link" href="#main">
-          Skip to content
-        </a>
-        <header className="site-nav">
-          <Brand />
-          <nav aria-label="Main navigation">
-            <a href="#method">Method</a>
-            <a href="#evidence">Evidence</a>
-            <a href="#questions">Questions</a>
-          </nav>
-          <Button asChild>
-            <a href={workspace}>
-              Open workspace <ArrowUpRight size={15} />
-            </a>
-          </Button>
-        </header>
-        <main id="main">
-          <section className="site-hero">
-            <div className="hero-copy">
-              <p className="eyebrow">
-                <span className="status-dot" /> Independent market research
-              </p>
-              <h1>
-                Bitcoin moves.
+    <div className="cw-site cw-landing">
+      <a className="skip-link" href="#main">
+        Skip to content
+      </a>
+      <SiteHeader />
+      <ScrollEffects />
+      <main id="main">
+        <section className="cw-hero kinetic-hero">
+          <HeroParallax>
+            <div className="kinetic-hero-copy">
+              <div className="hero-edition hero-rise">
+                <span className="cw-status-dot" /> ALTCOIN TREND SIGNALS · TELEGRAM
+                + DASHBOARD
+              </div>
+              <h1 className="hero-rise">
+                Ride the
                 <br />
-                <span>What follows?</span>
+                trend<span className="hero-period">.</span>
               </h1>
-              <p className="hero-description">
-                A research desk for the space between a Bitcoin move and an
-                altcoin response. Measure the delay. Inspect the evidence. Let
-                the results decide.
-              </p>
-              <div className="hero-actions">
-                <Button asChild>
-                  <a href={workspace}>
-                    Explore the research <ArrowRight size={16} />
-                  </a>
-                </Button>
-                <a
-                  className="text-link"
-                  href={REPO}
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  View the project <ArrowUpRight size={15} />
-                </a>
+              <div className="hero-subline hero-rise">
+                <span className="hero-line" />
+                <span>Signals with the receipts.</span>
               </div>
-              <p className="hero-note">
-                Paper research only. Execution disabled.
+              <p className="hero-rise">
+                Crosswake tells you which altcoin to buy, when to enter and
+                when to exit, only while Bitcoin is in an uptrend. Every rule
+                is public, every result includes fees, and every signal is
+                tracked live on paper.
               </p>
+              <div className="cw-actions hero-rise">
+                <Link className="cw-button" href="#how">
+                  See how it works <ArrowUpRight size={18} />
+                </Link>
+                <Link className="cw-text-button" href="#research">
+                  View the results <ArrowRight size={16} />
+                </Link>
+              </div>
+              <ul className="hero-facts hero-rise" aria-label="At a glance">
+                <li>
+                  <strong>30</strong> coins watched
+                </li>
+                <li>
+                  <strong>Days–weeks</strong> per trade
+                </li>
+                <li>
+                  <strong>Fees</strong> in every result
+                </li>
+              </ul>
             </div>
-            <MinimalCard className="transmission">
-              <div className="diagram-top">
-                <span className="eyebrow">The transmission hypothesis</span>
-                <span className="diagram-tag">Illustrative</span>
-              </div>
-              <div className="diagram-source">
-                <span className="coin-symbol">₿</span>
-                <div>
-                  <small>LEADING ASSET</small>
-                  <h2>Bitcoin impulse</h2>
-                </div>
-                <Radio size={22} />
+            <MarketScene />
+          </HeroParallax>
+          <div className="kinetic-hero-bottom">
+            <span>MARKETS MOVE. EVIDENCE COMPOUNDS.</span>
+            <a href="#product-preview">
+              <span className="scroll-cue" /> Scroll to explore
+            </a>
+            <span>RESEARCH FIRST. ALWAYS.</span>
+          </div>
+        </section>
+        <div className="cw-ticker" aria-hidden="true">
+          <div>
+            {[0, 1].map((k) =>
+              tickerItems.map(([sym, note]) => (
+                <span key={k + sym}>
+                  <b>{sym}</b> {note}
+                </span>
+              )),
+            )}
+          </div>
+        </div>
+        <HowItWorks />
+        <div id="product-preview">
+          <ProductEntrance />
+        </div>
+        <section className="kinetic-statement" data-reveal>
+          <p>
+            Most signal groups post calls.
+            <br />
+            Few show what happened next.
+          </p>
+          <h2>
+            Every signal has a rule.
+            <br />
+            <span>Every result stays on the record.</span>
+          </h2>
+          <Link className="cw-text-button" href="/docs/validation">
+            This is how we research <ArrowUpRight size={17} />
+          </Link>
+        </section>
+        <ProductExperience />
+        <section id="approach" className="cw-section cw-approach" data-reveal>
+          <div className="cw-section-heading">
+            <h2>
+              A trend is a pattern.
+              <br />
+              <span>A strategy has rules.</span>
+            </h2>
+            <p>
+              Markets move together. Opportunities don’t.
+              <br />
+              Crosswake looks for strength in altcoins while Bitcoin sets the
+              direction.
+            </p>
+          </div>
+          <div className="cw-strategy">
+            <div className="cw-strategy-visual">
+              <div className="cw-visual-heading">
+                <span>DAILY TREND / v005</span>
+                <span>Rule illustration</span>
               </div>
               <svg
-                className="transmission-wave"
-                viewBox="0 0 420 130"
+                viewBox="0 0 620 265"
                 role="img"
-                aria-label="Illustration of a Bitcoin impulse followed by a delayed altcoin response"
+                aria-label="Illustrative breakout above a prior high, followed by a trend and exit"
               >
                 <path
-                  className="wave-grid"
-                  d="M0 30H420 M0 65H420 M0 100H420"
+                  className="cw-chart-grid"
+                  d="M0 60H620M0 120H620M0 180H620M0 240H620M80 0V265M200 0V265M320 0V265M440 0V265M560 0V265"
                 />
+                <path className="cw-chart-threshold" d="M0 170H620" />
                 <path
-                  className="wave-btc"
-                  d="M0 100L65 100L82 82L100 88L120 28L145 44L175 32L205 38L240 30L280 39L320 32L365 38L420 30"
+                  className="cw-chart-line"
+                  d="M0 226L24 220L45 236L70 208L92 218L118 187L140 202L162 179L186 191L210 146L235 157L260 119L282 131L305 88L331 107L355 70L380 80L404 44L429 62L452 36L477 67L500 52L525 91L551 82L575 123L598 111L620 145"
                 />
-                <path
-                  className="wave-alt"
-                  d="M0 110L160 110L180 106L200 110L225 72L245 80L270 52L300 65L340 53L380 61L420 55"
-                />
-                <path className="wave-delay" d="M120 15V120 M225 15V120" />
+                <circle cx="210" cy="146" r="6" className="cw-chart-point" />
+                <circle cx="575" cy="123" r="6" className="cw-chart-point" />
               </svg>
-              <div className="diagram-legend">
-                <span>
-                  <i /> Bitcoin
-                </span>
-                <span>
-                  <i /> Altcoin
-                </span>
-                <span>
-                  <Clock3 size={13} /> Entry delay matters
-                </span>
-              </div>
-              <div className="diagram-bottom">
-                <span>Observe</span>
-                <ArrowRight size={14} />
-                <span>Wait</span>
-                <ArrowRight size={14} />
-                <span>Evaluate</span>
+              <div className="cw-chart-caption">
+                <span>20-day breakout ↗</span>
+                <span>Follow strength</span>
+                <span>10-day exit ↘</span>
               </div>
               <p>
-                A delayed response is a hypothesis to test—not evidence of an
-                available trade.
-              </p>
-            </MinimalCard>
-          </section>
-          <div className="research-strip">
-            <div>
-              <RollingNumber value={1} />
-              <span>second research buckets</span>
-            </div>
-            <div>
-              <span className="strip-value">Prior-only</span>
-              <span>relationship fitting</span>
-            </div>
-            <div>
-              <span className="strip-value">Paper</span>
-              <span>validation before execution</span>
-            </div>
-          </div>
-          <section id="method" className="method-section">
-            <div className="section-intro">
-              <p className="eyebrow">01 / Method</p>
-              <h2>
-                Follow the evidence,
-                <br />
-                one step at a time.
-              </h2>
-              <p>
-                A market relationship deserves more than a correlation chart.
-                Every stage leaves an inspectable record.
+                Illustrative price path. Not a historical result or active
+                signal.
               </p>
             </div>
-            <div className="method-list">
-              {steps.map((s, i) => (
-                <article key={s.title}>
-                  <span className="method-number">0{i + 1}</span>
-                  <div>
-                    <s.icon size={22} />
-                    <h3>{s.title}</h3>
-                    <p>{s.body}</p>
-                    <small>{s.detail}</small>
-                  </div>
-                </article>
-              ))}
-            </div>
-          </section>
-          <section id="evidence" className="evidence-section">
-            <div>
-              <p className="eyebrow">02 / Evidence</p>
-              <h2>
-                The hypothesis
-                <br />
-                is open.
-              </h2>
-              <p>
-                Crosswake separates what was observed from what has been
-                validated. A candidate is a question. An experiment is a test.
-                Neither is a guarantee.
-              </p>
-              <a className="text-link" href={workspace}>
-                Inspect the workspace <ArrowUpRight size={16} />
-              </a>
-            </div>
-            <div className="evidence-index">
+            <div className="cw-rules" data-stagger>
               {[
                 [
-                  '01',
-                  'Collection health',
-                  'Check freshness, gaps, and the instruments being observed.',
+                  'Market filter',
+                  'Start with Bitcoin.',
+                  'Look for entries only when Bitcoin closes above its 100-day average.',
                 ],
                 [
-                  '02',
-                  'Decision records',
-                  'See why candidates were accepted or rejected.',
+                  'Entry rule',
+                  'Follow a new high.',
+                  'Enter after a coin closes above its highest close of the prior 20 days.',
                 ],
                 [
-                  '03',
-                  'Frozen experiments',
-                  'Read the protocol, net results, and validation gate.',
+                  'Exit discipline',
+                  'Know when to leave.',
+                  'Exit on a 10-day low or when the Bitcoin market filter turns off.',
                 ],
-                [
-                  '04',
-                  'Context provenance',
-                  'Keep external research separate from signal evidence.',
-                ],
-              ].map(([n, t, b]) => (
-                <a href={workspace} key={n}>
-                  <span>{n}</span>
-                  <div>
-                    <h3>{t}</h3>
-                    <p>{b}</p>
-                  </div>
-                  <ArrowUpRight size={19} />
-                </a>
+              ].map(([label, title, body]) => (
+                <div key={label}>
+                  <small>{label}</small>
+                  <h3>{title}</h3>
+                  <p>{body}</p>
+                </div>
               ))}
             </div>
-          </section>
-          <section id="questions" className="questions-section">
-            <div className="section-intro">
-              <p className="eyebrow">03 / Questions</p>
-              <h2>
-                A few things
-                <br />
-                worth being clear on.
-              </h2>
-            </div>
-            <Accordion type="single" collapsible className="faq-list">
-              {faq.map(([q, a], i) => (
-                <AccordionItem value={String(i)} key={q}>
-                  <AccordionTrigger>{q}</AccordionTrigger>
-                  <AccordionContent>{a}</AccordionContent>
-                </AccordionItem>
-              ))}
-            </Accordion>
-          </section>
-        </main>
-        <footer className="site-footer">
-          <div className="footer-statement">
-            <p className="eyebrow">Observe. Test. Reconcile.</p>
+          </div>
+          <Link className="cw-text-button" href="/docs/strategies">
+            Read the full rules <ArrowRight size={16} />
+          </Link>
+        </section>
+        <section id="research" className="cw-section cw-research" data-reveal>
+          <div className="cw-section-heading">
             <h2>
-              Better questions.
+              Show the work.
               <br />
-              Clearer evidence.
+              <span>All of it.</span>
             </h2>
-            <a href={REPO} target="_blank" rel="noreferrer">
-              Explore the source <ArrowUpRight size={20} />
-            </a>
+            <p>
+              No cherry-picked wins. No hidden failures.
+              <br />A strategy earns trust through testing, then through time.
+            </p>
           </div>
-          <div className="footer-bottom">
-            <Brand />
-            <p>BTC-to-altcoin transmission research.</p>
-            <a href="#main">Back to top ↑</a>
+          <div className="cw-results">
+            <div className="cw-result-title">
+              <span>v005 · Unseen-data test</span>
+              <span>JAN 2025 — SEP 2026</span>
+            </div>
+            <div className="cw-metrics">
+              <div>
+                <strong data-count="243">243</strong>
+                <span>Completed trades</span>
+              </div>
+              <div>
+                <strong>
+                  <span data-count="33.7">33.7</span><span>%</span>
+                </strong>
+                <span>Win rate</span>
+              </div>
+              <div>
+                <strong>
+                  <span data-count="1.5" data-prefix="+">+1.5</span><span>%</span>
+                </strong>
+                <span>Average net return / trade</span>
+              </div>
+              <div>
+                <strong data-count="1.32">1.32</strong>
+                <span>Profit factor</span>
+              </div>
+            </div>
+            <div className="cw-result-note">
+              <ShieldCheck size={20} />
+              <p>
+                Positive average. <strong>Not a proven edge.</strong> The 95%
+                confidence interval is −2.9% to +6.3%, which includes zero.
+                Results include modeled fees and slippage; live paper tracking
+                continues.
+              </p>
+              <Link
+                href="/docs/validation"
+                aria-label="Read validation methodology"
+              >
+                <ArrowUpRight />
+              </Link>
+            </div>
           </div>
-        </footer>
-      </div>
-    </MotionConfig>
+          <div className="cw-research-links">
+            <Link href="/docs/strategies">
+              <span className="cw-version">v005 / v006</span>
+              <h3>Tracking the daily trend.</h3>
+              <p>
+                The original strategy and a wider coin universe, each with its
+                own paper record.
+              </p>
+              <span>
+                Explore strategies <ArrowUpRight size={17} />
+              </span>
+            </Link>
+            <Link href="/docs/validation">
+              <span className="cw-version">v001 — v004 / v007</span>
+              <h3>Failed ideas stay visible.</h3>
+              <p>
+                Faster signals did not hold up. Keeping those results is part of
+                the research.
+              </p>
+              <span>
+                Understand the process <ArrowUpRight size={17} />
+              </span>
+            </Link>
+          </div>
+        </section>
+        <section className="cw-section cw-docs-callout" data-reveal>
+          <div className="cw-docs-symbol" aria-hidden="true">
+            <MoveUpRight />
+          </div>
+          <div>
+            <h2>Understand every signal.</h2>
+            <p>
+              From the first market filter to the final exit.
+              <br />
+              Clear documentation, without the black box.
+            </p>
+          </div>
+          <Link className="cw-button" href="/docs">
+            Open the docs <ArrowUpRight size={17} />
+          </Link>
+        </section>
+        <section className="cw-section cw-faq" data-reveal>
+          <h2>Before you dive in.</h2>
+          <div>
+            {questions.map(([q, a]) => (
+              <details key={q}>
+                <summary>
+                  {q}
+                  <span>+</span>
+                </summary>
+                <p>{a}</p>
+              </details>
+            ))}
+          </div>
+        </section>
+        <div className="cw-disclaimer">
+          Research software. Signals are not financial advice. Past performance
+          does not guarantee future results.
+        </div>
+      </main>
+      <SiteFooter />
+    </div>
   );
 }

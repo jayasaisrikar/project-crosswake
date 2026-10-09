@@ -1,0 +1,24 @@
+/* Hallmark · pre-emit critique: P4 H5 E4 S5 R4 V4 */
+:root {
+  --paper: oklch(13% 0.008 65);
+  --surface: oklch(17% 0.009 65);
+  --surface-muted: oklch(20% 0.01 65);
+  --ink: oklch(96% 0.012 80);
+  --ink-secondary: oklch(70% 0.016 75);
+  --rule: oklch(29% 0.012 70);
+  --signal: oklch(81% 0.16 75);
+  --signal-soft: oklch(24% 0.035 70);
+  --signal-ink: oklch(15% 0.02 70);
+  --color-glow: oklch(70% 0.16 65);
+  --color-glow-soft: oklch(70% 0.14 65 / 0.13);
+  --color-clear: oklch(13% 0.008 65 / 0);
+  --color-grid: oklch(70% 0.03 70 / 0.09);
+  --success: oklch(78% 0.13 155);
+  --warning: var(--signal);
+  --font-display: var(--font-heading);
+  --ease-in: cubic-bezier(0.4, 0, 1, 1);
+  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+  --space-section: clamp(72px, 10vw, 144px);
+  --text-display: clamp(3.4rem, 7.6vw, 7.4rem);
+  --radius-pill: 999px;
+}

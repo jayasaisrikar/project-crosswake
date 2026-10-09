@@ -1,10 +1,13 @@
 import type { Metadata } from 'next';
 import './globals.css';
+import '../tokens.css';
+import './redesign.css';
+import './kinetic.css';
 
 export const metadata: Metadata = {
-  title: 'Crosswake · BTC-to-altcoin transmission research',
+  title: 'Crosswake · Crypto signals, grounded in evidence',
   description:
-    'Local-first research system measuring how Bitcoin moves propagate into altcoins. Evidence first, execution disabled.',
+    'Clear crypto trend signals, transparent strategy research, and live paper tracking. Explore the rules and the evidence behind Crosswake.',
 };
 
 export default function Layout({ children }: { children: React.ReactNode }) {

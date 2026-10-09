@@ -1,0 +1,85 @@
+import { Activity, BellRing, LineChart } from 'lucide-react';
+
+const steps = [
+  {
+    icon: Activity,
+    title: 'We watch the market.',
+    text: 'Crosswake checks 30 major coins every day. Bitcoin sets the direction: when it is below its 100-day average, we stay out.',
+  },
+  {
+    icon: BellRing,
+    title: 'You get a clear signal.',
+    text: 'When an altcoin breaks to a new 20-day high, a signal lands on Telegram and the dashboard: the coin, the entry and the exit rule.',
+  },
+  {
+    icon: LineChart,
+    title: 'Every trade is tracked.',
+    text: 'Exits follow a 10-day low. Each result is recorded with fees and slippage, wins and losses alike, so you can judge the record yourself.',
+  },
+];
+
+export function HowItWorks() {
+  return (
+    <section id="how" className="cw-section cw-how" data-reveal>
+      <div className="cw-section-heading">
+        <h2>
+          What you get.
+          <br />
+          <span>In three steps.</span>
+        </h2>
+        <p>
+          No charts to stare at all day. Trades last days to weeks, so there is
+          time to read the signal and decide.
+        </p>
+      </div>
+      <div className="cw-how-grid">
+        <ol className="cw-how-steps" data-stagger>
+          {steps.map(({ icon: Icon, title, text }, i) => (
+            <li key={title}>
+              <span className="cw-how-index">0{i + 1}</span>
+              <Icon size={20} aria-hidden="true" />
+              <h3>{title}</h3>
+              <p>{text}</p>
+            </li>
+          ))}
+        </ol>
+        <figure className="cw-signal-card" aria-label="Example signal message">
+          <div className="cw-signal-head">
+            <span className="cw-signal-badge">
+              <i aria-hidden="true" /> New signal
+            </span>
+            <span>Example · v005</span>
+          </div>
+          <div className="cw-signal-coin">
+            <strong>SOL</strong>
+            <span>Long · daily trend</span>
+          </div>
+          <dl>
+            <div>
+              <dt>Why now</dt>
+              <dd>Closed above its 20-day high</dd>
+            </div>
+            <div>
+              <dt>Market filter</dt>
+              <dd className="is-good">BTC above 100-day average</dd>
+            </div>
+            <div>
+              <dt>Exit rule</dt>
+              <dd>Close below the 10-day low</dd>
+            </div>
+            <div>
+              <dt>Expected hold</dt>
+              <dd>Days to weeks</dd>
+            </div>
+          </dl>
+          <svg viewBox="0 0 300 60" className="cw-signal-spark" aria-hidden="true">
+            <path d="M0 50L20 46L40 52L60 40L80 44L100 34L120 38L140 30L160 33L180 22L200 26L220 14L240 18L260 8L280 12L300 4" />
+          </svg>
+          <figcaption>
+            Illustrative format. Paper signal, not financial advice.
+          </figcaption>
+        </figure>
+      </div>
+    </section>
+  );
+}
