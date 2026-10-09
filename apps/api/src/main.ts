@@ -21,8 +21,15 @@ if (!token)
   console.warn(
     'RESEARCH_API_TOKEN is unset: this server is unauthenticated. That is fine on loopback; set it before exposing the port.',
   );
-server.listen(port, '127.0.0.1', () =>
-  console.log(`Crosswake read-only evidence: http://127.0.0.1:${port}`),
+// Binding beyond loopback publishes this API to whatever can reach the port. Without a token
+// that is an open door, so refuse to start rather than create one silently.
+const host = process.env.RESEARCH_API_HOST ?? '127.0.0.1';
+if (!token && host !== '127.0.0.1' && host !== '::1')
+  throw new Error(
+    `RESEARCH_API_HOST=${host} binds beyond loopback, which requires RESEARCH_API_TOKEN to be set.`,
+  );
+server.listen(port, host, () =>
+  console.log(`Crosswake read-only evidence: http://${host}:${port}`),
 );
 server.on('error', (error) => {
   console.error(error);
