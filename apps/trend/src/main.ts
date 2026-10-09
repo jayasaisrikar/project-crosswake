@@ -6,6 +6,7 @@ import { epochMs } from '../../../packages/domain/src/index.js';
 import { existsSync } from 'node:fs';
 import { rename } from 'node:fs/promises';
 import { getJson } from '../../../packages/market-data/src/klines.js';
+import { fetchHlCandles, fetchHlMid } from '../../../packages/market-data/src/hyperliquid.js';
 import { deliver, escapeHtml, sinksFromEnv } from '../../../packages/notify/src/index.js';
 import { fingerprint, type SignalLogEntry } from '../../../packages/signal-log/src/index.js';
 import { append, publish, readLog } from '../../../packages/signal-log/src/node.js';
@@ -148,8 +149,21 @@ const DAY = 86_400_000,
   ),
   pct = (bps: number) => `${bps >= 0 ? '+' : ''}${(bps / 100).toFixed(1)}%`;
 
+/** Per-symbol venue override from the plan (see its `amendments`); Binance spot otherwise. */
+const hlSource = (symbol: string): string | undefined =>
+  plan.priceSources?.[symbol]?.venue === 'hyperliquid'
+    ? plan.priceSources[symbol].coin
+    : undefined;
+
 /** Last ~200 daily bars from REST. The final row is today's unfinished bar: its open is real (fills), its close is only a mark. */
 async function recentBars(symbol: string): Promise<DailyBar[]> {
+  const coin = hlSource(symbol);
+  if (coin) {
+    const today = Math.floor(Date.now() / DAY) * DAY;
+    return fetchHlCandles(coin, '1d', today - 199 * DAY, today + DAY, {
+      now: Infinity,
+    });
+  }
   const rows = await getJson<unknown[][]>(
     fetch,
     `https://api.binance.com/api/v3/klines?symbol=${symbol}&interval=1d&limit=200`,
@@ -345,11 +359,17 @@ async function live() {
       sent.add(e.id);
       // Positive gap = worse for someone acting on the alert (paid more / sold for less).
       try {
-        const { price } = await getJson<{ price: string }>(
-          fetch,
-          `https://api.binance.com/api/v3/ticker/price?symbol=${e.symbol}`,
-        );
-        const alertPrice = Number(price),
+        const coin = hlSource(e.symbol),
+          alertPrice = coin
+            ? await fetchHlMid(coin)
+            : Number(
+                (
+                  await getJson<{ price: string }>(
+                    fetch,
+                    `https://api.binance.com/api/v3/ticker/price?symbol=${e.symbol}`,
+                  )
+                ).price,
+              ),
           ratio = alertPrice / e.price,
           gapBps = (e.kind === 'entry' ? ratio - 1 : 1 - ratio) * 10_000,
           fill = { id: e.id, kind: e.kind, symbol: e.symbol, assumedPrice: e.price, alertAt: Date.now(), alertPrice, gapBps };

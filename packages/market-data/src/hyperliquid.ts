@@ -186,3 +186,14 @@ export async function fetchHlContexts(options: HlOptions = {}) {
   });
   return out;
 }
+
+/** Current mid price for a perp ("HYPE") or spot market ("@107"). */
+export async function fetchHlMid(coin: string, options: HlOptions = {}) {
+  const mids = await postInfo<Record<string, string>>(
+    { type: 'allMids' },
+    options,
+  );
+  const mid = Number(mids?.[coin]);
+  if (!(mid > 0)) throw new Error(`No Hyperliquid mid for ${coin}`);
+  return mid;
+}

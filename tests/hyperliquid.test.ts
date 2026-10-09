@@ -3,6 +3,7 @@ import {
   fetchHlCandles,
   fetchHlContexts,
   fetchHlFunding,
+  fetchHlMid,
   hlCoin,
   postInfo,
 } from '../packages/market-data/src/hyperliquid.js';
@@ -116,5 +117,13 @@ describe('compareCloses', () => {
   });
   it('marks coins Hyperliquid does not list', () => {
     expect(compareCloses('X', bn, undefined, 50).status).toBe('missing');
+  });
+});
+
+describe('fetchHlMid', () => {
+  it('reads a spot market mid and rejects a missing one', async () => {
+    const fetcher = (async () => json({ '@107': '85.5', BTC: '1' })) as typeof fetch;
+    expect(await fetchHlMid('@107', { fetcher })).toBe(85.5);
+    await expect(fetchHlMid('@999', { fetcher })).rejects.toThrow('No Hyperliquid mid');
   });
 });

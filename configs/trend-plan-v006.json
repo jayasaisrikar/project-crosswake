@@ -44,6 +44,14 @@
     "SEIUSDT",
     "PUMPUSDT"
   ],
+  "priceSources": {
+    "HYPEUSDT": {
+      "venue": "hyperliquid",
+      "market": "spot",
+      "coin": "@107",
+      "pair": "HYPE/USDC"
+    }
+  },
   "survivorshipNote": "EOSUSDT and MATICUSDT are dropped because Binance spot no longer trades them. A coin trades once it has 20 daily closes.",
   "entry": {
     "breakoutDays": 20,
@@ -74,5 +82,13 @@
     "profitFactorMin": 1.2
   },
   "noRetuning": "No historical test is claimed: most added coins have under 3 years of history. Results count only from live paper. v005 continues unchanged in parallel.",
-  "forwardStart": "2026-10-09"
+  "forwardStart": "2026-10-09",
+  "amendments": [
+    {
+      "date": "2026-10-09",
+      "change": "HYPEUSDT daily bars and alert prices come from Hyperliquid spot HYPE/USDC (@107) instead of Binance spot.",
+      "reason": "Binance HYPE spot has about 15 daily closes, below the 20 the entry rule needs, so v006 could not trade HYPE. Hyperliquid spot has daily closes since Nov 2024 and is HYPE's main market. Rules, universe and acceptance criteria are unchanged; the amendment lands on the forward start date, before any v006 trade.",
+      "priorTrades": 0
+    }
+  ]
 }

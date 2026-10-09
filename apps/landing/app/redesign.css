@@ -556,9 +556,31 @@ body {
   color: var(--ink-secondary);
 }
 .cw-footer {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
   border-top: 1px solid var(--rule);
   padding: 60px max(24px, calc((100vw - 1192px) / 2)) 24px;
   background: var(--surface);
+}
+/* Footer photo backdrop: coins sit at the edges, dimmed so links stay readable */
+.cw-footer::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    image-set(url('/bg/footer.webp') type('image/webp'), url('/bg/footer.jpg') type('image/jpeg'))
+    center bottom / cover no-repeat;
+  opacity: 0.3;
+  filter: saturate(0.85);
+  mask-image: linear-gradient(transparent, #000 40%);
+}
+@media (max-width: 768px) {
+  .cw-footer::before {
+    opacity: 0.22;
+  }
 }
 .cw-footer-top {
   display: flex;
