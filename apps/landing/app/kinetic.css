@@ -2283,3 +2283,158 @@
 .sl-how b {
   color: var(--ink);
 }
+
+/* ---------- Performance page ---------- */
+.pf-page {
+  max-width: 1100px;
+  margin: 64px auto 110px;
+  padding: 0 24px;
+}
+.pf-page h1 {
+  font-size: clamp(40px, 6vw, 72px);
+  letter-spacing: -0.05em;
+  font-weight: 600;
+  margin: 12px 0 18px;
+}
+.pf-stats {
+  margin: 40px 0;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+.pf-section {
+  margin-top: 56px;
+}
+.pf-section > header {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px 24px;
+  margin-bottom: 14px;
+}
+.pf-section h2 {
+  font-size: 24px;
+  margin: 0 0 6px;
+}
+.pf-section > header p {
+  margin: 0;
+  font-size: 13px;
+  color: var(--ink-secondary);
+}
+.pf-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 20px;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  font-size: 12px;
+  color: var(--ink-secondary);
+}
+.pf-legend i,
+.pf-tip i {
+  display: inline-block;
+  width: 10px;
+  height: 3px;
+  border-radius: 2px;
+  margin-right: 6px;
+  vertical-align: middle;
+}
+.pf-chart {
+  position: relative;
+  border: 1px solid var(--rule);
+  border-radius: 12px;
+  background: #0b0b0b;
+  padding: 12px 8px 4px;
+}
+.pf-chart svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  touch-action: pan-y;
+}
+.pf-grid {
+  stroke: rgb(255 255 255 / 0.06);
+}
+.pf-base {
+  stroke: rgb(255 255 255 / 0.22);
+  stroke-dasharray: 3 4;
+}
+.pf-axis {
+  font-family: var(--font-record);
+  font-size: 11px;
+  fill: #8a8a84;
+}
+.pf-end {
+  font-family: var(--font-record);
+  font-size: 12px;
+  fill: var(--ink);
+}
+.pf-cross {
+  stroke: rgb(255 255 255 / 0.3);
+}
+.pf-tip {
+  position: absolute;
+  top: 12px;
+  transform: translateX(-50%);
+  min-width: 200px;
+  display: grid;
+  gap: 4px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: rgb(18 18 18 / 0.95);
+  border: 1px solid var(--rule);
+  font-size: 12px;
+  color: var(--ink);
+  pointer-events: none;
+}
+.pf-tip em {
+  float: right;
+  margin-left: 16px;
+  font-style: normal;
+  font-family: var(--font-record);
+}
+.pf-tip-note {
+  color: var(--ink-secondary);
+}
+.pf-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+.pf-table th,
+.pf-table td {
+  padding: 12px 10px;
+  border-top: 1px solid var(--rule);
+  text-align: left;
+}
+.pf-table th {
+  border-top: 0;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--ink-secondary);
+}
+.pf-table .num {
+  text-align: right;
+  font-family: var(--font-record);
+}
+.pf-notes {
+  padding-left: 20px;
+  display: grid;
+  gap: 8px;
+  color: var(--ink-secondary);
+  line-height: 1.7;
+  font-size: 14px;
+}
+.pf-notes li::marker {
+  color: var(--signal);
+}
+.pf-download {
+  display: inline-flex;
+  gap: 10px;
+  margin-top: 8px;
+}
+@media (max-width: 760px) {
+  .pf-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

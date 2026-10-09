@@ -12,6 +12,7 @@
     "history": "tsx apps/history/src/main.ts",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
+    "perf:build": "tsx scripts/build-performance.ts",
     "log:verify": "tsx scripts/verify-signal-log.ts",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
