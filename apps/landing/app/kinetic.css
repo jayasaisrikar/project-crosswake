@@ -118,34 +118,6 @@
   letter-spacing: 0.05em;
   gap: 20px;
 }
-.kinetic-hero-bottom a {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-.scroll-cue {
-  height: 28px;
-  width: 17px;
-  border: 1px solid var(--rule);
-  border-radius: 10px;
-  position: relative;
-}
-.scroll-cue:after {
-  content: '';
-  position: absolute;
-  top: 5px;
-  left: 7px;
-  height: 5px;
-  width: 1px;
-  background: var(--signal);
-  animation: scroll-cue 1.6s var(--ease-in-out) 3;
-}
-@keyframes scroll-cue {
-  to {
-    transform: translateY(10px);
-    opacity: 0;
-  }
-}
 .market-scene {
   position: relative;
   aspect-ratio: 1;
@@ -767,9 +739,6 @@
   }
   .product-entrance figure {
     will-change: auto;
-  }
-  .scroll-cue:after {
-    animation: none;
   }
   .scene-pause {
     display: none;

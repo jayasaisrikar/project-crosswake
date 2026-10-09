@@ -1,0 +1,538 @@
+{
+  "generatedAt": "2026-10-09T14:44:35.159Z",
+  "window": {
+    "from": "2026-09-09",
+    "to": "2026-10-08"
+  },
+  "thresholdBps": 50,
+  "summary": {
+    "checked": 33,
+    "flagged": 1,
+    "missing": [
+      "VETUSDT",
+      "THETAUSDT",
+      "XTZUSDT"
+    ]
+  },
+  "checks": [
+    {
+      "symbol": "ETHUSDT",
+      "status": "ok",
+      "days": 30,
+      "maxAbsGapBps": 7.154192829101902,
+      "medianGapBps": -0.7422803400269906,
+      "worst": {
+        "symbol": "ETHUSDT",
+        "ts": 1790035200000,
+        "binance": 2753.63,
+        "hyperliquid": 2755.6,
+        "gapBps": 7.154192829101902
+      },
+      "unmatchedDays": 0
+    },
+    {
+      "symbol": "BNBUSDT",
+      "status": "ok",
+      "days": 30,
+      "maxAbsGapBps": 11.411803064884651,
+      "medianGapBps": -1.8235800239690958,
+      "worst": {
+        "symbol": "BNBUSDT",
+        "ts": 1791417600000,
+        "binance": 736.08,
+        "hyperliquid": 735.24,
+        "gapBps": -11.411803064884651
+      },
+      "unmatchedDays": 0
+    },
+    {
+      "symbol": "XRPUSDT",
+      "status": "ok",
+      "days": 30,
+      "maxAbsGapBps": 10.634526763557695,
+      "medianGapBps": -1.3370933086070957,
+      "worst": {
+        "symbol": "XRPUSDT",
+        "ts": 1789862400000,
+        "binance": 1.4105,
+        "hyperliquid": 1.412,
+        "gapBps": 10.634526763557695
+      },
+      "unmatchedDays": 0
+    },
+    {
+      "symbol": "ADAUSDT",
+      "status": "ok",
+      "days": 30,
+      "maxAbsGapBps": 18.35985312117483,
+      "medianGapBps": -3.202938189135751,
+      "worst": {
+        "symbol": "ADAUSDT",
+        "ts": 1789948800000,
+        "binance": 0.2451,
+        "hyperliquid": 0.24555,
+        "gapBps": 18.35985312117483
+      },
+      "unmatchedDays": 0
+    },
+    {
+      "symbol": "DOGEUSDT",
+      "status": "ok",
+      "days": 30,
+      "maxAbsGapBps": 13.91948728219461,
+      "medianGapBps": 1.3833451323441714,
+      "worst": {
+        "symbol": "DOGEUSDT",
+        "ts": 1789948800000,
+        "binance": 0.09986,
+        "hyperliquid": 0.099999,
+        "gapBps": 13.91948728219461
+      },
+      "unmatchedDays": 0
+    },
+    {
+      "symbol": "SOLUSDT",
+      "status": "ok",
+      "days": 30,
+      "maxAbsGapBps": 10.113780025284846,
+      "medianGapBps": -3.634208529884053,
+      "worst": {
+        "symbol": "SOLUSDT",
+        "ts": 1790899200000,
+        "binance": 118.65,
+        "hyperliquid": 118.53,
+        "gapBps": -10.113780025284846
+      },
+      "unmatchedDays": 0
+    },
+    {
+      "symbol": "DOTUSDT",
+      "status": "ok",
+      "days": 30,
+      "maxAbsGapBps": 13.333333333332975,
+      "medianGapBps": -2.121533892744387,
+      "worst": {
+        "symbol": "DOTUSDT",
+        "ts": 1789430400000,
+        "binance": 0.945,
+        "hyperliquid": 0.94374,
+        "gapBps": -13.333333333332975
+      },
+      "unmatchedDays": 0
+    },
+    {
+      "symbol": "LINKUSDT",
+      "status": "ok",
+      "days": 30,
+      "maxAbsGapBps": 13.7973325157148,
+      "medianGapBps": -3.5423336263729066,
+      "worst": {
+        "symbol": "LINKUSDT",
+        "ts": 1790035200000,
+        "binance": 13.046,
+        "hyperliquid": 13.064,
+        "gapBps": 13.7973325157148
+      },
+      "unmatchedDays": 0
+    },
+    {
+      "symbol": "LTCUSDT",
+      "status": "ok",
+      "days": 30,
+      "maxAbsGapBps": 18.05674978504035,
+      "medianGapBps": 0.5015819241527275,
+      "worst": {
+        "symbol": "LTCUSDT",
+        "ts": 1789689600000,
+        "binance": 58.15,
+        "hyperliquid": 58.255,
+        "gapBps": 18.05674978504035
+      },
+      "unmatchedDays": 0
+    },
+    {
+      "symbol": "BCHUSDT",
+      "status": "ok",
+      "days": 30,
+      "maxAbsGapBps": 10.39783001808292,
+      "medianGapBps": 0.7244277021145606,
+      "worst": {
+        "symbol": "BCHUSDT",
+        "ts": 1789516800000,
+        "binance": 221.2,
+        "hyperliquid": 220.97,
+        "gapBps": -10.39783001808292
+      },
+      "unmatchedDays": 0
+    },
+    {
+      "symbol": "AVAXUSDT",
+      "status": "ok",
+      "days": 30,
+      "maxAbsGapBps": 14.143021302925884,
+      "medianGapBps": 1.8980461561701745,
+      "worst": {
+        "symbol": "AVAXUSDT",
+        "ts": 1790035200000,
+        "binance": 11.313,
+        "hyperliquid": 11.329,
+        "gapBps": 14.143021302925884
+      },
+      "unmatchedDays": 0
+    },
+    {
+      "symbol": "UNIUSDT",
+      "status": "ok",
+      "days": 30,
+      "maxAbsGapBps": 14.668492079012996,
+      "medianGapBps": 2.6419729271909276,
+      "worst": {
+        "symbol": "UNIUSDT",
+        "ts": 1790035200000,
+        "binance": 10.226,
+        "hyperliquid": 10.241,
+        "gapBps": 14.668492079012996
+      },
+      "unmatchedDays": 0
+    },
+    {
+      "symbol": "ATOMUSDT",
+      "status": "ok",
+      "days": 30,
+      "maxAbsGapBps": 22.383545069570854,
+      "medianGapBps": -8.962700487745167,
+      "worst": {
+        "symbol": "ATOMUSDT",
+        "ts": 1790899200000,
+        "binance": 1.653,
+        "hyperliquid": 1.6493,
+        "gapBps": -22.383545069570854
+      },
+      "unmatchedDays": 0
+    },
+    {
+      "symbol": "ETCUSDT",
+      "status": "ok",
+      "days": 30,
+      "maxAbsGapBps": 19.27966101694878,
+      "medianGapBps": 0.6732824312183361,
+      "worst": {
+        "symbol": "ETCUSDT",
+        "ts": 1790035200000,
+        "binance": 9.44,
+        "hyperliquid": 9.4582,
+        "gapBps": 19.27966101694878
+      },
+      "unmatchedDays": 0
+    },
+    {
+      "symbol": "XLMUSDT",
+      "status": "ok",
+      "days": 30,
+      "maxAbsGapBps": 17.94453507340976,
+      "medianGapBps": 1.69881767844271,
+      "worst": {
+        "symbol": "XLMUSDT",
+        "ts": 1789516800000,
+        "binance": 0.1839,
+        "hyperliquid": 0.18357,
+        "gapBps": -17.94453507340976
+      },
+      "unmatchedDays": 0
+    },
+    {
+      "symbol": "TRXUSDT",
+      "status": "ok",
+      "days": 30,
+      "maxAbsGapBps": 12.220566318927872,
+      "medianGapBps": -5.365038311930248,
+      "worst": {
+        "symbol": "TRXUSDT",
+        "ts": 1791244800000,
+        "binance": 0.3355,
+        "hyperliquid": 0.33509,
+        "gapBps": -12.220566318927872
+      },
+      "unmatchedDays": 0
+    },
+    {
+      "symbol": "FILUSDT",
+      "status": "ok",
+      "days": 30,
+      "maxAbsGapBps": 18.875927889714372,
+      "medianGapBps": 0.44240006391249587,
+      "worst": {
+        "symbol": "FILUSDT",
+        "ts": 1789862400000,
+        "binance": 0.943,
+        "hyperliquid": 0.94478,
+        "gapBps": 18.875927889714372
+      },
+      "unmatchedDays": 0
+    },
+    {
+      "symbol": "VETUSDT",
+      "status": "missing",
+      "days": 0,
+      "maxAbsGapBps": 0,
+      "medianGapBps": 0,
+      "unmatchedDays": 30
+    },
+    {
+      "symbol": "THETAUSDT",
+      "status": "missing",
+      "days": 0,
+      "maxAbsGapBps": 0,
+      "medianGapBps": 0,
+      "unmatchedDays": 30
+    },
+    {
+      "symbol": "ALGOUSDT",
+      "status": "ok",
+      "days": 30,
+      "maxAbsGapBps": 20.304568527920175,
+      "medianGapBps": 3.2720318639378743,
+      "worst": {
+        "symbol": "ALGOUSDT",
+        "ts": 1790380800000,
+        "binance": 0.1182,
+        "hyperliquid": 0.11844,
+        "gapBps": 20.304568527920175
+      },
+      "unmatchedDays": 0
+    },
+    {
+      "symbol": "XTZUSDT",
+      "status": "missing",
+      "days": 0,
+      "maxAbsGapBps": 0,
+      "medianGapBps": 0,
+      "unmatchedDays": 30
+    },
+    {
+      "symbol": "NEOUSDT",
+      "status": "ok",
+      "days": 30,
+      "maxAbsGapBps": 24.43831296807364,
+      "medianGapBps": 1.0034011711712587,
+      "worst": {
+        "symbol": "NEOUSDT",
+        "ts": 1791244800000,
+        "binance": 2.537,
+        "hyperliquid": 2.5432,
+        "gapBps": 24.43831296807364
+      },
+      "unmatchedDays": 0
+    },
+    {
+      "symbol": "ZECUSDT",
+      "status": "ok",
+      "days": 30,
+      "maxAbsGapBps": 11.728611849211035,
+      "medianGapBps": 0.9390784465335145,
+      "worst": {
+        "symbol": "ZECUSDT",
+        "ts": 1789862400000,
+        "binance": 1509.13,
+        "hyperliquid": 1510.9,
+        "gapBps": 11.728611849211035
+      },
+      "unmatchedDays": 0
+    },
+    {
+      "symbol": "DASHUSDT",
+      "status": "ok",
+      "days": 30,
+      "maxAbsGapBps": 33.81566530355595,
+      "medianGapBps": 4.728567749368029,
+      "worst": {
+        "symbol": "DASHUSDT",
+        "ts": 1789689600000,
+        "binance": 63.58,
+        "hyperliquid": 63.795,
+        "gapBps": 33.81566530355595
+      },
+      "unmatchedDays": 0
+    },
+    {
+      "symbol": "IOTAUSDT",
+      "status": "flagged",
+      "days": 30,
+      "maxAbsGapBps": 58.74263261296697,
+      "medianGapBps": 1.9831042382589814,
+      "worst": {
+        "symbol": "IOTAUSDT",
+        "ts": 1790294400000,
+        "binance": 0.0509,
+        "hyperliquid": 0.051199,
+        "gapBps": 58.74263261296697
+      },
+      "unmatchedDays": 0
+    },
+    {
+      "symbol": "AAVEUSDT",
+      "status": "ok",
+      "days": 30,
+      "maxAbsGapBps": 13.381282930500227,
+      "medianGapBps": -1.6341664199526207,
+      "worst": {
+        "symbol": "AAVEUSDT",
+        "ts": 1789516800000,
+        "binance": 119.57,
+        "hyperliquid": 119.41,
+        "gapBps": -13.381282930500227
+      },
+      "unmatchedDays": 0
+    },
+    {
+      "symbol": "NEARUSDT",
+      "status": "ok",
+      "days": 30,
+      "maxAbsGapBps": 15.328874024527206,
+      "medianGapBps": 3.939124168045316,
+      "worst": {
+        "symbol": "NEARUSDT",
+        "ts": 1789776000000,
+        "binance": 3.588,
+        "hyperliquid": 3.5935,
+        "gapBps": 15.328874024527206
+      },
+      "unmatchedDays": 0
+    },
+    {
+      "symbol": "BTCUSDT",
+      "status": "ok",
+      "days": 30,
+      "maxAbsGapBps": 5.917719101283803,
+      "medianGapBps": -3.5786494642692235,
+      "worst": {
+        "symbol": "BTCUSDT",
+        "ts": 1789084800000,
+        "binance": 77225.7,
+        "hyperliquid": 77180,
+        "gapBps": -5.917719101283803
+      },
+      "unmatchedDays": 0
+    },
+    {
+      "symbol": "HYPEUSDT",
+      "status": "ok",
+      "days": 15,
+      "maxAbsGapBps": 9.735248723733436,
+      "medianGapBps": -4.713804713802894,
+      "worst": {
+        "symbol": "HYPEUSDT",
+        "ts": 1791417600000,
+        "binance": 84.23,
+        "hyperliquid": 84.148,
+        "gapBps": -9.735248723733436
+      },
+      "unmatchedDays": 15
+    },
+    {
+      "symbol": "SUIUSDT",
+      "status": "ok",
+      "days": 30,
+      "maxAbsGapBps": 27.510316368639653,
+      "medianGapBps": 3.7886787739283,
+      "worst": {
+        "symbol": "SUIUSDT",
+        "ts": 1790380800000,
+        "binance": 1.1632,
+        "hyperliquid": 1.1664,
+        "gapBps": 27.510316368639653
+      },
+      "unmatchedDays": 0
+    },
+    {
+      "symbol": "ENAUSDT",
+      "status": "ok",
+      "days": 30,
+      "maxAbsGapBps": 19.746121297601338,
+      "medianGapBps": 1.9186968683582162,
+      "worst": {
+        "symbol": "ENAUSDT",
+        "ts": 1789948800000,
+        "binance": 0.2127,
+        "hyperliquid": 0.21312,
+        "gapBps": 19.746121297601338
+      },
+      "unmatchedDays": 0
+    },
+    {
+      "symbol": "TAOUSDT",
+      "status": "ok",
+      "days": 30,
+      "maxAbsGapBps": 43.206011271132994,
+      "medianGapBps": 2.3240110791999946,
+      "worst": {
+        "symbol": "TAOUSDT",
+        "ts": 1789948800000,
+        "binance": 319.4,
+        "hyperliquid": 320.78,
+        "gapBps": 43.206011271132994
+      },
+      "unmatchedDays": 0
+    },
+    {
+      "symbol": "JUPUSDT",
+      "status": "ok",
+      "days": 30,
+      "maxAbsGapBps": 27.372262773723843,
+      "medianGapBps": -2.698931190877052,
+      "worst": {
+        "symbol": "JUPUSDT",
+        "ts": 1789516800000,
+        "binance": 0.2192,
+        "hyperliquid": 0.2186,
+        "gapBps": -27.372262773723843
+      },
+      "unmatchedDays": 0
+    },
+    {
+      "symbol": "WLDUSDT",
+      "status": "ok",
+      "days": 30,
+      "maxAbsGapBps": 19.39785815316286,
+      "medianGapBps": 1.3937690569265637,
+      "worst": {
+        "symbol": "WLDUSDT",
+        "ts": 1790294400000,
+        "binance": 0.4949,
+        "hyperliquid": 0.49586,
+        "gapBps": 19.39785815316286
+      },
+      "unmatchedDays": 0
+    },
+    {
+      "symbol": "SEIUSDT",
+      "status": "ok",
+      "days": 30,
+      "maxAbsGapBps": 16.708060510274294,
+      "medianGapBps": -0.8087077993268466,
+      "worst": {
+        "symbol": "SEIUSDT",
+        "ts": 1788998400000,
+        "binance": 0.04429,
+        "hyperliquid": 0.044216,
+        "gapBps": -16.708060510274294
+      },
+      "unmatchedDays": 0
+    },
+    {
+      "symbol": "PUMPUSDT",
+      "status": "ok",
+      "days": 30,
+      "maxAbsGapBps": 25.03413746017147,
+      "medianGapBps": 4.938731487365011,
+      "worst": {
+        "symbol": "PUMPUSDT",
+        "ts": 1790380800000,
+        "binance": 0.004394,
+        "hyperliquid": 0.004405,
+        "gapBps": 25.03413746017147
+      },
+      "unmatchedDays": 0
+    }
+  ]
+}

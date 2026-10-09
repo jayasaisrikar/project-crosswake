@@ -126,9 +126,6 @@ export default function Page() {
           </HeroParallax>
           <div className="kinetic-hero-bottom">
             <span>MARKETS MOVE. EVIDENCE COMPOUNDS.</span>
-            <a href="#product-preview">
-              <span className="scroll-cue" /> Scroll to explore
-            </a>
             <span>RESEARCH FIRST. ALWAYS.</span>
           </div>
         </section>

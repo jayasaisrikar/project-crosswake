@@ -54,6 +54,7 @@
     "digest:live": "tsx apps/digest/src/main.ts",
     "status:live": "tsx apps/status/src/main.ts",
     "status:preview": "tsx apps/status/src/main.ts --dry-run",
+    "venue:check": "tsx apps/venue/src/main.ts",
     "data:retention": "tsx apps/retention/src/main.ts"
   },
   "dependencies": {
