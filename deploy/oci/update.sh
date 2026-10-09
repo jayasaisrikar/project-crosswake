@@ -42,6 +42,7 @@ units_for_app() {
     trend) echo 'signals-daily signals-daily-v006' ;;
     htf) echo signals-htf-v007 ;;
     digest) echo digest ;;
+    status) echo status ;;
     costs) echo costs ;;
     context) echo context ;;
     retention) echo retention ;;

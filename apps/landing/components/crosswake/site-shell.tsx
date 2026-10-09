@@ -53,6 +53,13 @@ export function SiteHeader() {
           </Link>
         ))}
         <Link
+          href="/log"
+          aria-current={path.startsWith('/log') ? 'page' : undefined}
+          onClick={close}
+        >
+          Signal log
+        </Link>
+        <Link
           href="/docs"
           aria-current={path.startsWith('/docs') ? 'page' : undefined}
           onClick={close}
@@ -80,4 +87,4 @@ export function SiteHeader() {
     </header>
   );
 }
-export function SiteFooter(){return <footer className="cw-footer"><div className="cw-footer-top"><Brand/><p>Clear signals.<br/>Public results.</p><div><Link href="/docs">Documentation ↗</Link><Link href="/docs/strategies">Strategy catalog ↗</Link><Link href="/docs/validation">Research standards ↗</Link></div></div><div className="cw-footer-bottom"><span>© {new Date().getFullYear()} Crosswake</span><span>Research software. Paper signals only.</span><a href="#main">Back to top ↑</a></div></footer>}
+export function SiteFooter(){return <footer className="cw-footer"><div className="cw-footer-top"><Brand/><p>Clear signals.<br/>Public results.</p><div><Link href="/log">Signal log ↗</Link><Link href="/docs">Documentation ↗</Link><Link href="/docs/strategies">Strategy catalog ↗</Link><Link href="/docs/validation">Research standards ↗</Link></div></div><div className="cw-footer-bottom"><span>© {new Date().getFullYear()} Crosswake</span><span>Research software. Paper signals only.</span><a href="#main">Back to top ↑</a></div></footer>}

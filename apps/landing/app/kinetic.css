@@ -2123,3 +2123,163 @@
   opacity: 0.22;
   mask-image: linear-gradient(90deg, transparent 45%, #000 80%), linear-gradient(transparent, #000 15%, #000 85%, transparent);
 }
+
+/* ---------- Signal log page ---------- */
+.sl-page {
+  max-width: 1100px;
+  margin: 64px auto 110px;
+  padding: 0 24px;
+}
+.sl-eyebrow {
+  font-family: var(--font-record);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--signal) !important;
+}
+.sl-page h1 {
+  font-size: clamp(40px, 6vw, 72px);
+  letter-spacing: -0.05em;
+  font-weight: 600;
+  margin: 12px 0 18px;
+}
+.sl-lead {
+  max-width: 680px;
+  font-size: 16px;
+  line-height: 1.8;
+}
+.sl-repo {
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+  margin-top: 8px;
+  color: var(--signal);
+  font-size: 13px;
+}
+.sl-strategy {
+  margin-top: 48px;
+  border: 1px solid var(--rule);
+  border-radius: 12px;
+  background: #070707;
+  padding: 22px;
+}
+.sl-strategy > header {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.sl-strategy h2 {
+  font-size: 20px;
+  margin: 0;
+}
+.sl-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-family: var(--font-record);
+  font-size: 11px;
+}
+.sl-badge.is-ok {
+  color: #a1cf6b;
+  background: rgb(161 207 107 / 0.1);
+  border: 1px solid rgb(161 207 107 / 0.3);
+}
+.sl-badge.is-bad {
+  color: #e87461;
+  background: rgb(232 116 97 / 0.1);
+  border: 1px solid rgb(232 116 97 / 0.35);
+}
+.sl-scroll {
+  overflow-x: auto;
+}
+.sl-strategy table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+.sl-strategy th,
+.sl-strategy td {
+  padding: 11px 10px;
+  border-top: 1px solid var(--rule);
+  text-align: left;
+  white-space: nowrap;
+}
+.sl-strategy th {
+  border-top: 0;
+  font-weight: 500;
+  font-size: 11px;
+  color: var(--ink-secondary);
+}
+.sl-strategy .num {
+  text-align: right;
+  font-family: var(--font-record);
+  font-variant-numeric: tabular-nums;
+}
+.sl-strategy .up {
+  color: #a1cf6b;
+}
+.sl-strategy .down {
+  color: #e87461;
+}
+.sl-strategy code,
+.sl-how code {
+  font-family: var(--font-record);
+  font-size: 12px;
+  color: #d5d887;
+}
+.sl-side {
+  padding: 2px 9px;
+  border-radius: 999px;
+  font-size: 11px;
+}
+.sl-side.is-entry {
+  background: rgb(161 207 107 / 0.14);
+  color: #a1cf6b;
+}
+.sl-side.is-exit {
+  background: rgb(255 255 255 / 0.06);
+  color: var(--ink-secondary);
+}
+.sl-tag {
+  margin-left: 8px;
+  padding: 1px 7px;
+  border-radius: 999px;
+  border: 1px solid var(--rule);
+  font-size: 10px;
+  color: var(--ink-secondary);
+}
+.sl-quiet {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  font-size: 13px;
+  color: var(--ink-secondary);
+}
+.sl-how {
+  margin-top: 64px;
+}
+.sl-how h2 {
+  font-size: 28px;
+  margin-bottom: 18px;
+}
+.sl-how ol {
+  display: grid;
+  gap: 14px;
+  padding-left: 20px;
+  max-width: 760px;
+}
+.sl-how li {
+  line-height: 1.8;
+  color: var(--ink-secondary);
+}
+.sl-how li::marker {
+  color: var(--signal);
+}
+.sl-how b {
+  color: var(--ink);
+}

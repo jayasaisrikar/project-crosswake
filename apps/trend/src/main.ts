@@ -7,6 +7,9 @@ import { existsSync } from 'node:fs';
 import { rename } from 'node:fs/promises';
 import { getJson } from '../../../packages/market-data/src/klines.js';
 import { deliver, escapeHtml, sinksFromEnv } from '../../../packages/notify/src/index.js';
+import { fingerprint, type SignalLogEntry } from '../../../packages/signal-log/src/index.js';
+import { append, publish, readLog } from '../../../packages/signal-log/src/node.js';
+import type { TrendEvent } from '../../../packages/backtest/src/trend.js';
 import {
   trendLedger,
   regimeByDay,
@@ -171,7 +174,23 @@ async function live() {
     { sinks, channels } = sinksFromEnv(process.env),
     once = process.argv.includes('--once');
   await mkdir(out, { recursive: true });
-  const sentPath = join(out, 'delivered.json'),
+  const logPath = join(out, 'signal-log.jsonl'),
+    log = await readLog(logPath),
+    logged = new Set(log.map((x) => x.id)),
+    logEvent = (e: TrendEvent, backfill?: boolean): Promise<SignalLogEntry> =>
+      append(logPath, log, {
+        version: plan.version,
+        id: e.id,
+        kind: e.kind,
+        symbol: e.symbol,
+        decidedAt: e.decidedAt,
+        fillAt: e.fillAt,
+        price: e.price,
+        ...(e.kind === 'exit' ? { netBps: e.netBps, reason: String(e.reason) } : {}),
+        publishedAt: Date.now(),
+        ...(backfill ? { backfill } : {}),
+      }).then((x) => (logged.add(x.id), x)),
+    sentPath = join(out, 'delivered.json'),
     sent = new Set<string>(
       existsSync(sentPath) ? JSON.parse(await readFile(sentPath, 'utf8')) : [],
     );
@@ -259,10 +278,22 @@ async function live() {
     const tmp = join(out, 'state.json.tmp');
     await writeFile(tmp, JSON.stringify(state, null, 2));
     await rename(tmp, join(out, 'state.json'));
+    const logLength = log.length,
+      oldestFirst = [...ledger.events].sort(
+        (a, b) => a.decidedAt - b.decidedAt || a.id.localeCompare(b.id),
+      );
+    // Signals already sent before the log existed are appended once, flagged as backfill.
+    for (const e of oldestFirst)
+      if (sent.has(e.id) && !logged.has(e.id)) await logEvent(e, true);
     // Only events from the latest close are announced; older ones were either sent already or are history.
-    for (const e of ledger.events.filter(
+    for (const e of oldestFirst.filter(
       (e) => e.decidedAt >= lastClose.ts && !sent.has(e.id),
     )) {
+      // Logged before delivery, so the fingerprint in the post commits to the entry.
+      const entry = logged.has(e.id)
+          ? log.find((x) => x.id === e.id)!
+          : await logEvent(e),
+        proof = `<code>log #${fingerprint(entry.hash)} · seq ${entry.seq}</code>`;
       const coin = escapeHtml(e.symbol.replace(/USDT$/, ''));
       const text =
         e.kind === 'entry'
@@ -275,6 +306,7 @@ async function live() {
               '<b>Why</b>  20-day breakout with BTC in an uptrend',
               '',
               `<i>${escapeHtml(plan.version)} · paper signal, not advice</i>`,
+              proof,
             ].join('\n')
           : [
               `${e.netBps! >= 0 ? '✅' : '❌'} <b>SELL ${coin}</b> · spot`,
@@ -284,6 +316,7 @@ async function live() {
               `▸ <b>Reason</b>  ${escapeHtml(String(e.reason))}`,
               '',
               `<i>${escapeHtml(plan.version)} · paper result</i>`,
+              proof,
             ].join('\n');
       const d = await deliver(sinks, {
         kind: e.kind === 'entry' ? 'signal' : 'paper_exit',
@@ -300,6 +333,8 @@ async function live() {
       sent.add(e.id);
     }
     await writeFile(sentPath, JSON.stringify([...sent]));
+    if (log.length > logLength)
+      await publish(logPath, `${plan.version}.jsonl`, log.at(-1));
     console.log({
       at: new Date().toISOString(),
       regimeOn: state.regime.on,

@@ -21,6 +21,7 @@ UNITS=(
   "signals-daily-v006:256M:384M"
   "signals-htf-v007:256M:384M"
   "digest:256M:384M"
+  "status:192M:256M"
   "retention:256M:384M"
   "costs:384M:512M"
   "context:384M:512M"

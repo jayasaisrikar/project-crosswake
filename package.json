@@ -12,6 +12,7 @@
     "history": "tsx apps/history/src/main.ts",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
+    "log:verify": "tsx scripts/verify-signal-log.ts",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "replay": "tsx apps/replay/src/main.ts",
@@ -49,6 +50,8 @@
     "htf:test": "tsx apps/htf/src/main.ts test",
     "htf:live": "tsx apps/htf/src/main.ts live",
     "digest:live": "tsx apps/digest/src/main.ts",
+    "status:live": "tsx apps/status/src/main.ts",
+    "status:preview": "tsx apps/status/src/main.ts --dry-run",
     "data:retention": "tsx apps/retention/src/main.ts"
   },
   "dependencies": {

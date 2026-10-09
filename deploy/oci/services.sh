@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # bash deploy/oci/services.sh enable|disable|status|restart|logs [service...]
 set -euo pipefail
-ALL=(collector api dashboard signals-spot signals-perp signals-daily signals-daily-v006 signals-htf-v007 digest retention costs context)
+ALL=(collector api dashboard signals-spot signals-perp signals-daily signals-daily-v006 signals-htf-v007 digest status retention costs context)
 action=${1:-status}; shift || true
 targets=("${@:-${ALL[@]}}")
 for s in "${targets[@]}"; do
