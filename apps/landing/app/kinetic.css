@@ -1638,3 +1638,25 @@
   border-radius: 9px;
   box-shadow: 0 6px 18px rgb(122 199 79 / 0.22);
 }
+
+/* ---------- Brand: image mark + spaced uppercase wordmark ---------- */
+.brand {
+  gap: 12px;
+}
+.brand .brand-mark {
+  width: 34px;
+  height: 34px;
+  border-radius: 0;
+  box-shadow: none;
+  object-fit: contain;
+}
+.brand-word {
+  font-family: var(--font-heading);
+  font-size: 15px;
+  font-weight: 400;
+  letter-spacing: 0.28em;
+  color: var(--ink);
+}
+.brand-accent {
+  color: #2ee6c5;
+}
