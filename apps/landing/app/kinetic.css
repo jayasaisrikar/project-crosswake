@@ -1914,3 +1914,14 @@
     border-top: 1px solid var(--rule);
   }
 }
+
+/* Telegram section: dimmed signal-card scene behind the phone mock */
+.cw-landing .cw-tg::before {
+  background:
+    image-set(url('/bg/signals.webp') type('image/webp'), url('/bg/signals.jpg') type('image/jpeg'))
+    right center / cover no-repeat;
+  opacity: 0.3;
+  filter: saturate(0.8);
+  mask-image: linear-gradient(90deg, transparent 20%, #000 60%), linear-gradient(transparent, #000 15%, #000 85%, transparent);
+  mask-composite: intersect;
+}
