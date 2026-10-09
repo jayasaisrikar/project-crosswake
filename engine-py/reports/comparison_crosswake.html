@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Engine vs Crosswake</title>
+<style>
+:root{--bg:#fbfaf7;--fg:#1d1f23;--mut:#666b73;--line:#e3e0d8;--card:#fff;--good:#1f7a4d;--bad:#b3362c;--warn:#a5670b;--c1:#2b5fd9;--c2:#8a4fd1;--c3:#9aa0a8}
+@media (prefers-color-scheme:dark){:root{--bg:#141518;--fg:#e8e6e1;--mut:#9a9ea6;--line:#2b2d33;--card:#1b1d21;--good:#5cc28d;--bad:#ec7a6f;--warn:#e0a84a;--c1:#7aa2ff;--c2:#c09bff;--c3:#6b7079}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.6 system-ui,-apple-system,Segoe UI,sans-serif}
+main{max-width:980px;margin:0 auto;padding:32px 16px 80px}
+h1{font-size:28px;margin:0 0 4px}h2{font-size:20px;margin:40px 0 10px;padding-top:12px;border-top:1px solid var(--line)}h3{font-size:16px;margin:18px 0 6px}
+.sub{color:var(--mut)}.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px 18px;margin:12px 0}
+.verdict{border-left:4px solid var(--warn)}
+table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums;font-size:14px}
+th,td{padding:7px 8px;border-bottom:1px solid var(--line);text-align:right}th:first-child,td:first-child{text-align:left}
+th{color:var(--mut);font-weight:600}.wrap{overflow-x:auto}
+.g{color:var(--good)}.b{color:var(--bad)}.w{color:var(--warn)}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px}
+.kpi{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px}.kpi b{display:block;font-size:22px}
+.kpi span{color:var(--mut);font-size:13px}
+.legend span{display:inline-flex;align-items:center;gap:6px;margin-right:16px;font-size:13px;color:var(--mut)}
+.legend i{width:14px;height:3px;display:inline-block}
+ul{padding-left:20px}li{margin:3px 0}code{font-size:13px}
+svg text{fill:var(--mut);font-size:11px}
+</style></head><body><main>
+<h1>Our engine vs Crosswake</h1>
+<p class="sub">Honest comparison and full status report · 2026-10-09 · all figures after fees, slippage, market impact and funding · research software, not financial advice</p>
+
+<div class="card verdict"><b>Verdict in one paragraph.</b> On the same unseen window Crosswake publishes (Jan 2025 – Sep 2026), our
+<b>Trend</b> strategy returned <b class="g">+33.0%</b> with a <b>−16.1%</b> worst drawdown while BTC lost <b class="b">−10.6%</b>
+(drawdown −53.7%). Crosswake reports +1.5% average per trade with a confidence interval that includes zero and a −17% drawdown.
+Our engine is more rigorous, makes money in falling markets (long/short) and sizes positions by risk. <b>But</b>: the two new strategies
+(breakout, cross-sectional momentum) that looked best before 2024 <b class="b">decayed badly</b> on unseen data, the trend result had
+already been seen on the holdout once before, and Crosswake is ahead on one thing that matters most for a signal channel: it is
+<b>already live-paper-trading in public</b>. Neither system has a proven live edge yet.</div>
+
+<div class="kpis">
+<div class="kpi"><span>Trend, Jan 2025–Sep 2026</span><b class="g">+33.0%</b><span>Sharpe 0.90 · DD −16.1%</span></div>
+<div class="kpi"><span>Blend (frozen), same window</span><b>+12.7%</b><span>Sharpe 0.49 · DD −11.7%</span></div>
+<div class="kpi"><span>BTC buy &amp; hold</span><b class="b">−10.6%</b><span>Sharpe 0.07 · DD −53.7%</span></div>
+<div class="kpi"><span>Crosswake v005</span><b>+1.5%/trade</b><span>PF 1.32 · DD −17% · CI incl. 0</span></div>
+</div>
+
+<h2>1 · Head-to-head with Crosswake</h2>
+<div class="wrap"><table>
+<tr><th>Dimension</th><th style="text-align:left">Crosswake (project-crosswake.vercel.app)</th><th style="text-align:left">Our engine</th></tr>
+<tr><td>Strategy</td><td style="text-align:left">20-day breakout entry, 10-day-low exit, long only, only when BTC &gt; 100-day MA</td><td style="text-align:left">Trend ensemble (20/60/120d) long/short + optional breakout, x-sec momentum, funding carry</td></tr>
+<tr><td>Universe</td><td style="text-align:left">36 coins, daily</td><td style="text-align:left">16 coins incl. dead ones (LUNA, FTT) to avoid survivorship bias, hourly data</td></tr>
+<tr><td>Bear markets</td><td style="text-align:left">Goes to cash (cannot profit)</td><td style="text-align:left">Can short perps → earned money in 2022 (+8%) while BTC −65%</td></tr>
+<tr><td>Position sizing</td><td style="text-align:left">Not described</td><td style="text-align:left">Inverse-volatility per coin, portfolio vol target 20%, leverage cap 2×, per-coin cap 25%</td></tr>
+<tr><td>Cost model</td><td style="text-align:left">"Fees and slippage modelled", amounts not stated</td><td style="text-align:left">Explicit fees, spread, square-root impact, funding; stress-tested at 1.5× and 2×</td></tr>
+<tr><td>Unseen-data result</td><td style="text-align:left">243 trades, 33.7% win rate, +1.5%/trade, PF 1.32, CI −2.9%…+6.3%</td><td style="text-align:left">Trend +33.0% / Sharpe 0.90; blend +12.7% / Sharpe 0.49 (same window)</td></tr>
+<tr><td>Max drawdown</td><td style="text-align:left">−17%</td><td style="text-align:left">−16.1% (trend), −11.7% (blend)</td></tr>
+<tr><td>Statistics</td><td style="text-align:left">Confidence interval on avg trade</td><td style="text-align:left">Walk-forward, deflated Sharpe, PBO, bootstrap CI, SPA test vs BTC, trial registry</td></tr>
+<tr><td>Lookahead protection</td><td style="text-align:left">Signals on daily close</td><td style="text-align:left">Decision at bar close, fill at next bar open; automated no-lookahead tests (122 tests pass)</td></tr>
+<tr><td>Live track record</td><td style="text-align:left" class="g">Live paper trading running, public signal log</td><td style="text-align:left" class="w">Paper layer built, not started yet</td></tr>
+<tr><td>Publishes failures</td><td style="text-align:left" class="g">Yes (v001–v007)</td><td style="text-align:left">Yes, internally (registry + this report) — not yet public</td></tr>
+</table></div>
+
+<h3>Why ours is better</h3>
+<ul>
+<li><b>Profits in down markets.</b> Crosswake's BTC filter keeps it in cash during bear markets; our long/short trend made money in 2022 and in 2025–26 while BTC fell.</li>
+<li><b>Risk-based sizing.</b> Every position is sized by its volatility and the whole book targets 20% annual vol — subscribers get weights, not just "buy X".</li>
+<li><b>Higher bar of proof.</b> Deflated Sharpe, probability of backtest overfitting and an SPA test are rarely run by retail tools; they are what caught the decay shown below.</li>
+<li><b>Transparent costs.</b> Every dollar of fees, spread, impact and funding is itemised; the edge survives 1.5× costs.</li>
+<li><b>No survivorship bias.</b> LUNA and FTT are in the test, crashes included.</li>
+</ul>
+<h3>Where Crosswake is ahead (be honest with subscribers)</h3>
+<ul>
+<li>It is already live-paper-trading with a public log — that is the only evidence subscribers should trust. Ours starts the day you run <code>engine live step</code>.</li>
+<li>Simpler rules are easier to follow and harder to overfit; long-only spot is legal and usable for more people than leveraged perp shorts.</li>
+<li>Larger universe (36 coins) gives more trades and statistical power.</li>
+</ul>
+
+<h2>2 · Unseen data: what survived</h2>
+<p class="sub">Equity of $1 from 1 Jul 2024 (holdout start). Blend weights frozen from the development period.</p>
+<div class="legend"><span><i style="background:var(--c1)"></i>Trend</span><span><i style="background:var(--c2)"></i>Blend (trend+breakout+xsmom)</span><span><i style="background:var(--c3)"></i>BTC buy &amp; hold</span></div>
+<svg id="chart" viewBox="0 0 900 300" width="100%" role="img" aria-label="Equity curves since July 2024"></svg>
+
+<div class="wrap"><table>
+<tr><th>Strategy</th><th>Dev Sharpe<br>2020–Jun 2024</th><th>Holdout Sharpe<br>Jul 2024–Sep 2026</th><th>Holdout return</th><th>Holdout max DD</th><th>Status</th></tr>
+<tr><td>Trend (original)</td><td>1.08</td><td>0.92</td><td class="g">+46.5%</td><td>−18.8%</td><td class="g">Held up</td></tr>
+<tr><td>Donchian breakout</td><td>1.27</td><td>0.26</td><td>+7.4%</td><td>−25.6%</td><td class="b">Decayed</td></tr>
+<tr><td>Cross-sectional momentum</td><td>1.30</td><td>0.20</td><td>+4.7%</td><td>−31.6%</td><td class="b">Decayed</td></tr>
+<tr><td>Carry (rebuilt)</td><td>3.96</td><td>1.31</td><td>+0.7%</td><td>−0.2%</td><td class="w">Barely trades now (funding too low)</td></tr>
+<tr><td>Blend (frozen weights)</td><td>1.54</td><td>0.57</td><td>+20.6%</td><td>−18.0%</td><td class="w">Decayed</td></tr>
+<tr><td>BTC buy &amp; hold</td><td>1.06</td><td>0.51</td><td>+33.2%</td><td>−53.7%</td><td>Benchmark</td></tr>
+</table></div>
+<p>At 2× costs the blend's holdout Sharpe falls to 0.32. This is exactly the post-publication decay the research predicted (live ≈ half of backtest).
+Note: the trend holdout had been viewed twice before this build, so it is not a perfectly clean test either.</p>
+
+<h2>3 · Everything that was built</h2>
+<div class="wrap"><table>
+<tr><th>Area</th><th style="text-align:left">What</th><th style="text-align:left">Files</th></tr>
+<tr><td>Data</td><td style="text-align:left">Binance official archives 2020–Sep 2026, SHA256 verified, 0 duplicates, gaps ≤5h</td><td style="text-align:left"><code>data/</code>, <code>src/engine/data/</code></td></tr>
+<tr><td>Backtester</td><td style="text-align:left">Hourly, next-bar-open fills, funding, delisting exits, cost stress</td><td style="text-align:left"><code>backtest/engine.py</code>, <code>costs.py</code></td></tr>
+<tr><td>Carry rebuild</td><td style="text-align:left">Fixed weights, daily rebalance, no-trade band, cost-gated entry</td><td style="text-align:left"><code>signals/carry.py</code>, <code>tests/test_carry.py</code></td></tr>
+<tr><td>New signals</td><td style="text-align:left">Donchian breakout, cross-sectional momentum, vol-managed trend (all off by default)</td><td style="text-align:left"><code>signals/breakout.py</code>, <code>xsmom.py</code>, <code>regime.py</code></td></tr>
+<tr><td>Live paper layer</td><td style="text-align:left">Binance public feed, paper ledger, append-only signal log, kill switch, Telegram formatter (sends only with token + <code>--send</code>)</td><td style="text-align:left"><code>src/engine/live/</code>, <code>config/live.yaml</code></td></tr>
+<tr><td>Research</td><td style="text-align:left">Papers, practitioner studies, commercial-tool survey, results</td><td style="text-align:left"><code>docs/RESEARCH.md</code>, <code>docs/research/</code></td></tr>
+<tr><td>Quality gates</td><td style="text-align:left">pytest 122 passed · ruff clean · mypy clean</td><td style="text-align:left"><code>tests/</code></td></tr>
+</table></div>
+
+<h2>4 · Recommendation</h2>
+<ol>
+<li><b>Signal Trend only</b> (original config). Keep breakout/xsmom off until they prove themselves in paper trading; keep carry as a small, cost-gated sleeve.</li>
+<li><b>Start the public paper track record now</b> (<code>uv run engine live step</code> hourly) and post every signal including losses — the same thing that makes Crosswake credible.</li>
+<li><b>Run 3–6 months before subscribers.</b> Expect live Sharpe ~0.5–0.9, drawdowns of 15–25%, and flat stretches.</li>
+<li><b>Offer a long-only/spot variant</b> for subscribers who cannot or should not short perps with leverage.</li>
+<li><b>Get legal advice</b> before charging for signals; never promise profits.</li>
+</ol>
+<p class="sub">Sources: Crosswake figures from its public page (fetched 2026-10-09). Our figures from <code>engine</code> backtests on Binance data, fees 10/5 bps, fallback spreads, 1× costs unless stated. Past performance does not guarantee future results.</p>
+</main>
+<script>
+const D={"d": ["2024-07-07", "2024-07-14", "2024-07-21", "2024-07-28", "2024-08-04", "2024-08-11", "2024-08-18", "2024-08-25", "2024-09-01", "2024-09-08", "2024-09-15", "2024-09-22", "2024-09-29", "2024-10-06", "2024-10-13", "2024-10-20", "2024-10-27", "2024-11-03", "2024-11-10", "2024-11-17", "2024-11-24", "2024-12-01", "2024-12-08", "2024-12-15", "2024-12-22", "2024-12-29", "2025-01-05", "2025-01-12", "2025-01-19", "2025-01-26", "2025-02-02", "2025-02-09", "2025-02-16", "2025-02-23", "2025-03-02", "2025-03-09", "2025-03-16", "2025-03-23", "2025-03-30", "2025-04-06", "2025-04-13", "2025-04-20", "2025-04-27", "2025-05-04", "2025-05-11", "2025-05-18", "2025-05-25", "2025-06-01", "2025-06-08", "2025-06-15", "2025-06-22", "2025-06-29", "2025-07-06", "2025-07-13", "2025-07-20", "2025-07-27", "2025-08-03", "2025-08-10", "2025-08-17", "2025-08-24", "2025-08-31", "2025-09-07", "2025-09-14", "2025-09-21", "2025-09-28", "2025-10-05", "2025-10-12", "2025-10-19", "2025-10-26", "2025-11-02", "2025-11-09", "2025-11-16", "2025-11-23", "2025-11-30", "2025-12-07", "2025-12-14", "2025-12-21", "2025-12-28", "2026-01-04", "2026-01-11", "2026-01-18", "2026-01-25", "2026-02-01", "2026-02-08", "2026-02-15", "2026-02-22", "2026-03-01", "2026-03-08", "2026-03-15", "2026-03-22", "2026-03-29", "2026-04-05", "2026-04-12", "2026-04-19", "2026-04-26", "2026-05-03", "2026-05-10", "2026-05-17", "2026-05-24", "2026-05-31", "2026-06-07", "2026-06-14", "2026-06-21", "2026-06-28", "2026-07-05", "2026-07-12", "2026-07-19", "2026-07-26", "2026-08-02", "2026-08-09", "2026-08-16", "2026-08-23", "2026-08-30", "2026-09-06", "2026-09-13", "2026-09-20", "2026-09-27", "2026-10-04"], "trend": [1.0573, 1.01, 0.9532, 0.9825, 1.0131, 1.0139, 1.008, 1.0007, 1.0133, 1.0112, 0.9927, 0.9615, 0.9286, 0.9318, 0.9368, 0.9015, 0.9175, 0.9098, 0.9744, 1.0335, 1.0913, 1.1114, 1.1649, 1.1513, 1.1021, 1.1023, 1.128, 1.1081, 1.1227, 1.1199, 1.1359, 1.1347, 1.1284, 1.1231, 1.1127, 1.1413, 1.137, 1.1137, 1.1278, 1.1603, 1.1252, 1.1182, 1.0813, 1.0616, 1.0327, 1.0261, 1.0271, 1.0132, 1.0134, 1.018, 1.0637, 1.0289, 1.0283, 1.0759, 1.1407, 1.1493, 1.1081, 1.155, 1.1783, 1.1852, 1.1548, 1.1607, 1.1899, 1.1956, 1.1453, 1.1849, 1.0716, 1.0701, 1.0514, 1.0607, 1.0696, 1.101, 1.1304, 1.1188, 1.1155, 1.1242, 1.1337, 1.1344, 1.0935, 1.1002, 1.1172, 1.1423, 1.2064, 1.2335, 1.2282, 1.2362, 1.2303, 1.2274, 1.1904, 1.219, 1.2343, 1.2236, 1.2364, 1.1935, 1.1877, 1.2037, 1.1871, 1.193, 1.2216, 1.2294, 1.3338, 1.3182, 1.3389, 1.3625, 1.3184, 1.337, 1.3362, 1.3267, 1.3327, 1.339, 1.3585, 1.437, 1.4098, 1.4523, 1.4209, 1.4407, 1.4788, 1.4652], "blend": [1.0374, 1.013, 0.9831, 0.9968, 0.9878, 1.0017, 0.9981, 0.9685, 0.9907, 0.9821, 0.9626, 0.9451, 0.9217, 0.9068, 0.9077, 0.8977, 0.9158, 0.9289, 0.9523, 1.0249, 1.0823, 1.1045, 1.1256, 1.1101, 1.0749, 1.0705, 1.0824, 1.0845, 1.1055, 1.1065, 1.1087, 1.115, 1.1059, 1.1058, 1.0934, 1.1327, 1.1282, 1.1125, 1.1206, 1.1504, 1.1162, 1.1147, 1.0824, 1.0812, 1.0599, 1.0634, 1.0569, 1.0488, 1.0492, 1.0748, 1.1174, 1.0992, 1.099, 1.1112, 1.16, 1.1479, 1.1108, 1.1514, 1.1745, 1.1788, 1.1596, 1.1497, 1.1803, 1.2, 1.1598, 1.1897, 1.1258, 1.1149, 1.106, 1.1156, 1.1122, 1.142, 1.1678, 1.1581, 1.156, 1.1646, 1.18, 1.1806, 1.1261, 1.1043, 1.1236, 1.1283, 1.1664, 1.1699, 1.1615, 1.1726, 1.1456, 1.1487, 1.1185, 1.1294, 1.1324, 1.1275, 1.1474, 1.1311, 1.1235, 1.1355, 1.1044, 1.0992, 1.1347, 1.1527, 1.2235, 1.2116, 1.2363, 1.2538, 1.197, 1.2212, 1.2169, 1.2081, 1.2152, 1.2198, 1.2461, 1.2254, 1.2285, 1.2444, 1.1947, 1.2015, 1.2182, 1.2062], "btc": [0.8899, 0.9686, 1.0859, 1.0873, 0.9265, 0.9353, 0.9308, 1.0231, 0.9129, 0.8741, 0.942, 1.0129, 1.0451, 1.0008, 1.0016, 1.0997, 1.0836, 1.0956, 1.2803, 1.4315, 1.5596, 1.5482, 1.6107, 1.6642, 1.5164, 1.4933, 1.567, 1.5062, 1.6143, 1.6348, 1.5564, 1.5367, 1.5312, 1.5335, 1.5018, 1.2862, 1.3155, 1.3714, 1.3125, 1.2494, 1.3344, 1.357, 1.4935, 1.5019, 1.6587, 1.6959, 1.7365, 1.683, 1.6844, 1.6822, 1.6084, 1.7262, 1.7397, 1.8971, 1.8681, 1.9024, 1.8194, 1.9004, 1.8703, 1.808, 1.7244, 1.7705, 1.8363, 1.8357, 1.7868, 1.9672, 1.8314, 1.7308, 1.825, 1.761, 1.6683, 1.5016, 1.3833, 1.4395, 1.4401, 1.4046, 1.4124, 1.4011, 1.4581, 1.4499, 1.4923, 1.3807, 1.2262, 1.1204, 1.0965, 1.0776, 1.0479, 1.051, 1.16, 1.081, 1.0516, 1.0998, 1.127, 1.1757, 1.2531, 1.2516, 1.3097, 1.234, 1.2277, 1.1737, 1.0089, 1.0474, 1.0086, 0.9491, 1.014, 1.0161, 1.0311, 1.0419, 1.0127, 1.0339, 1.002, 1.2384, 1.2375, 1.2799, 1.2241, 1.2932, 1.3457, 1.3322]};
+(function(){const s=document.getElementById('chart'),W=900,H=300,p={l:44,r:12,t:12,b:26};
+const all=[...D.trend,...D.blend,...D.btc].filter(x=>x!=null),lo=Math.min(...all)*0.97,hi=Math.max(...all)*1.03,n=D.d.length;
+const x=i=>p.l+i*(W-p.l-p.r)/(n-1),y=v=>p.t+(hi-v)*(H-p.t-p.b)/(hi-lo);let g='';
+for(let k=0;k<5;k++){const v=lo+k*(hi-lo)/4;g+=`<line x1="${p.l}" x2="${W-p.r}" y1="${y(v)}" y2="${y(v)}" stroke="var(--line)"/><text x="4" y="${y(v)+4}">${v.toFixed(2)}</text>`}
+for(let i=0;i<n;i+=17)g+=`<text x="${x(i)-20}" y="${H-6}">${D.d[i].slice(0,7)}</text>`;
+const path=(a,c,w)=>`<path fill="none" stroke="${c}" stroke-width="${w}" d="${a.map((v,i)=>v==null?'':(i?'L':'M')+x(i).toFixed(1)+','+y(v).toFixed(1)).join('')}"/>`;
+s.innerHTML=g+`<line x1="${p.l}" x2="${W-p.r}" y1="${y(1)}" y2="${y(1)}" stroke="var(--mut)" stroke-dasharray="3 3"/>`+path(D.btc,'var(--c3)',1.5)+path(D.blend,'var(--c2)',2)+path(D.trend,'var(--c1)',2.4);})();
+</script></body></html>

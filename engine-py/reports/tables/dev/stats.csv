@@ -1,0 +1,19 @@
+,value
+period,dev
+label,DEVELOPMENT
+start,2020-01-01 00:00:00+00:00
+end,2024-06-30 23:00:00+00:00
+combined_hac_tstat,2.5882611416722225
+combined_bootstrap_sharpe_ci,"[0.35334272569360514, 2.163620377629668]"
+combined_psr,0.9966450468950203
+trend_hac_tstat,2.3367956924404027
+trend_bootstrap_sharpe_ci,"[0.20251027089724946, 1.9656467739257515]"
+trend_psr,0.9916996421027566
+carry_hac_tstat,7.099165602141296
+carry_bootstrap_sharpe_ci,"[4.679512105392053, 10.19749444111376]"
+carry_psr,1.0
+dsr_trend,0.9854039975957005
+pbo_trend,0.9384615384615385
+spa_vs_btc,"{'pvalue': 0.921, 'pvalue_consistent': 0.921, 'pvalue_lower': 0.543, 'pvalue_upper': 0.921}"
+n_trials,9
+n_days,1643

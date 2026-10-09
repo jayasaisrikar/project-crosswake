@@ -1,0 +1,293 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Systematic Crypto Engine — Review</title>
+<style>
+:root{--bg:#f7f6f2;--paper:#fff;--fg:#1b1d21;--mut:#5f646c;--line:#e2dfd6;--soft:#f1efe9;--acc:#24489c;--good:#1d7348;--bad:#ad3329;--warn:#9a5f08;--c1:#24489c;--c2:#7a45c4;--c3:#9ba0a7}
+@media (prefers-color-scheme:dark){:root{--bg:#121316;--paper:#191b1f;--fg:#e7e5e0;--mut:#9ca0a8;--line:#2a2d33;--soft:#202328;--acc:#86a6ff;--good:#5cc28d;--bad:#ef7d72;--warn:#e2aa4c;--c1:#86a6ff;--c2:#c39dff;--c3:#6c7179}}
+*{box-sizing:border-box}html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--fg);font:15.5px/1.65 "Segoe UI",system-ui,-apple-system,sans-serif}
+.layout{display:grid;grid-template-columns:240px minmax(0,1fr);max-width:1240px;margin:0 auto;gap:28px;padding:0 16px}
+nav{position:sticky;top:0;align-self:start;max-height:100vh;overflow:auto;padding:28px 0;font-size:13.5px}
+nav a{display:block;color:var(--mut);text-decoration:none;padding:3px 0}nav a:hover{color:var(--acc)}
+nav b{display:block;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--fg);margin-bottom:8px}
+main{background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:40px 48px 64px;margin:24px 0 60px;min-width:0}
+@media (max-width:900px){.layout{grid-template-columns:1fr}nav{display:none}main{padding:24px 18px}}
+header .eyebrow{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--acc);font-weight:600}
+h1{font-size:32px;line-height:1.2;margin:6px 0 8px}h2{font-size:22px;margin:52px 0 12px;padding-top:20px;border-top:1px solid var(--line)}
+h2 .n{color:var(--acc);margin-right:8px}h3{font-size:16.5px;margin:24px 0 6px}
+.meta{color:var(--mut);font-size:13.5px}p{margin:8px 0 12px}
+.box{border:1px solid var(--line);background:var(--soft);border-radius:10px;padding:16px 18px;margin:16px 0}
+.box.key{border-left:4px solid var(--acc)}.box.warn{border-left:4px solid var(--warn)}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin:18px 0}
+.kpi{border:1px solid var(--line);border-radius:10px;padding:12px 14px;background:var(--paper)}
+.kpi span{display:block;font-size:12.5px;color:var(--mut)}.kpi b{display:block;font-size:24px;line-height:1.3;font-variant-numeric:tabular-nums}
+.wrap{overflow-x:auto;margin:10px 0}
+table{width:100%;border-collapse:collapse;font-size:14px;font-variant-numeric:tabular-nums}
+th,td{padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top;text-align:left}
+th{font-size:12.5px;color:var(--mut);font-weight:600;background:var(--soft)}td.r,th.r{text-align:right}
+.g{color:var(--good)}.b{color:var(--bad)}.w{color:var(--warn)}
+.pill{display:inline-block;font-size:12px;padding:1px 8px;border-radius:99px;border:1px solid currentColor}
+.flow{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin:14px 0}
+.step{border:1px solid var(--line);border-radius:10px;padding:10px 12px;background:var(--paper);font-size:13.5px;position:relative}
+.step b{display:block;font-size:14px;color:var(--acc)}
+.legend span{display:inline-flex;align-items:center;gap:6px;margin-right:16px;font-size:13px;color:var(--mut)}.legend i{width:14px;height:3px;display:inline-block}
+svg text{fill:var(--mut);font-size:11px}
+code{font-family:Consolas,ui-monospace,monospace;font-size:13px;background:var(--soft);padding:1px 5px;border-radius:4px}
+ul,ol{padding-left:22px}li{margin:4px 0}
+.why{color:var(--mut);font-size:14px}.why b{color:var(--fg)}
+footer{margin-top:48px;font-size:13px;color:var(--mut);border-top:1px solid var(--line);padding-top:14px}
+@media print{nav{display:none}.layout{display:block}main{border:0;margin:0}}
+</style></head><body>
+<div class="layout">
+<nav><b>Contents</b>
+<a href="#s1">1. Executive summary</a><a href="#s2">2. What the product is</a><a href="#s3">3. System architecture</a>
+<a href="#s4">4. Data</a><a href="#s5">5. Strategies</a><a href="#s6">6. Execution &amp; costs</a>
+<a href="#s7">7. Validation method</a><a href="#s8">8. Results</a><a href="#s9">9. Research &amp; rejected ideas</a>
+<a href="#s10">10. Live paper system</a><a href="#s11">11. Comparison: Crosswake</a><a href="#s12">12. Risks &amp; limitations</a>
+<a href="#s13">13. Roadmap</a><a href="#s14">14. Glossary</a></nav>
+<main>
+<header><div class="eyebrow">Technical &amp; product review</div>
+<h1>Systematic Crypto Trend Engine</h1>
+<p class="meta">Status as of 9 October 2026 · Data: Binance, Jan 2020 – Sep 2026 · All results net of fees, spread, market impact and funding · Research software — not financial advice</p></header>
+
+<h2 id="s1"><span class="n">1</span>Executive summary</h2>
+<p>We built a research-grade engine that tests and runs <b>systematic crypto trading strategies</b> on Binance perpetual futures and spot,
+then publishes the resulting positions as signals. The core strategy is <b>multi-horizon trend following with risk-based position sizing</b>,
+which can go long or short. Everything is designed around one principle: <b>a backtest only counts if it would have been achievable in real life</b>.
+That means no peeking at future data, realistic trading costs, coins that later collapsed kept in the test, and a locked period of data
+the strategy was never tuned on.</p>
+<div class="kpis">
+<div class="kpi"><span>Trend · unseen data (Jul 2024–Sep 2026)</span><b class="g">+47.9%</b><span>Sharpe 0.94 · max DD −18.7%</span></div>
+<div class="kpi"><span>Trend + Carry (50/50) · unseen</span><b>+31.4%</b><span>Sharpe 0.93 · max DD −12.6%</span></div>
+<div class="kpi"><span>BTC buy &amp; hold · same period</span><b>+33.4%</b><span>Sharpe 0.51 · max DD −53.9%</span></div>
+<div class="kpi"><span>Engineering quality</span><b>122 / 122</b><span>automated tests passing · lint &amp; types clean</span></div>
+</div>
+<div class="box key"><b>Bottom line for reviewers.</b> The engine delivers roughly BTC-like returns with about one-third of BTC's drawdown,
+and it made money in both rising and falling markets. The evidence is encouraging but <b>not yet conclusive</b>: on unseen data the 95% confidence
+interval of the Sharpe ratio still includes zero, and one overfitting test is a warning (Section 12). The product therefore launches as
+a <b>transparent, public paper-trading track record</b> before any paid signals.</div>
+
+<h2 id="s2"><span class="n">2</span>What the product is — and why</h2>
+<div class="wrap"><table>
+<tr><th>What we do</th><th>Why we do it</th></tr>
+<tr><td>Trade a <b>portfolio</b> of liquid coins, not single “hot calls”</td><td>Diversification across coins and horizons is the most reliable way to raise return per unit of risk.</td></tr>
+<tr><td>Follow <b>trends</b> over 20, 60 and 120 days</td><td>Trend following is the most consistently documented edge in crypto in academic studies; averaging three horizons avoids betting on one “magic” lookback.</td></tr>
+<tr><td>Go <b>long and short</b> using perpetual futures</td><td>Crypto spends long stretches in bear markets; a long-only system just sits in cash. Shorting let us earn in 2022 and 2025.</td></tr>
+<tr><td>Size by <b>volatility</b> and target 20% annual portfolio volatility</td><td>A $1 position in DOGE is far riskier than $1 in BTC. Equalising risk stops one wild coin from dominating results.</td></tr>
+<tr><td>Optional <b>funding carry</b> sleeve (long spot / short perp)</td><td>Earns the funding fee leveraged traders pay, with almost no price exposure. It's a diversifier, enabled only when it clearly pays for its costs.</td></tr>
+<tr><td>Publish signals via <b>Telegram</b>, with every result logged publicly</td><td>A timestamped, append-only public record is the only evidence subscribers can verify.</td></tr>
+</table></div>
+
+<h2 id="s3"><span class="n">3</span>System architecture</h2>
+<p>Python 3.12 package (<code>src/engine</code>), about 30 modules, run from a single command line: <code>engine download | clean | backtest | live step | live status</code>.</p>
+<div class="flow">
+<div class="step"><b>1 · Download</b>Official Binance archives (data.binance.vision); every file SHA256-verified</div>
+<div class="step"><b>2 · Clean</b>Hourly bars, gaps flagged, duplicates and bad rows removed, audit report written</div>
+<div class="step"><b>3 · Signals</b>Each strategy turns past data into target portfolio weights</div>
+<div class="step"><b>4 · Backtest</b>Hour-by-hour simulation: fills, costs, funding, delistings</div>
+<div class="step"><b>5 · Validate</b>Walk-forward, holdout lock, overfitting statistics, cost stress</div>
+<div class="step"><b>6 · Report</b>HTML report, CSV tables, experiment registry</div>
+<div class="step"><b>7 · Live (paper)</b>Hourly: fetch → fill → mark → risk check → decide → log → Telegram</div>
+</div>
+<div class="wrap"><table>
+<tr><th>Module</th><th>Responsibility</th></tr>
+<tr><td><code>data/</code> download, clean, load, spreads, listings</td><td>Raw data acquisition, cleaning, measured bid-ask spreads, point-in-time list of every perp ever listed</td></tr>
+<tr><td><code>signals/</code> trend, carry, breakout, xsmom, regime</td><td>Strategies; one shared interface (data in → target weights out)</td></tr>
+<tr><td><code>backtest/</code>, <code>costs.py</code></td><td>Event-driven simulator and transaction-cost model</td></tr>
+<tr><td><code>validation/</code> metrics, stats, walkforward, reconcile</td><td>Performance metrics, significance tests, holdout lock, independent P&amp;L reconciliation</td></tr>
+<tr><td><code>live/</code> feed, signals_live, paper, risk, telegram</td><td>Paper-trading loop, risk controls and signal publishing</td></tr>
+<tr><td><code>reporting/</code>, <code>pipeline.py</code></td><td>End-to-end run and report generation</td></tr>
+</table></div>
+
+<h2 id="s4"><span class="n">4</span>Data</h2>
+<ul>
+<li><b>Source:</b> Binance official historical archives. Hourly spot and USDT-M perpetual bars plus every funding payment, Jan 2020 – Sep 2026 (about 59,000 hours per coin).</li>
+<li><b>Universe:</b> 16 large coins: BTC, ETH, BNB, SOL, XRP, DOGE, ADA, AVAX, LINK, LTC, DOT, TRX, BCH, EOS, <b>LUNA and FTT</b>.
+<span class="why"><b>Why include LUNA and FTT?</b> Both collapsed. Testing only on coins that are still alive today (“survivorship bias”) makes any backtest look better than reality.</span></li>
+<li><b>Integrity:</b> checksum-verified downloads, zero duplicate or bad rows, maximum gap 5 hours, synthetic bars flagged and never traded.</li>
+<li><b>Spreads:</b> measured from Binance order-book archives where they exist; otherwise estimated with the Abdi–Ranaldo (2017) method, which deliberately overstates spreads to stay conservative.</li>
+<li><b>In progress:</b> a point-in-time universe that picks the most-traded coins each month from every perp ever listed, to remove the remaining selection bias.</li>
+</ul>
+
+<h2 id="s5"><span class="n">5</span>Strategies</h2>
+<h3>5.1 Trend (core, live)</h3>
+<ol>
+<li>For each coin, check whether the price is above or below where it was 20, 60 and 120 days ago. The score is the average of the three signs, from −1 to +1.</li>
+<li>Divide by the coin's recent volatility, so riskier coins get smaller positions.</li>
+<li>Scale the whole portfolio so its expected volatility is 20% a year.</li>
+<li>Apply caps: at most 25% per coin and at most 2× gross leverage. Rebalance once a day at 00:00 UTC.</li>
+</ol>
+<p class="why"><b>Why:</b> every setting comes from published research or a round-number default, not from searching for the best backtest.
+That keeps the number of free parameters, and therefore the room to overfit, very small.</p>
+<h3>5.2 Funding carry (diversifier)</h3>
+<p>Buy a coin on spot and short the same amount on perpetuals. Price moves cancel out, and the position collects funding when leveraged longs pay shorts.
+The rebuilt version holds at most 5 coins with fixed weights and rebalances daily. It only enters if 14 days of expected funding cover the round-trip trading cost at least twice,
+and it skips coins whose spot and perp prices diverge by more than 2%.</p>
+<p class="why"><b>Why it was rebuilt:</b> the first version rebalanced every 8 hours and spent more on trading costs than it earned in funding.
+Funding has also become much lower since 2024, so carry now trades rarely. That is by design.</p>
+
+<h2 id="s6"><span class="n">6</span>Execution and cost model</h2>
+<ul>
+<li><b>No look-ahead:</b> a decision made with the close of hour <i>t</i> is filled at the <b>open of hour <i>t+1</i></b>. Automated tests check that cutting off future data never changes a past decision.</li>
+<li><b>Costs on every trade:</b> exchange fee (spot 10 bps, perp 5 bps), half the bid-ask spread, and market impact (square-root law: impact grows with trade size relative to daily volume).</li>
+<li><b>Funding:</b> charged or received at every funding time on positions actually held.</li>
+<li><b>Delistings:</b> forced exit at twice the normal cost.</li>
+<li><b>Stress test:</b> every result is re-run at 1.5× and 2× costs.</li>
+<li><b>Reconciliation:</b> an independent module recomputes every fee, spread and impact charge and checks that equity changes equal market P&amp;L minus costs.</li>
+</ul>
+
+<h2 id="s7"><span class="n">7</span>Validation method — how we avoid fooling ourselves</h2>
+<div class="wrap"><table>
+<tr><th>Safeguard</th><th>What it does</th><th>Why it matters</th></tr>
+<tr><td>Development / holdout split</td><td>Strategies are designed on 2020 – Jun 2024 only. Jul 2024 – Sep 2026 is locked, and every unlock is permanently logged.</td><td>Shows how the strategy does on data it has never seen.</td></tr>
+<tr><td>Walk-forward</td><td>Rolling 24-month training window, 3-month test, 1-week gap between them.</td><td>Checks the result isn't driven by one lucky period.</td></tr>
+<tr><td>Experiment registry</td><td>Every variant ever run is recorded.</td><td>Lets us penalise results for the number of attempts.</td></tr>
+<tr><td>Deflated Sharpe ratio</td><td>Sharpe adjusted for the number of trials and for fat tails.</td><td>Trying many ideas makes some look good by luck.</td></tr>
+<tr><td>Probability of backtest overfitting (PBO)</td><td>How often the best in-sample variant underperforms out of sample.</td><td>A direct measure of curve-fitting.</td></tr>
+<tr><td>Bootstrap CI, HAC t-stat, SPA test</td><td>Confidence intervals and significance against BTC buy &amp; hold.</td><td>Separates skill from noise.</td></tr>
+</table></div>
+
+<h2 id="s8"><span class="n">8</span>Results</h2>
+<h3>8.1 Headline numbers (official final run)</h3>
+<div class="wrap"><table>
+<tr><th>Strategy</th><th class="r">Return</th><th class="r">CAGR</th><th class="r">Sharpe</th><th class="r">Max drawdown</th><th class="r">Months positive</th></tr>
+<tr><th colspan="6">Development, Jan 2020 – Jun 2024</th></tr>
+<tr><td>Trend</td><td class="r">+153.1%</td><td class="r">22.9%</td><td class="r">1.10</td><td class="r">−24.2%</td><td class="r">56%</td></tr>
+<tr><td>Trend + Carry 50/50</td><td class="r">+94.2%</td><td class="r">15.9%</td><td class="r">1.24</td><td class="r">−16.1%</td><td class="r">61%</td></tr>
+<tr><td>BTC buy &amp; hold</td><td class="r">+771%</td><td class="r">61.7%</td><td class="r">1.05</td><td class="r b">−77.5%</td><td class="r">57%</td></tr>
+<tr><th colspan="6">Holdout — unseen, Jul 2024 – Sep 2026</th></tr>
+<tr><td><b>Trend</b></td><td class="r g"><b>+47.9%</b></td><td class="r">19.0%</td><td class="r"><b>0.94</b></td><td class="r">−18.7%</td><td class="r">63%</td></tr>
+<tr><td>Trend + Carry 50/50</td><td class="r">+31.4%</td><td class="r">12.9%</td><td class="r">0.93</td><td class="r">−12.6%</td><td class="r">63%</td></tr>
+<tr><td>Carry alone</td><td class="r">+0.7%</td><td class="r">0.3%</td><td class="r">1.36</td><td class="r">−0.2%</td><td class="r">15%</td></tr>
+<tr><td>BTC buy &amp; hold</td><td class="r">+33.4%</td><td class="r">13.6%</td><td class="r">0.51</td><td class="r b">−53.9%</td><td class="r">56%</td></tr>
+</table></div>
+
+<h3>8.2 Equity on unseen data ($1 invested on 1 Jul 2024)</h3>
+<div class="legend"><span><i style="background:var(--c1)"></i>Trend</span><span><i style="background:var(--c2)"></i>Research blend (rejected)</span><span><i style="background:var(--c3)"></i>BTC buy &amp; hold</span></div>
+<svg id="chart" viewBox="0 0 900 300" width="100%" role="img" aria-label="Equity curves on unseen data"></svg>
+
+<h3>8.3 Trend, year by year</h3>
+<svg id="years" viewBox="0 0 900 220" width="100%" role="img" aria-label="Trend yearly returns"></svg>
+<p class="why">Every calendar year was positive. 2022, when BTC fell 65%, still returned +8.9%. 2023 and 2025 were nearly flat: trend strategies go through long quiet periods, and subscribers must expect them.</p>
+
+<h3>8.4 Robustness checks</h3>
+<div class="wrap"><table>
+<tr><th>Check (unseen period, Trend + Carry)</th><th class="r">Result</th><th>Reading</th></tr>
+<tr><td>Costs ×1.0 / ×1.5 / ×2.0</td><td class="r">Sharpe 0.93 / 0.78 / 0.63</td><td class="g">Edge survives doubled costs</td></tr>
+<tr><td>Walk-forward windows positive</td><td class="r">12 of 19 (holdout: 6 of 9)</td><td class="w">Choppy quarters do happen</td></tr>
+<tr><td>Bootstrap 95% CI of Trend Sharpe</td><td class="r">−0.34 to 2.28</td><td class="w">Includes zero: 27 months is too short to prove the edge</td></tr>
+<tr><td>Deflated Sharpe, Trend (holdout)</td><td class="r">0.63</td><td class="w">Moderate</td></tr>
+<tr><td>PBO, Trend (development / holdout)</td><td class="r">0.94 / 0.56</td><td class="b">Warning: see Section 12</td></tr>
+<tr><td>SPA test vs BTC</td><td class="r">p ≈ 0.92</td><td>Does not beat BTC on raw return; the advantage is much lower risk</td></tr>
+</table></div>
+
+<h2 id="s9"><span class="n">9</span>Research and rejected ideas</h2>
+<p>We reviewed the academic and practitioner literature: time-series and cross-sectional momentum, Donchian breakouts, volatility-managed portfolios,
+funding carry and backtest-overfitting research. Promising ideas were built using the published settings and tested once on unseen data.
+The full literature notes are in <code>docs/RESEARCH.md</code> and <code>docs/research/</code>.</p>
+<div class="wrap"><table>
+<tr><th>Candidate</th><th class="r">Dev Sharpe</th><th class="r">Unseen Sharpe</th><th>Decision</th></tr>
+<tr><td>Trend (core)</td><td class="r">1.08</td><td class="r">0.92</td><td class="g">Kept</td></tr>
+<tr><td>Donchian breakout 20/55/100</td><td class="r">1.27</td><td class="r">0.26</td><td class="b">Rejected: decayed</td></tr>
+<tr><td>Cross-sectional momentum</td><td class="r">1.30</td><td class="r">0.20</td><td class="b">Rejected: decayed</td></tr>
+<tr><td>Volatility-managed trend</td><td class="r">0.89</td><td class="r">not tested</td><td class="b">Rejected on development data</td></tr>
+<tr><td>Equal-risk blend of the first three</td><td class="r">1.54</td><td class="r">0.57</td><td class="b">Rejected</td></tr>
+</table></div>
+<p class="why"><b>Why this table matters:</b> the best-looking backtest (the blend, Sharpe 1.54) lost most of its edge on unseen data.
+That is exactly why we refuse to optimise for “highest historical returns”, and why only the simplest strategy that held up is used for signals.</p>
+
+<h2 id="s10"><span class="n">10</span>Live paper-trading system</h2>
+<p>Run once an hour with <code>engine live step</code>. No real orders are ever sent.</p>
+<ol>
+<li><b>Fetch</b> the latest closed hourly bars and funding from Binance's public API and merge them with stored history. The bar still in progress is always dropped.</li>
+<li><b>Fill</b> the previous hour's orders at this hour's open, with modelled costs.</li>
+<li><b>Accrue funding</b> and <b>mark</b> equity to market.</li>
+<li><b>Risk check</b>, then <b>decide</b> new target weights with the same code used in backtests.</li>
+<li><b>Log</b> to an append-only signal record with UTC timestamps. That record is the public track record.</li>
+<li><b>Publish</b> a Telegram message with weights, changes, risk notes and a mandatory disclaimer. It is sent only when a bot token is configured <i>and</i> <code>--send</code> is passed.</li>
+</ol>
+<div class="wrap"><table>
+<tr><th>Risk control</th><th>Setting</th><th>Action</th></tr>
+<tr><td>Drawdown kill switch</td><td>−20% from peak</td><td>Go flat and stay off until a human resets it</td></tr>
+<tr><td>Daily loss limit</td><td>−5% in a UTC day</td><td>No new trades for the rest of the day</td></tr>
+<tr><td>Stale data</td><td>&gt; 2 hours old</td><td>Hold; don't trade</td></tr>
+<tr><td>Exchange errors</td><td>any</td><td>Hold; don't trade</td></tr>
+<tr><td>Leverage cap</td><td>2× gross</td><td>Scale all weights down</td></tr>
+<tr><td>Reconciliation</td><td>ledger vs replayed fills</td><td>Flag any mismatch</td></tr>
+</table></div>
+
+<h2 id="s11"><span class="n">11</span>Comparison with Crosswake</h2>
+<p class="meta">Crosswake (project-crosswake.vercel.app) is a free Telegram altcoin-signal research project. Its figures are taken from its public page on 9 Oct 2026.
+Our figures are for the same window it reports, Jan 2025 – Sep 2026.</p>
+<div class="wrap"><table>
+<tr><th>Dimension</th><th>Crosswake v005</th><th>Our engine</th></tr>
+<tr><td>Method</td><td>20-day breakout entry, 10-day-low exit; long only, and only when BTC is above its 100-day average</td><td>Multi-horizon trend, long and short, with risk-based sizing across the portfolio</td></tr>
+<tr><td>Universe / frequency</td><td>36 coins, daily</td><td>16 coins including collapsed ones; hourly data, daily decisions</td></tr>
+<tr><td>Result, Jan 2025 – Sep 2026</td><td>243 trades, 33.7% win rate, +1.5% average per trade, profit factor 1.32; CI −2.9% to +6.3%</td><td class="g"><b>+33.0%</b> portfolio return, Sharpe 0.90</td></tr>
+<tr><td>Max drawdown</td><td>−17%</td><td>−16.1%</td></tr>
+<tr><td>BTC over the same window</td><td colspan="2">−10.6% (max drawdown −53.7%)</td></tr>
+<tr><td>Bear markets</td><td>Sits in cash</td><td class="g">Can profit by shorting</td></tr>
+<tr><td>Position sizing</td><td>Not disclosed</td><td class="g">Volatility-targeted, capped</td></tr>
+<tr><td>Cost model</td><td>Fees and slippage “modelled”; amounts not given</td><td class="g">Itemised fees, spread, impact and funding; stress-tested to 2×</td></tr>
+<tr><td>Overfitting controls</td><td>Out-of-sample test, failed versions published</td><td class="g">Holdout lock, walk-forward, deflated Sharpe, PBO, SPA, trial registry</td></tr>
+<tr><td>Public live track record</td><td class="g">Running</td><td class="w">Ready, not started</td></tr>
+<tr><td>Usability</td><td class="g">Simple, spot, long-only</td><td class="w">Needs perps and shorting; long-only variant planned</td></tr>
+</table></div>
+<div class="box key"><b>Why ours is stronger:</b> it makes money in falling markets, sizes positions by risk, discloses and stress-tests every cost,
+and applies institutional-grade overfitting tests. On the same window, our trend portfolio returned +33% while BTC fell 11%.
+<br><b>Where Crosswake leads:</b> it already has a public live record, its rules are simpler, and it is accessible to spot-only users.
+We close the first gap by starting our public paper record now.
+<br><span class="meta">Caveat: the systems report different units (per-trade vs portfolio), so this is a qualitative comparison, not an audited one.</span></div>
+
+<h2 id="s12"><span class="n">12</span>Risks and limitations (full disclosure)</h2>
+<ul>
+<li><b>Edge not yet statistically proven.</b> On unseen data the Sharpe confidence interval includes zero. More live data is needed.</li>
+<li><b>Overfitting warning.</b> PBO for trend is 0.94 on the development period: among the 9 trend variants tried, the in-sample winner tended not to win out of sample. Our response is to use published default settings and never pick the best variant.</li>
+<li><b>The holdout has been viewed 5 times</b>, mostly for bug fixes with no tuning, and every view is logged. Repeated viewing slowly erodes how clean the test is. From now on, only live paper results count as new evidence.</li>
+<li><b>Expected live performance is lower.</b> Research suggests live Sharpe is often about half the backtest: realistically 0.5–0.9, drawdowns of 15–25%, and flat years.</li>
+<li><b>Market structure risk.</b> Exchange failure (FTX-style), regulatory changes, liquidity crises and funding regime shifts.</li>
+<li><b>Small universe.</b> 16 coins. The point-in-time universe expansion is in progress.</li>
+<li><b>Legal.</b> Paid signals may count as investment advice in many countries, including India. Legal review is needed before charging. No profit promises, ever.</li>
+</ul>
+
+<h2 id="s13"><span class="n">13</span>Roadmap</h2>
+<ol>
+<li><b>Now:</b> freeze the code (first version-control commit) and start the hourly public paper track record.</li>
+<li><b>Months 1–3:</b> free Telegram channel publishing every signal and every loss; monthly performance reports.</li>
+<li><b>In parallel:</b> point-in-time universe of the top coins by volume; long-only spot variant; measured live slippage vs model.</li>
+<li><b>Month 3–6:</b> if live results stay within the expected range, review legal requirements and consider a paid tier.</li>
+<li><b>Later:</b> real execution only with small capital, reconciliation against actual fills, and independent audit of the track record.</li>
+</ol>
+
+<h2 id="s14"><span class="n">14</span>Glossary</h2>
+<div class="wrap"><table>
+<tr><td><b>Sharpe ratio</b></td><td>Annual return divided by annual volatility. Above 1 is good for a single strategy; BTC's long-run value is about 0.5–1.</td></tr>
+<tr><td><b>Max drawdown</b></td><td>The largest peak-to-trough fall in account value.</td></tr>
+<tr><td><b>CAGR</b></td><td>Compound annual growth rate.</td></tr>
+<tr><td><b>Perpetual future (perp)</b></td><td>A futures contract with no expiry; it allows shorting and leverage, and pays or receives funding every few hours.</td></tr>
+<tr><td><b>Funding rate</b></td><td>The periodic payment between perp longs and shorts that keeps the perp price close to spot.</td></tr>
+<tr><td><b>Holdout</b></td><td>Data kept locked during development and used only for a final test.</td></tr>
+<tr><td><b>Overfitting</b></td><td>Tuning a model to past noise. It looks great on history and fails live.</td></tr>
+<tr><td><b>bps</b></td><td>Basis points: 1 bp = 0.01%.</td></tr>
+</table></div>
+
+<footer>Prepared 9 Oct 2026. Sources: engine outputs <code>reports/stats.json</code>, <code>reports/tables/</code> and <code>experiments/</code>; research notes in <code>docs/</code>;
+Crosswake public website. Past performance does not guarantee future results. This document is not investment advice.</footer>
+</main></div>
+<script>
+const D={"d": ["2024-07-07", "2024-07-14", "2024-07-21", "2024-07-28", "2024-08-04", "2024-08-11", "2024-08-18", "2024-08-25", "2024-09-01", "2024-09-08", "2024-09-15", "2024-09-22", "2024-09-29", "2024-10-06", "2024-10-13", "2024-10-20", "2024-10-27", "2024-11-03", "2024-11-10", "2024-11-17", "2024-11-24", "2024-12-01", "2024-12-08", "2024-12-15", "2024-12-22", "2024-12-29", "2025-01-05", "2025-01-12", "2025-01-19", "2025-01-26", "2025-02-02", "2025-02-09", "2025-02-16", "2025-02-23", "2025-03-02", "2025-03-09", "2025-03-16", "2025-03-23", "2025-03-30", "2025-04-06", "2025-04-13", "2025-04-20", "2025-04-27", "2025-05-04", "2025-05-11", "2025-05-18", "2025-05-25", "2025-06-01", "2025-06-08", "2025-06-15", "2025-06-22", "2025-06-29", "2025-07-06", "2025-07-13", "2025-07-20", "2025-07-27", "2025-08-03", "2025-08-10", "2025-08-17", "2025-08-24", "2025-08-31", "2025-09-07", "2025-09-14", "2025-09-21", "2025-09-28", "2025-10-05", "2025-10-12", "2025-10-19", "2025-10-26", "2025-11-02", "2025-11-09", "2025-11-16", "2025-11-23", "2025-11-30", "2025-12-07", "2025-12-14", "2025-12-21", "2025-12-28", "2026-01-04", "2026-01-11", "2026-01-18", "2026-01-25", "2026-02-01", "2026-02-08", "2026-02-15", "2026-02-22", "2026-03-01", "2026-03-08", "2026-03-15", "2026-03-22", "2026-03-29", "2026-04-05", "2026-04-12", "2026-04-19", "2026-04-26", "2026-05-03", "2026-05-10", "2026-05-17", "2026-05-24", "2026-05-31", "2026-06-07", "2026-06-14", "2026-06-21", "2026-06-28", "2026-07-05", "2026-07-12", "2026-07-19", "2026-07-26", "2026-08-02", "2026-08-09", "2026-08-16", "2026-08-23", "2026-08-30", "2026-09-06", "2026-09-13", "2026-09-20", "2026-09-27", "2026-10-04"], "trend": [1.0573, 1.01, 0.9532, 0.9825, 1.0131, 1.0139, 1.008, 1.0007, 1.0133, 1.0112, 0.9927, 0.9615, 0.9286, 0.9318, 0.9368, 0.9015, 0.9175, 0.9098, 0.9744, 1.0335, 1.0913, 1.1114, 1.1649, 1.1513, 1.1021, 1.1023, 1.128, 1.1081, 1.1227, 1.1199, 1.1359, 1.1347, 1.1284, 1.1231, 1.1127, 1.1413, 1.137, 1.1137, 1.1278, 1.1603, 1.1252, 1.1182, 1.0813, 1.0616, 1.0327, 1.0261, 1.0271, 1.0132, 1.0134, 1.018, 1.0637, 1.0289, 1.0283, 1.0759, 1.1407, 1.1493, 1.1081, 1.155, 1.1783, 1.1852, 1.1548, 1.1607, 1.1899, 1.1956, 1.1453, 1.1849, 1.0716, 1.0701, 1.0514, 1.0607, 1.0696, 1.101, 1.1304, 1.1188, 1.1155, 1.1242, 1.1337, 1.1344, 1.0935, 1.1002, 1.1172, 1.1423, 1.2064, 1.2335, 1.2282, 1.2362, 1.2303, 1.2274, 1.1904, 1.219, 1.2343, 1.2236, 1.2364, 1.1935, 1.1877, 1.2037, 1.1871, 1.193, 1.2216, 1.2294, 1.3338, 1.3182, 1.3389, 1.3625, 1.3184, 1.337, 1.3362, 1.3267, 1.3327, 1.339, 1.3585, 1.437, 1.4098, 1.4523, 1.4209, 1.4407, 1.4788, 1.4652], "blend": [1.0374, 1.013, 0.9831, 0.9968, 0.9878, 1.0017, 0.9981, 0.9685, 0.9907, 0.9821, 0.9626, 0.9451, 0.9217, 0.9068, 0.9077, 0.8977, 0.9158, 0.9289, 0.9523, 1.0249, 1.0823, 1.1045, 1.1256, 1.1101, 1.0749, 1.0705, 1.0824, 1.0845, 1.1055, 1.1065, 1.1087, 1.115, 1.1059, 1.1058, 1.0934, 1.1327, 1.1282, 1.1125, 1.1206, 1.1504, 1.1162, 1.1147, 1.0824, 1.0812, 1.0599, 1.0634, 1.0569, 1.0488, 1.0492, 1.0748, 1.1174, 1.0992, 1.099, 1.1112, 1.16, 1.1479, 1.1108, 1.1514, 1.1745, 1.1788, 1.1596, 1.1497, 1.1803, 1.2, 1.1598, 1.1897, 1.1258, 1.1149, 1.106, 1.1156, 1.1122, 1.142, 1.1678, 1.1581, 1.156, 1.1646, 1.18, 1.1806, 1.1261, 1.1043, 1.1236, 1.1283, 1.1664, 1.1699, 1.1615, 1.1726, 1.1456, 1.1487, 1.1185, 1.1294, 1.1324, 1.1275, 1.1474, 1.1311, 1.1235, 1.1355, 1.1044, 1.0992, 1.1347, 1.1527, 1.2235, 1.2116, 1.2363, 1.2538, 1.197, 1.2212, 1.2169, 1.2081, 1.2152, 1.2198, 1.2461, 1.2254, 1.2285, 1.2444, 1.1947, 1.2015, 1.2182, 1.2062], "btc": [0.8899, 0.9686, 1.0859, 1.0873, 0.9265, 0.9353, 0.9308, 1.0231, 0.9129, 0.8741, 0.942, 1.0129, 1.0451, 1.0008, 1.0016, 1.0997, 1.0836, 1.0956, 1.2803, 1.4315, 1.5596, 1.5482, 1.6107, 1.6642, 1.5164, 1.4933, 1.567, 1.5062, 1.6143, 1.6348, 1.5564, 1.5367, 1.5312, 1.5335, 1.5018, 1.2862, 1.3155, 1.3714, 1.3125, 1.2494, 1.3344, 1.357, 1.4935, 1.5019, 1.6587, 1.6959, 1.7365, 1.683, 1.6844, 1.6822, 1.6084, 1.7262, 1.7397, 1.8971, 1.8681, 1.9024, 1.8194, 1.9004, 1.8703, 1.808, 1.7244, 1.7705, 1.8363, 1.8357, 1.7868, 1.9672, 1.8314, 1.7308, 1.825, 1.761, 1.6683, 1.5016, 1.3833, 1.4395, 1.4401, 1.4046, 1.4124, 1.4011, 1.4581, 1.4499, 1.4923, 1.3807, 1.2262, 1.1204, 1.0965, 1.0776, 1.0479, 1.051, 1.16, 1.081, 1.0516, 1.0998, 1.127, 1.1757, 1.2531, 1.2516, 1.3097, 1.234, 1.2277, 1.1737, 1.0089, 1.0474, 1.0086, 0.9491, 1.014, 1.0161, 1.0311, 1.0419, 1.0127, 1.0339, 1.002, 1.2384, 1.2375, 1.2799, 1.2241, 1.2932, 1.3457, 1.3322]};
+const Y={y:["2020","2021","2022","2023","2024","2025","2026*"],t:[31.0,57.7,8.9,4.7,18.7,4.1,28.7],b:[299.4,60.3,-64.6,158.1,122.1,-6.4,-4.6]};
+(function(){const s=document.getElementById('chart'),W=900,H=300,p={l:44,r:12,t:12,b:26};
+const all=[...D.trend,...D.blend,...D.btc].filter(x=>x!=null),lo=Math.min(...all)*0.97,hi=Math.max(...all)*1.03,n=D.d.length;
+const x=i=>p.l+i*(W-p.l-p.r)/(n-1),y=v=>p.t+(hi-v)*(H-p.t-p.b)/(hi-lo);let g='';
+for(let k=0;k<5;k++){const v=lo+k*(hi-lo)/4;g+=`<line x1="${p.l}" x2="${W-p.r}" y1="${y(v)}" y2="${y(v)}" stroke="var(--line)"/><text x="4" y="${y(v)+4}">${v.toFixed(2)}</text>`}
+for(let i=0;i<n;i+=17)g+=`<text x="${x(i)-20}" y="${H-6}">${D.d[i].slice(0,7)}</text>`;
+const path=(a,c,w)=>`<path fill="none" stroke="${c}" stroke-width="${w}" d="${a.map((v,i)=>v==null?'':(i?'L':'M')+x(i).toFixed(1)+','+y(v).toFixed(1)).join('')}"/>`;
+s.innerHTML=g+`<line x1="${p.l}" x2="${W-p.r}" y1="${y(1)}" y2="${y(1)}" stroke="var(--mut)" stroke-dasharray="3 3"/>`+path(D.btc,'var(--c3)',1.5)+path(D.blend,'var(--c2)',1.8)+path(D.trend,'var(--c1)',2.6);})();
+(function(){const s=document.getElementById('years'),W=900,H=220,p={l:40,r:10,t:16,b:28},lo=-10,hi=60,n=Y.y.length,bw=(W-p.l-p.r)/n;
+const y=v=>p.t+(hi-v)*(H-p.t-p.b)/(hi-lo);let g='';
+[0,20,40,60].forEach(v=>g+=`<line x1="${p.l}" x2="${W-p.r}" y1="${y(v)}" y2="${y(v)}" stroke="var(--line)"/><text x="6" y="${y(v)+4}">${v}%</text>`);
+Y.t.forEach((v,i)=>{const x0=p.l+i*bw+bw*0.25,top=y(Math.max(v,0)),h=Math.abs(y(v)-y(0));
+g+=`<rect x="${x0}" y="${top}" width="${bw*0.5}" height="${h}" rx="3" fill="var(--c1)"/><text x="${x0+bw*0.25}" y="${top-4}" text-anchor="middle" style="fill:var(--fg)">+${v}%</text><text x="${x0+bw*0.25}" y="${H-8}" text-anchor="middle">${Y.y[i]}</text>`});
+s.innerHTML=g+'<text x="'+(W-p.r)+'" y="'+(H-8)+'" text-anchor="end">*to Sep</text>';})();
+</script></body></html>

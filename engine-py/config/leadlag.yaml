@@ -1,0 +1,16 @@
+# Lead-lag experiment, PRE-REGISTERED before looking at results (docs/LEADLAG.md).
+data_root: data/cleaned
+market: perp
+leader: BTC
+followers: [ETH, BNB, SOL, XRP, ADA, DOGE, AVAX, DOT, LINK, LTC, BCH, TRX, EOS]  # FTT/LUNA excluded (collapsed)
+vol_lookback_bars: 720        # 24*30, causal (excludes current bar)
+beta_lookback_bars: 720       # trailing 30d OLS beta alt~BTC, causal
+k_values: [2.0, 3.0]          # impulse threshold |r_btc| > k * vol
+horizons: [1, 2, 4, 8, 24]    # hours after impulse bar close
+max_lag: 6
+dev_end: "2024-06-30 23:00"   # dev <= this; holdout after
+# Strategy (only run if dev event study is significant at |t|>2 for the pre-registered cell)
+strategy:
+  k: 2.0
+  hold_hours: 1
+  gross: 1.0

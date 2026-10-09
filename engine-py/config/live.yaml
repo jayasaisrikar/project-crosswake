@@ -1,0 +1,17 @@
+# Live PAPER trading (no real orders). Risk limits for engine.live.risk.
+paper:
+  initial_capital: 100000.0
+  dir: data/paper                     # ledger, fills, equity and signal log (gitignored)
+  min_trade_frac: 0.001               # skip trades smaller than 0.1% of equity
+feed:
+  history_days: 200                   # on-disk + fetched history; >= max trend lookback (120d) + vol (30d)
+  timeout_s: 15
+  retries: 4
+risk:
+  max_drawdown: 0.20                  # kill switch (latched) if equity < (1 - x) * peak
+  daily_loss_limit: 0.05              # no new trading for the rest of the UTC day if day loss > x
+  stale_data_hours: 2.0               # skip trading if last closed bar older than this
+  max_exchange_errors: 0              # skip trading if more fetch errors than this in a step
+  max_gross_leverage: 2.0             # combined |weights| across spot+perp; scaled down if exceeded
+  flatten_on_kill: true               # kill switch => target all-flat
+  reconcile_tolerance: 1.0e-6         # relative tolerance, ledger vs replayed fills

@@ -1,0 +1,786 @@
+{
+  "dev": {
+    "period": "dev",
+    "label": "DEVELOPMENT",
+    "start": "2020-01-01 00:00:00+00:00",
+    "end": "2024-06-30 23:00:00+00:00",
+    "combined_hac_tstat": 2.5882611416722225,
+    "combined_bootstrap_sharpe_ci": [
+      0.35334272569360514,
+      2.163620377629668
+    ],
+    "combined_psr": 0.9966450468950203,
+    "trend_hac_tstat": 2.3367956924404027,
+    "trend_bootstrap_sharpe_ci": [
+      0.20251027089724946,
+      1.9656467739257515
+    ],
+    "trend_psr": 0.9916996421027566,
+    "carry_hac_tstat": 7.099165602141296,
+    "carry_bootstrap_sharpe_ci": [
+      4.679512105392053,
+      10.19749444111376
+    ],
+    "carry_psr": 1.0,
+    "dsr_trend": 0.9854039975957005,
+    "pbo_trend": 0.9384615384615385,
+    "spa_vs_btc": {
+      "pvalue": 0.921,
+      "pvalue_consistent": 0.921,
+      "pvalue_lower": 0.543,
+      "pvalue_upper": 0.921
+    },
+    "n_trials": 9,
+    "n_days": 1643,
+    "summary": {
+      "Combined": {
+        "total_return": 0.9418682398146621,
+        "cagr": 0.1588556535439074,
+        "ann_vol": 0.12524122897796072,
+        "sharpe": 1.2398099646415184,
+        "sortino": 1.7461961688394831,
+        "calmar": 0.9876789276232488,
+        "max_drawdown": -0.16083734207651645,
+        "worst_month": -0.05862886587941063,
+        "best_month": 0.09400016542563372,
+        "pct_positive_months": 0.6111111111111112,
+        "final_equity": 194186.8239814662
+      },
+      "Trend": {
+        "total_return": 1.5310898462881615,
+        "cagr": 0.2291266300145507,
+        "ann_vol": 0.20824739282673793,
+        "sharpe": 1.0948169667895042,
+        "sortino": 1.5325952990320404,
+        "calmar": 0.9451458693058066,
+        "max_drawdown": -0.24242462190819314,
+        "worst_month": -0.08918799722980553,
+        "best_month": 0.16892614334744405,
+        "pct_positive_months": 0.5555555555555556,
+        "final_equity": 126554.49231440807
+      },
+      "Carry": {
+        "total_return": 0.35264663334121016,
+        "cagr": 0.06940745545901472,
+        "ann_vol": 0.016759999929564166,
+        "sharpe": 4.012252595906368,
+        "sortino": 6.106838408711699,
+        "calmar": 4.6253583451778395,
+        "max_drawdown": -0.015005854742341285,
+        "worst_month": -0.002749443146871977,
+        "best_month": 0.041818838091728594,
+        "pct_positive_months": 0.5925925925925926,
+        "final_equity": 67632.33166706051
+      },
+      "BTC buy&hold": {
+        "total_return": 7.7105930334030734,
+        "cagr": 0.6174688350475683,
+        "ann_vol": 0.6806129933853426,
+        "sharpe": 1.0480769848066178,
+        "sortino": 1.4714108772111754,
+        "calmar": 0.796807616853297,
+        "max_drawdown": -0.7749283791814613,
+        "worst_month": -0.375989293568153,
+        "best_month": 0.4747969889825392,
+        "pct_positive_months": 0.5740740740740741,
+        "final_equity": 871059.3033403073
+      }
+    },
+    "costs": {
+      "Combined": {
+        "Gross P&L": 113014.25898781365,
+        "Fees": 18126.53734707773,
+        "Spread": 5222.2149207775565,
+        "Impact": 4365.145822815524,
+        "Funding (+paid / -received)": -8886.463084323374,
+        "Total costs": 18827.435006347438,
+        "Net P&L": 94186.82398146621,
+        "Annual turnover (x avg equity)": 49.493948673940736
+      },
+      "Trend": {
+        "Gross P&L": 112967.12680091875,
+        "Fees": 15821.16870766418,
+        "Spread": 3956.035756278101,
+        "Impact": 3893.3260838839333,
+        "Funding (+paid / -received)": 12742.103938684457,
+        "Total costs": 36412.63448651067,
+        "Net P&L": 76554.49231440807,
+        "Annual turnover (x avg equity)": 74.4344783624092
+      },
+      "Carry": {
+        "Gross P&L": 47.13218689728092,
+        "Fees": 2305.368639413553,
+        "Spread": 1266.1791644994548,
+        "Impact": 471.8197389315909,
+        "Funding (+paid / -received)": -21628.567023007832,
+        "Total costs": -17585.19948016323,
+        "Net P&L": 17632.331667060513,
+        "Annual turnover (x avg equity)": 11.12900597979554
+      },
+      "BTC buy&hold": {
+        "Gross P&L": 774692.0143190202,
+        "Fees": 100.0,
+        "Spread": 32.71097871294216,
+        "Impact": 3499.9999999999995,
+        "Funding (+paid / -received)": 0.0,
+        "Total costs": 3632.7109787129416,
+        "Net P&L": 771059.3033403073,
+        "Annual turnover (x avg equity)": 0.04983305591358221
+      }
+    },
+    "allocations": {
+      "Trend 100%": {
+        "CAGR": 0.22481141116173853,
+        "Sharpe": 1.0778541865720925,
+        "Sortino": 1.508633128253743,
+        "Max drawdown": -0.24403200399993974,
+        "Worst month": -0.0898745797582522,
+        "% positive months": 0.5555555555555556,
+        "Net P&L": 149133.51200764708,
+        "Corr(trend, carry) daily": 0.021235670973870982
+      },
+      "Trend 75% / Carry 25%": {
+        "CAGR": 0.1939599797338556,
+        "Sharpe": 1.128002273794179,
+        "Sortino": 1.5828653172834601,
+        "Max drawdown": -0.20793762479119415,
+        "Worst month": -0.07622295242708743,
+        "% positive months": 0.5925925925925926,
+        "Net P&L": 122105.559882008,
+        "Corr(trend, carry) daily": 0.021235670973870982
+      },
+      "Trend 50% / Carry 50%": {
+        "CAGR": 0.1588556535439074,
+        "Sharpe": 1.2398099646415184,
+        "Sortino": 1.7461961688394831,
+        "Max drawdown": -0.16083734207651645,
+        "Worst month": -0.05862886587941063,
+        "% positive months": 0.6111111111111112,
+        "Net P&L": 94186.82398146621,
+        "Corr(trend, carry) daily": 0.021235670973870982
+      },
+      "Carry 100%": {
+        "CAGR": 0.0685633061172668,
+        "Sharpe": 3.9591442407181887,
+        "Sortino": 6.012828954332005,
+        "Max drawdown": -0.015220377348762248,
+        "Worst month": -0.0032463061395124893,
+        "% positive months": 0.5925925925925926,
+        "Net P&L": 34784.70343644463,
+        "Corr(trend, carry) daily": 0.021235670973870982
+      },
+      "Trend 50% / Cash 50%": {
+        "CAGR": 0.1346064647499381,
+        "Sharpe": 0.9978001112869952,
+        "Sortino": 1.4021928327283826,
+        "Max drawdown": -0.17403213312205457,
+        "Worst month": -0.06461278730461462,
+        "% positive months": 0.5555555555555556,
+        "Net P&L": 76554.49231440778,
+        "Corr(trend, carry) daily": 0.021235670973870982
+      },
+      "BTC buy&hold": {
+        "CAGR": 0.6174688350475683,
+        "Sharpe": 1.0480769848066178,
+        "Sortino": 1.4714108772111754,
+        "Max drawdown": -0.7749283791814613,
+        "Worst month": -0.375989293568153,
+        "% positive months": 0.5740740740740741,
+        "Net P&L": 771059.3033403073,
+        "Corr(trend, carry) daily": 0.021235670973870982
+      }
+    },
+    "stress": {
+      "1.0x costs": {
+        "cagr": 0.1588556535439074,
+        "sharpe": 1.2398099646415184,
+        "max_drawdown": -0.16083734207651645
+      },
+      "1.5x costs": {
+        "cagr": 0.13585805622339642,
+        "sharpe": 1.0913972667268839,
+        "max_drawdown": -0.17822747602979927
+      },
+      "2.0x costs": {
+        "cagr": 0.11388039826584406,
+        "sharpe": 0.9433416870960988,
+        "max_drawdown": -0.20435680669795153
+      }
+    }
+  },
+  "holdout": {
+    "period": "holdout",
+    "label": "HOLDOUT ONLY",
+    "start": "2024-07-01 00:00:00+00:00",
+    "end": "2026-09-30 23:00:00+00:00",
+    "combined_hac_tstat": 1.4336363581971823,
+    "combined_bootstrap_sharpe_ci": [
+      -0.33920934241000156,
+      2.2639967145190942
+    ],
+    "combined_psr": 0.9169081729707249,
+    "trend_hac_tstat": 1.4436813763772247,
+    "trend_bootstrap_sharpe_ci": [
+      -0.34138452714599227,
+      2.280286735395637
+    ],
+    "trend_psr": 0.9189589931696638,
+    "carry_hac_tstat": 1.773785956285652,
+    "carry_bootstrap_sharpe_ci": [
+      -0.5080322914902,
+      4.099757041756485
+    ],
+    "carry_psr": 0.9987208382357857,
+    "dsr_trend": 0.6302402149042889,
+    "pbo_trend": 0.5581196581196581,
+    "spa_vs_btc": {
+      "pvalue": 0.53,
+      "pvalue_consistent": 0.53,
+      "pvalue_lower": 0.469,
+      "pvalue_upper": 0.53
+    },
+    "n_trials": 9,
+    "n_days": 822,
+    "summary": {
+      "Combined": {
+        "total_return": 0.3144402735570684,
+        "cagr": 0.12908220592372577,
+        "ann_vol": 0.1412089838272772,
+        "sharpe": 0.9303677599316471,
+        "sortino": 1.3169278529186055,
+        "calmar": 1.0277596344659146,
+        "max_drawdown": -0.125595714790652,
+        "worst_month": -0.0554006945554244,
+        "best_month": 0.11535173329580961,
+        "pct_positive_months": 0.6296296296296297,
+        "final_equity": 131444.02735570684
+      },
+      "Trend": {
+        "total_return": 0.4786533101735593,
+        "cagr": 0.18967209965484333,
+        "ann_vol": 0.2078639180543603,
+        "sharpe": 0.9394830482272402,
+        "sortino": 1.3299370976116174,
+        "calmar": 1.0126360502953191,
+        "max_drawdown": -0.18730530045768023,
+        "worst_month": -0.08489942493706548,
+        "best_month": 0.18007738272158336,
+        "pct_positive_months": 0.6296296296296297,
+        "final_equity": 73932.66550867796
+      },
+      "Carry": {
+        "total_return": 0.007162719047852706,
+        "cagr": 0.003174216782380501,
+        "ann_vol": 0.0023302248259374,
+        "sharpe": 1.3612013486360142,
+        "sortino": 1.9321064284784826,
+        "calmar": 1.9611792783920552,
+        "max_drawdown": -0.0016185245364120915,
+        "worst_month": -0.0007902894213579481,
+        "best_month": 0.00460025905093242,
+        "pct_positive_months": 0.14814814814814814,
+        "final_equity": 50358.13595239264
+      },
+      "BTC buy&hold": {
+        "total_return": 0.3335650802703336,
+        "cagr": 0.13634754528520387,
+        "ann_vol": 0.4624678893076256,
+        "sharpe": 0.507646093434079,
+        "sortino": 0.7172051495373294,
+        "calmar": 0.2531824201979003,
+        "max_drawdown": -0.5385348049782748,
+        "worst_month": -0.2049982787240654,
+        "best_month": 0.37291862959909383,
+        "pct_positive_months": 0.5555555555555556,
+        "final_equity": 133356.50802703336
+      }
+    },
+    "costs": {
+      "Combined": {
+        "Gross P&L": 42360.69602886639,
+        "Fees": 7382.08682847371,
+        "Spread": 1199.4009778728725,
+        "Impact": 1700.4282253232836,
+        "Funding (+paid / -received)": 634.7526414896797,
+        "Total costs": 10916.668673159546,
+        "Net P&L": 31444.027355706843,
+        "Annual turnover (x avg equity)": 59.41688067970396
+      },
+      "Trend": {
+        "Gross P&L": 32490.892156295104,
+        "Fees": 5558.795381916851,
+        "Spread": 865.1851696255278,
+        "Impact": 1291.1925624106598,
+        "Funding (+paid / -received)": 843.0535336641005,
+        "Total costs": 8558.226647617139,
+        "Net P&L": 23932.665508677965,
+        "Annual turnover (x avg equity)": 86.22820399784364
+      },
+      "Carry": {
+        "Gross P&L": 15.911769359453274,
+        "Fees": 196.0818150629444,
+        "Spread": 102.92212637373993,
+        "Impact": 25.049543379754883,
+        "Funding (+paid / -received)": -666.2776678496226,
+        "Total costs": -342.2241830331834,
+        "Net P&L": 358.1359523926367,
+        "Annual turnover (x avg equity)": 2.3087290636435074
+      },
+      "BTC buy&hold": {
+        "Gross P&L": 33356.50802703336,
+        "Fees": 0.0,
+        "Spread": 0.0,
+        "Impact": 0.0,
+        "Funding (+paid / -received)": 0.0,
+        "Total costs": 0.0,
+        "Net P&L": 33356.50802703336,
+        "Annual turnover (x avg equity)": 0.0
+      }
+    },
+    "allocations": {
+      "Trend 100%": {
+        "CAGR": 0.18484759930265482,
+        "Sharpe": 0.9198915728349644,
+        "Sortino": 1.3019700026485825,
+        "Max drawdown": -0.18846586737285953,
+        "Worst month": -0.08512193365031018,
+        "% positive months": 0.6296296296296297,
+        "Net P&L": 46518.333508481504,
+        "Corr(trend, carry) daily": -0.019530802266170263
+      },
+      "Trend 75% / Carry 25%": {
+        "CAGR": 0.16132125279024456,
+        "Sharpe": 0.9242230258773192,
+        "Sortino": 1.3081496721814736,
+        "Max drawdown": -0.1612324377404173,
+        "Worst month": -0.07208072304488233,
+        "% positive months": 0.6296296296296297,
+        "Net P&L": 40047.80458145967,
+        "Corr(trend, carry) daily": -0.019530802266170263
+      },
+      "Trend 50% / Carry 50%": {
+        "CAGR": 0.12908220592372577,
+        "Sharpe": 0.9303677599316471,
+        "Sortino": 1.3169278529186055,
+        "Max drawdown": -0.125595714790652,
+        "Worst month": -0.0554006945554244,
+        "% positive months": 0.6296296296296297,
+        "Net P&L": 31444.027355706843,
+        "Corr(trend, carry) daily": -0.019530802266170263
+      },
+      "Carry 100%": {
+        "CAGR": 0.0030826447770269105,
+        "Sharpe": 1.3109613111356329,
+        "Sortino": 1.8451788974145222,
+        "Max drawdown": -0.0016864533923236502,
+        "Worst month": -0.0008227776147147203,
+        "% positive months": 0.14814814814814814,
+        "Net P&L": 695.5685778747429,
+        "Corr(trend, carry) daily": -0.019530802266170263
+      },
+      "Trend 50% / Cash 50%": {
+        "CAGR": 0.1399478843069859,
+        "Sharpe": 0.9262770263497158,
+        "Sortino": 1.3110707992898851,
+        "Max drawdown": -0.13739378692890247,
+        "Worst month": -0.0609213241932266,
+        "% positive months": 0.6296296296296297,
+        "Net P&L": 34309.93223086541,
+        "Corr(trend, carry) daily": -0.019530802266170263
+      },
+      "BTC buy&hold": {
+        "CAGR": 0.13634754528520387,
+        "Sharpe": 0.507646093434079,
+        "Sortino": 0.7172051495373294,
+        "Max drawdown": -0.5385348049782748,
+        "Worst month": -0.2049982787240654,
+        "% positive months": 0.5555555555555556,
+        "Net P&L": 33356.50802703336,
+        "Corr(trend, carry) daily": -0.019530802266170263
+      }
+    },
+    "stress": {
+      "1.0x costs": {
+        "cagr": 0.12908220592372577,
+        "sharpe": 0.9303677599316471,
+        "max_drawdown": -0.125595714790652
+      },
+      "1.5x costs": {
+        "cagr": 0.10172626746384084,
+        "sharpe": 0.7809123598382546,
+        "max_drawdown": -0.12747874930097836
+      },
+      "2.0x costs": {
+        "cagr": 0.07694961703578151,
+        "sharpe": 0.6336387108473895,
+        "max_drawdown": -0.12883788833654042
+      }
+    }
+  },
+  "full": {
+    "period": "full",
+    "label": "FULL PERIOD (descriptive only)",
+    "start": "2020-01-01 00:00:00+00:00",
+    "end": "2026-09-30 23:00:00+00:00",
+    "combined_hac_tstat": 2.934244808486718,
+    "combined_bootstrap_sharpe_ci": [
+      0.37615074717596886,
+      1.8717856896782987
+    ],
+    "combined_psr": 0.9984881503485781,
+    "trend_hac_tstat": 2.751547292002854,
+    "trend_bootstrap_sharpe_ci": [
+      0.29619657719771614,
+      1.790614518199518
+    ],
+    "trend_psr": 0.9970786915806858,
+    "carry_hac_tstat": 6.668596250766867,
+    "carry_bootstrap_sharpe_ci": [
+      3.5461668321673656,
+      8.344022512416386
+    ],
+    "carry_psr": 1.0,
+    "dsr_trend": 0.9779475784223409,
+    "pbo_trend": 0.37272727272727274,
+    "spa_vs_btc": {
+      "pvalue": 0.902,
+      "pvalue_consistent": 0.902,
+      "pvalue_lower": 0.551,
+      "pvalue_upper": 0.902
+    },
+    "n_trials": 9,
+    "n_days": 2465,
+    "summary": {
+      "Combined": {
+        "total_return": 1.5524698203537173,
+        "cagr": 0.14884089950207535,
+        "ann_vol": 0.13078167334222981,
+        "sharpe": 1.1263485335616499,
+        "sortino": 1.5894531103604175,
+        "calmar": 0.9254125788230575,
+        "max_drawdown": -0.16083734207651645,
+        "worst_month": -0.05862886587941063,
+        "best_month": 0.11535173329580961,
+        "pct_positive_months": 0.6172839506172839,
+        "final_equity": 255246.98203537174
+      },
+      "Trend": {
+        "total_return": 2.7426043795606443,
+        "cagr": 0.21582647167604185,
+        "ann_vol": 0.2081179029527459,
+        "sharpe": 1.0430896893795834,
+        "sortino": 1.4655730692760973,
+        "calmar": 0.8902828020405283,
+        "max_drawdown": -0.24242462190819314,
+        "worst_month": -0.08918799722980553,
+        "best_month": 0.18007738272158336,
+        "pct_positive_months": 0.5802469135802469,
+        "final_equity": 187130.2189780322
+      },
+      "Carry": {
+        "total_return": 0.36233526114686465,
+        "cagr": 0.046848505477497415,
+        "ann_vol": 0.013752829554326537,
+        "sharpe": 3.3359588002443177,
+        "sortino": 5.075223000876665,
+        "calmar": 3.122015125556779,
+        "max_drawdown": -0.015005854742341285,
+        "worst_month": -0.002749443146871977,
+        "best_month": 0.041818838091728594,
+        "pct_positive_months": 0.4444444444444444,
+        "final_equity": 68116.76305734324
+      },
+      "BTC buy&hold": {
+        "total_return": 10.616142697792453,
+        "cagr": 0.43782801141285344,
+        "ann_vol": 0.6165078679465238,
+        "sharpe": 0.8982018384725337,
+        "sortino": 1.262487206573151,
+        "calmar": 0.5649915826741575,
+        "max_drawdown": -0.7749283791814613,
+        "worst_month": -0.375989293568153,
+        "best_month": 0.4747969889825392,
+        "pct_positive_months": 0.5679012345679012,
+        "final_equity": 1161614.2697792454
+      }
+    },
+    "costs": {
+      "Combined": {
+        "Gross P&L": 195273.14922270723,
+        "Fees": 32461.57730284489,
+        "Spread": 7551.293586511521,
+        "Impact": 7667.1533876551985,
+        "Funding (+paid / -received)": -7653.857089676111,
+        "Total costs": 40026.1671873355,
+        "Net P&L": 155246.98203537174,
+        "Annual turnover (x avg equity)": 53.52299464230326
+      },
+      "Trend": {
+        "Gross P&L": 195204.4940345587,
+        "Fees": 29890.979256427006,
+        "Spread": 6145.897154276307,
+        "Impact": 7161.450468204247,
+        "Funding (+paid / -received)": 14875.94817761895,
+        "Total costs": 58074.27505652651,
+        "Net P&L": 137130.2189780322,
+        "Annual turnover (x avg equity)": 79.55608565293143
+      },
+      "Carry": {
+        "Gross P&L": 68.65518815222094,
+        "Fees": 2570.5980464178797,
+        "Spread": 1405.3964322352135,
+        "Impact": 505.70291945095113,
+        "Funding (+paid / -received)": -22529.80526729506,
+        "Total costs": -18048.10786919102,
+        "Net P&L": 18116.76305734324,
+        "Annual turnover (x avg equity)": 7.983269884222187
+      },
+      "BTC buy&hold": {
+        "Gross P&L": 1065246.9807579583,
+        "Fees": 100.0,
+        "Spread": 32.71097871294216,
+        "Impact": 3499.9999999999995,
+        "Funding (+paid / -received)": 0.0,
+        "Total costs": 3632.7109787129416,
+        "Net P&L": 1061614.2697792454,
+        "Annual turnover (x avg equity)": 0.02134967524703109
+      }
+    },
+    "allocations": {
+      "Trend 100%": {
+        "CAGR": 0.2113371372760695,
+        "Sharpe": 1.0252521510800583,
+        "Sortino": 1.4402870260953977,
+        "Max drawdown": -0.24403200399993974,
+        "Worst month": -0.0898745797582522,
+        "% positive months": 0.5802469135802469,
+        "Net P&L": 265026.27000475663,
+        "Corr(trend, carry) daily": 0.0161949581670655
+      },
+      "Trend 75% / Carry 25%": {
+        "CAGR": 0.18297529996673956,
+        "Sharpe": 1.0573069458400826,
+        "Sortino": 1.4882056695984047,
+        "Max drawdown": -0.20793762479119415,
+        "Worst month": -0.07622295242708743,
+        "% positive months": 0.6049382716049383,
+        "Net P&L": 211053.96046811098,
+        "Corr(trend, carry) daily": 0.0161949581670655
+      },
+      "Trend 50% / Carry 50%": {
+        "CAGR": 0.14884089950207535,
+        "Sharpe": 1.1263485335616499,
+        "Sortino": 1.5894531103604175,
+        "Max drawdown": -0.16083734207651645,
+        "Worst month": -0.05862886587941063,
+        "% positive months": 0.6172839506172839,
+        "Net P&L": 155246.98203537174,
+        "Corr(trend, carry) daily": 0.0161949581670655
+      },
+      "Carry 100%": {
+        "CAGR": 0.046265799904443794,
+        "Sharpe": 3.2902980200078407,
+        "Sortino": 4.994378007806985,
+        "Max drawdown": -0.015220377348762248,
+        "Worst month": -0.0032463061395124893,
+        "% positive months": 0.4444444444444444,
+        "Net P&L": 35722.223481330526,
+        "Corr(trend, carry) daily": 0.0161949581670655
+      },
+      "Trend 50% / Cash 50%": {
+        "CAGR": 0.13638487296109436,
+        "Sharpe": 0.9700734235618257,
+        "Sortino": 1.367048018363902,
+        "Max drawdown": -0.17403213312205457,
+        "Worst month": -0.06461278730461462,
+        "% positive months": 0.5802469135802469,
+        "Net P&L": 137130.21897802994,
+        "Corr(trend, carry) daily": 0.0161949581670655
+      },
+      "BTC buy&hold": {
+        "CAGR": 0.43782801141285344,
+        "Sharpe": 0.8982018384725337,
+        "Sortino": 1.262487206573151,
+        "Max drawdown": -0.7749283791814613,
+        "Worst month": -0.375989293568153,
+        "% positive months": 0.5679012345679012,
+        "Net P&L": 1061614.2697792454,
+        "Corr(trend, carry) daily": 0.0161949581670655
+      }
+    },
+    "stress": {
+      "1.0x costs": {
+        "cagr": 0.14884089950207535,
+        "sharpe": 1.1263485335616499,
+        "max_drawdown": -0.16083734207651645
+      },
+      "1.5x costs": {
+        "cagr": 0.12436025325581967,
+        "sharpe": 0.9803246907038948,
+        "max_drawdown": -0.17822747602979927
+      },
+      "2.0x costs": {
+        "cagr": 0.10142650403680142,
+        "sharpe": 0.8351756079788865,
+        "max_drawdown": -0.20435680669795153
+      }
+    }
+  },
+  "walk_forward": [
+    {
+      "train": "2020-01-01 \u2192 2021-12-24",
+      "test": "2022-01-01 \u2192 2022-03-31",
+      "test period": "DEVELOPMENT",
+      "test_return": 0.006037502386491589,
+      "test_sharpe": 0.2558717158593774,
+      "test_max_drawdown": -0.07472317162921471
+    },
+    {
+      "train": "2020-04-01 \u2192 2022-03-24",
+      "test": "2022-04-01 \u2192 2022-06-30",
+      "test period": "DEVELOPMENT",
+      "test_return": 0.11514646475482682,
+      "test_sharpe": 2.97999584162755,
+      "test_max_drawdown": -0.048987691396926825
+    },
+    {
+      "train": "2020-07-01 \u2192 2022-06-23",
+      "test": "2022-07-01 \u2192 2022-09-30",
+      "test period": "DEVELOPMENT",
+      "test_return": -0.12098733371475723,
+      "test_sharpe": -4.298817218390367,
+      "test_max_drawdown": -0.1309766040472743
+    },
+    {
+      "train": "2020-10-01 \u2192 2022-09-23",
+      "test": "2022-10-01 \u2192 2022-12-31",
+      "test period": "DEVELOPMENT",
+      "test_return": 0.06975675970695971,
+      "test_sharpe": 2.07169036071975,
+      "test_max_drawdown": -0.04812018217634906
+    },
+    {
+      "train": "2021-01-01 \u2192 2022-12-24",
+      "test": "2023-01-01 \u2192 2023-03-31",
+      "test period": "DEVELOPMENT",
+      "test_return": -0.03713920501443002,
+      "test_sharpe": -1.031780736955281,
+      "test_max_drawdown": -0.07071186288184805
+    },
+    {
+      "train": "2021-04-01 \u2192 2023-03-24",
+      "test": "2023-04-01 \u2192 2023-06-30",
+      "test period": "DEVELOPMENT",
+      "test_return": -0.00968663776763723,
+      "test_sharpe": -0.20873020602669026,
+      "test_max_drawdown": -0.06619445832263093
+    },
+    {
+      "train": "2021-07-01 \u2192 2023-06-23",
+      "test": "2023-07-01 \u2192 2023-09-30",
+      "test period": "DEVELOPMENT",
+      "test_return": 0.01852213373651912,
+      "test_sharpe": 0.6733351114676128,
+      "test_max_drawdown": -0.046670919544963274
+    },
+    {
+      "train": "2021-10-01 \u2192 2023-09-23",
+      "test": "2023-10-01 \u2192 2023-12-31",
+      "test period": "DEVELOPMENT",
+      "test_return": 0.06523251230502991,
+      "test_sharpe": 1.864079964490508,
+      "test_max_drawdown": -0.053893307023189174
+    },
+    {
+      "train": "2022-01-01 \u2192 2023-12-24",
+      "test": "2024-01-01 \u2192 2024-03-31",
+      "test period": "DEVELOPMENT",
+      "test_return": 0.13810658757664962,
+      "test_sharpe": 3.5343102471878036,
+      "test_max_drawdown": -0.04702338401260797
+    },
+    {
+      "train": "2022-04-08 \u2192 2024-03-24",
+      "test": "2024-04-01 \u2192 2024-06-30",
+      "test period": "DEVELOPMENT",
+      "test_return": -0.06799878789560576,
+      "test_sharpe": -2.3266571127210605,
+      "test_max_drawdown": -0.1047809119350599
+    },
+    {
+      "train": "2022-07-08 \u2192 2024-06-23",
+      "test": "2024-07-01 \u2192 2024-09-30",
+      "test period": "HOLDOUT",
+      "test_return": -0.053017484080143396,
+      "test_sharpe": -1.5276304361529907,
+      "test_max_drawdown": -0.10419600008671781
+    },
+    {
+      "train": "2022-10-08 \u2192 2024-09-23",
+      "test": "2024-10-01 \u2192 2024-12-31",
+      "test period": "HOLDOUT",
+      "test_return": 0.13031451952427742,
+      "test_sharpe": 3.2302056975408973,
+      "test_max_drawdown": -0.048005297138732694
+    },
+    {
+      "train": "2023-01-08 \u2192 2024-12-24",
+      "test": "2025-01-01 \u2192 2025-03-31",
+      "test period": "HOLDOUT",
+      "test_return": 0.016634071084162372,
+      "test_sharpe": 0.5637451167015769,
+      "test_max_drawdown": -0.050532480816540604
+    },
+    {
+      "train": "2023-04-08 \u2192 2025-03-24",
+      "test": "2025-04-01 \u2192 2025-06-30",
+      "test period": "HOLDOUT",
+      "test_return": -0.049487214350869224,
+      "test_sharpe": -1.4149967769252976,
+      "test_max_drawdown": -0.11052267260992155
+    },
+    {
+      "train": "2023-07-08 \u2192 2025-06-23",
+      "test": "2025-07-01 \u2192 2025-09-30",
+      "test period": "HOLDOUT",
+      "test_return": 0.06576759055502568,
+      "test_sharpe": 1.9013948630397863,
+      "test_max_drawdown": -0.052338672412687526
+    },
+    {
+      "train": "2023-10-08 \u2192 2025-09-23",
+      "test": "2025-10-01 \u2192 2025-12-31",
+      "test period": "HOLDOUT",
+      "test_return": -0.002471170810762313,
+      "test_sharpe": -0.0018416820373694117,
+      "test_max_drawdown": -0.08855708965065101
+    },
+    {
+      "train": "2024-01-08 \u2192 2025-12-24",
+      "test": "2026-01-01 \u2192 2026-03-31",
+      "test period": "HOLDOUT",
+      "test_return": 0.04634480937128771,
+      "test_sharpe": 1.3712001217756413,
+      "test_max_drawdown": -0.06192273089143996
+    },
+    {
+      "train": "2024-04-08 \u2192 2026-03-24",
+      "test": "2026-04-01 \u2192 2026-06-30",
+      "test period": "HOLDOUT",
+      "test_return": 0.08287078604115172,
+      "test_sharpe": 2.2717595848246717,
+      "test_max_drawdown": -0.04449115154644312
+    },
+    {
+      "train": "2024-07-08 \u2192 2026-06-23",
+      "test": "2026-07-01 \u2192 2026-09-30",
+      "test period": "HOLDOUT",
+      "test_return": 0.054963756440108424,
+      "test_sharpe": 1.531493960857167,
+      "test_max_drawdown": -0.05539996910449807
+    }
+  ],
+  "holdout_views": 4,
+  "holdout_unlocked_this_run": true,
+  "n_trials": 9
+}
