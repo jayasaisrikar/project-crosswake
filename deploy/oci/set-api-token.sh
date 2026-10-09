@@ -15,7 +15,8 @@ set -euo pipefail
 ENV_FILE=${ENV_FILE:-/opt/crosswake/.env.local}
 APP=${APP:-/opt/crosswake}
 
-read -rp 'Paste a token, or press Enter to generate one: ' TOKEN
+read -rsp 'Paste a token, or press Enter to generate one: ' TOKEN
+echo
 if [ -z "$TOKEN" ]; then
   TOKEN=$(head -c 32 /dev/urandom | base64 | tr -d '/+=' | cut -c1-43)
   echo
