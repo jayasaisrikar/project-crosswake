@@ -1,3 +1,5 @@
+import { JsonLd, organization } from '@/lib/seo';
+import { siteDescription, siteUrl } from '@/lib/site';
 import Link from 'next/link';
 import {
   ArrowRight,
@@ -46,6 +48,31 @@ const tickerItems = [
 export default function Page() {
   return (
     <div className="cw-site cw-landing">
+      <JsonLd
+        data={{
+          '@context': 'https://schema.org',
+          '@graph': [
+            organization,
+            {
+              '@type': 'WebSite',
+              '@id': `${siteUrl}/#website`,
+              url: siteUrl,
+              name: 'Crosswake',
+              description: siteDescription,
+              publisher: { '@id': `${siteUrl}/#organization` },
+              inLanguage: 'en',
+            },
+            {
+              '@type': 'FAQPage',
+              mainEntity: questions.map(([q, a]) => ({
+                '@type': 'Question',
+                name: q,
+                acceptedAnswer: { '@type': 'Answer', text: a },
+              })),
+            },
+          ],
+        }}
+      />
       <a className="skip-link" href="#main">
         Skip to content
       </a>

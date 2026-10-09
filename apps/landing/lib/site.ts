@@ -24,3 +24,14 @@ export const signalLogs = [
   { file: 'trend-daily-v005.jsonl', label: 'v005 · Daily Trend' },
   { file: 'trend-daily-v006.jsonl', label: 'v006 · Wider universe' },
 ];
+
+// Canonical origin for metadata, sitemap and structured data. Set NEXT_PUBLIC_SITE_URL once
+// the site has its own domain.
+export const siteUrl = (
+  process.env.NEXT_PUBLIC_SITE_URL?.match(/^https:\/\//)
+    ? process.env.NEXT_PUBLIC_SITE_URL
+    : 'https://project-crosswake.vercel.app'
+).replace(/\/$/, '');
+export const siteName = 'Crosswake';
+export const siteDescription =
+  'Free altcoin trend signals on Telegram, backed by a public record: rules tested on unseen data, every result published after fees, losses included.';

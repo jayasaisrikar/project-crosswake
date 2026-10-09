@@ -1,10 +1,13 @@
+import { pageMeta } from '@/lib/seo';
 import Link from 'next/link';
 import { SimplePage } from '@/components/crosswake/simple-page';
 
-export const metadata = {
-  title: 'Commitments · Crosswake',
-  description: 'What Crosswake promises, and how you can check each promise yourself.',
-};
+export const metadata = pageMeta({
+  title: 'Commitments',
+  description:
+    'What Crosswake promises — no edited signals, every loss posted, no pumps — and how to check each promise yourself.',
+  path: '/commitments',
+});
 
 const commitments: { title: string; body: string; check: React.ReactNode }[] = [
   {

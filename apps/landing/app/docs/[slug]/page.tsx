@@ -1,3 +1,5 @@
+import { JsonLd, organization, pageMeta } from '@/lib/seo';
+import { siteUrl } from '@/lib/site';
 import { notFound } from 'next/navigation';
 import { docs } from '@/lib/docs';
 import { DocsView } from '@/components/crosswake/docs-view';
@@ -11,10 +13,13 @@ export async function generateMetadata({
 }) {
   const { slug } = await params;
   const doc = docs.find((d) => d.slug === slug);
-  return {
-    title: doc ? `${doc.title} · Crosswake Docs` : 'Not found · Crosswake',
-    description: doc?.description,
-  };
+  if (!doc) return { title: 'Not found' };
+  return pageMeta({
+    title: `${doc.title.replace(/\.$/, '')} · Docs`,
+    description: doc.description,
+    path: `/docs/${slug}`,
+    type: 'article',
+  });
 }
 export default async function Page({
   params,
@@ -23,5 +28,23 @@ export default async function Page({
 }) {
   const { slug } = await params;
   if (!docs.some((d) => d.slug === slug)) notFound();
-  return <DocsView slug={slug} />;
+  const doc = docs.find((d) => d.slug === slug)!;
+  return (
+    <>
+      <JsonLd
+        data={{
+          '@context': 'https://schema.org',
+          '@type': 'TechArticle',
+          headline: doc.title,
+          description: doc.description,
+          url: `${siteUrl}/docs/${slug}`,
+          dateModified: '2026-10-09',
+          author: organization,
+          publisher: organization,
+          inLanguage: 'en',
+        }}
+      />
+      <DocsView slug={slug} />
+    </>
+  );
 }
