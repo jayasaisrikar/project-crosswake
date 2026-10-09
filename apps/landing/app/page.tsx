@@ -281,24 +281,21 @@ export default function Page() {
                 Results include modeled fees and slippage; live paper tracking
                 continues.
               </p>
-              <Link
-                href="/docs/validation"
-                aria-label="Read validation methodology"
-              >
+              <Link href="/performance" aria-label="See the full performance">
                 <ArrowUpRight />
               </Link>
             </div>
           </div>
           <div className="cw-research-links">
-            <Link href="/docs/strategies">
-              <span className="cw-version">v005 / v006</span>
-              <h3>Tracking the daily trend.</h3>
+            <Link href="/performance">
+              <span className="cw-version">v005 · Portfolio view</span>
+              <h3>A third of the drawdown.</h3>
               <p>
-                The original strategy and a wider coin universe, each with its
-                own paper record.
+                −17% at worst, against −53% for holding Bitcoin. See the equity
+                curve, the benchmarks and every trade.
               </p>
               <span>
-                Explore strategies <ArrowUpRight size={17} />
+                See the performance <ArrowUpRight size={17} />
               </span>
             </Link>
             <Link href="/docs/validation">

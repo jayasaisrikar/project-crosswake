@@ -190,6 +190,10 @@ async function live() {
         publishedAt: Date.now(),
         ...(backfill ? { backfill } : {}),
       }).then((x) => (logged.add(x.id), x)),
+    fillsPath = join(out, 'fills.jsonl'),
+    fills: { gapBps: number }[] = existsSync(fillsPath)
+      ? (await readFile(fillsPath, 'utf8')).split('\n').filter(Boolean).map((l) => JSON.parse(l))
+      : [],
     sentPath = join(out, 'delivered.json'),
     sent = new Set<string>(
       existsSync(sentPath) ? JSON.parse(await readFile(sentPath, 'utf8')) : [],
@@ -273,6 +277,14 @@ async function live() {
         })
         .sort((a, b) => b.toHighBps - a.toHighBps),
       channels,
+      // Live alert-to-fill gap: price when the alert went out vs the open the ledger assumes.
+      fillGap: fills.length
+        ? {
+            n: fills.length,
+            avgBps: fills.reduce((a, f) => a + f.gapBps, 0) / fills.length,
+            medianBps: [...fills].map((f) => f.gapBps).sort((a, b) => a - b)[Math.floor(fills.length / 2)],
+          }
+        : null,
       executionEnabled: false,
     };
     const tmp = join(out, 'state.json.tmp');
@@ -331,6 +343,21 @@ async function live() {
         { flag: 'a' },
       );
       sent.add(e.id);
+      // Positive gap = worse for someone acting on the alert (paid more / sold for less).
+      try {
+        const { price } = await getJson<{ price: string }>(
+          fetch,
+          `https://api.binance.com/api/v3/ticker/price?symbol=${e.symbol}`,
+        );
+        const alertPrice = Number(price),
+          ratio = alertPrice / e.price,
+          gapBps = (e.kind === 'entry' ? ratio - 1 : 1 - ratio) * 10_000,
+          fill = { id: e.id, kind: e.kind, symbol: e.symbol, assumedPrice: e.price, alertAt: Date.now(), alertPrice, gapBps };
+        fills.push(fill);
+        await writeFile(fillsPath, JSON.stringify(fill) + '\n', { flag: 'a' });
+      } catch (error) {
+        console.error('alert price unavailable', e.id, String(error));
+      }
     }
     await writeFile(sentPath, JSON.stringify([...sent]));
     if (log.length > logLength)

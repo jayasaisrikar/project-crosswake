@@ -13,3 +13,6 @@ coverage/
 *.tsbuildinfo
 .playwright-cli/
 output/playwright/
+
+# Public, generated performance data served by the landing page (pnpm perf:build).
+!apps/landing/public/data/

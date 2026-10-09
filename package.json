@@ -13,6 +13,7 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "perf:build": "tsx scripts/build-performance.ts",
+    "perf:delay": "tsx scripts/fill-delay.ts",
     "log:verify": "tsx scripts/verify-signal-log.ts",
     "format": "prettier --write .",
     "format:check": "prettier --check .",

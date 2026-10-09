@@ -21,6 +21,10 @@ type Summary = {
   worstDrawdown: { from: number; to: number };
   basketCoins: number;
   excludingTop?: { symbol: string; multiple: number; strategy: number; basket: number };
+  fillDelay?: {
+    skipped: number;
+    rows: { delayHours: number; trades: number; avgNetBps: number; winRate: number; totalReturn: number }[];
+  };
 };
 type Data = { summary: Summary; points: Point[] };
 
@@ -265,6 +269,43 @@ export function PerformanceView() {
                 </table>
               </div>
             </section>
+
+            {s.fillDelay && (
+              <section className="pf-section">
+                <header>
+                  <h2>If you act later</h2>
+                  <p>
+                    The test fills at the exact 00:00 UTC open. Alerts arrive a few minutes after, so here every trade is re-priced
+                    at the open 1 and 4 hours later, entry and exit alike, from hourly data.
+                  </p>
+                </header>
+                <div className="sl-scroll">
+                  <table className="pf-table">
+                    <thead>
+                      <tr>
+                        <th>Fill time</th>
+                        <th className="num">Avg net / trade</th>
+                        <th className="num">Win rate</th>
+                        <th className="num">Total return</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {s.fillDelay.rows.map((r) => (
+                        <tr key={r.delayHours}>
+                          <td>{r.delayHours === 0 ? 'At the open (as tested)' : `${r.delayHours} hour${r.delayHours > 1 ? 's' : ''} later`}</td>
+                          <td className="num">{pct(r.avgNetBps / 10_000, 2)}</td>
+                          <td className="num">{plain(r.winRate)}</td>
+                          <td className="num">{pct(r.totalReturn)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                {s.fillDelay.skipped > 0 && (
+                  <p className="sl-quiet">{s.fillDelay.skipped} trades without hourly data are left out of this table.</p>
+                )}
+              </section>
+            )}
 
             <section className="pf-section">
               <h2>How this is calculated</h2>
