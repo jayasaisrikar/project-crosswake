@@ -20,15 +20,16 @@ type Summary = {
   maxDrawdown: Record<'strategy' | 'btc' | 'basket', number>;
   worstDrawdown: { from: number; to: number };
   basketCoins: number;
+  excludingTop?: { symbol: string; multiple: number; strategy: number; basket: number };
 };
 type Data = { summary: Summary; points: Point[] };
 
 const VERSION = 'trend-daily-v005';
 // Validated (dark, all pairs, CVD-safe) against the page surface; text never uses these.
 const SERIES = [
-  { key: 'strategy', label: 'Crosswake v005', color: '#56a334' },
-  { key: 'btc', label: 'Hold BTC', color: '#4a8ad0' },
-  { key: 'basket', label: 'Hold the 29 coins', color: '#d8679b' },
+  { key: 'strategy', label: 'Crosswake v005', short: 'v005', color: '#56a334' },
+  { key: 'btc', label: 'Hold BTC', short: 'BTC', color: '#4a8ad0' },
+  { key: 'basket', label: 'Hold the altcoins', short: 'Altcoins', color: '#d8679b' },
 ] as const;
 const DD_COLOR = '#e87461';
 
@@ -104,7 +105,7 @@ function EquityChart({ points }: { points: Point[] }) {
           <g key={s.key}>
             <circle cx={x(n - 1)} cy={y(points[n - 1]![s.key])} r={4} fill={s.color} stroke="#0b0b0b" strokeWidth={2} />
             <text className="pf-end" x={x(n - 1) + 10} y={s.y + 4}>
-              {s.label.replace('Crosswake ', '')} {pct(points[n - 1]![s.key] - 1, 0)}
+              {s.short} {pct(points[n - 1]![s.key] - 1, 0)}
             </text>
           </g>
         ))}
@@ -199,7 +200,7 @@ export function PerformanceView() {
         {!s && !error && <p className="sl-quiet">Loading…</p>}
         {s && data && (
           <>
-            <dl className="cw-doc-stats pf-stats">
+            <dl className="pf-stats">
               <div><dt>Total return</dt><dd>{pct(s.totalReturn.strategy)}</dd></div>
               <div><dt>Maximum drawdown</dt><dd>{pct(s.maxDrawdown.strategy)}</dd></div>
               <div><dt>Average capital deployed</dt><dd>{plain(s.avgExposure, 0)}</dd></div>
@@ -246,6 +247,19 @@ export function PerformanceView() {
                         <td className="num">{pct(s[key].basket)}</td>
                       </tr>
                     ))}
+                    {s.excludingTop && (
+                      <tr>
+                        <td>
+                          Total return without {s.excludingTop.symbol.replace(/USDT$/, '')}
+                          <small className="pf-row-note">
+                            The best coin rose {s.excludingTop.multiple.toFixed(1)}× and drives both results
+                          </small>
+                        </td>
+                        <td className="num">{pct(s.excludingTop.strategy)}</td>
+                        <td className="num">—</td>
+                        <td className="num">{pct(s.excludingTop.basket)}</td>
+                      </tr>
+                    )}
                     <tr><td>Capital deployed on average</td><td className="num">{plain(s.avgExposure, 0)}</td><td className="num">100%</td><td className="num">100%</td></tr>
                   </tbody>
                 </table>
@@ -260,8 +274,16 @@ export function PerformanceView() {
                 <li>Costs: {s.model.costBpsRoundTrip / 100}% per round trip for fees and slippage. Entries assume the next daily open.</li>
                 <li>Period: {s.period[0]} to {s.period[1]}, after the rules were frozen. Benchmarks are bought on day one and held.</li>
                 <li>Cash that is not deployed earns nothing here. On average {plain(1 - s.avgExposure, 0)} of capital is idle.</li>
+                <li>The altcoin basket holds the {s.basketCoins} coins that traded on day one, in equal amounts; a coin that stops trading keeps its last price.</li>
+                {s.excludingTop && (
+                  <li>
+                    One coin, {s.excludingTop.symbol.replace(/USDT$/, '')}, rose {s.excludingTop.multiple.toFixed(1)}× in this period. Without it, v005 was
+                    roughly flat ({pct(s.excludingTop.strategy)}) while holding the other coins lost {pct(s.excludingTop.basket).replace('−', '')}. Its
+                    value in this test was mostly in staying out of a falling market.
+                  </li>
+                )}
               </ul>
-              <aside className="cw-doc-callout">
+              <aside className="pf-callout">
                 <Info size={17} aria-hidden="true" />
                 <p>
                   A backtest on unseen data is still a backtest. The 95% confidence interval for the average trade includes zero, so

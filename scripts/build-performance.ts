@@ -120,6 +120,35 @@ const summary = {
   worstDrawdown: { from: points[sDD.worst.from]!.t, to: points[sDD.worst.to]!.t },
   basketCoins: basketStart.length,
 };
+// Concentration check: the single coin that adds most to the basket, removed from both sides.
+const top = basketStart
+  .map((s) => {
+    const m = px.get(s)!;
+    let c: number | undefined, k = to - DAY;
+    while (c === undefined && k >= from) (c = m.get(k)), (k -= DAY);
+    return { s, ratio: (c ?? 0) / m.get(from)! };
+  })
+  .sort((a, b) => b.ratio - a.ratio)[0]!;
+const without = (() => {
+  const rest = basketStart.filter((s) => s !== top.s);
+  let basketSum = 0;
+  for (const s of rest) {
+    const m = px.get(s)!;
+    let c: number | undefined, k = to - DAY;
+    while (c === undefined && k >= from) (c = m.get(k)), (k -= DAY);
+    basketSum += (c ?? 0) / m.get(from)!;
+  }
+  const strat = trades
+    .filter((t) => t.symbol !== top.s)
+    .reduce((a, t) => a + slot * (t.netBps / 10_000), 0);
+  return {
+    symbol: top.s,
+    multiple: top.ratio,
+    strategy: strat,
+    basket: basketSum / rest.length - 1,
+  };
+})();
+(summary as Record<string, unknown>).excludingTop = without;
 const payload = {
   summary,
   points: points.map((p, i) => ({ ...p, drawdown: +sDD.dd[i]!.toFixed(5) })),

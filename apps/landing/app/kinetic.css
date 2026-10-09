@@ -2615,3 +2615,76 @@
     animation: cw-menu-in 0.25s cubic-bezier(0.16, 1, 0.3, 1);
   }
 }
+
+/* ---------- Transparent nav over the hero (landing only, until scrolled) ---------- */
+.cw-landing .cw-header:not(.is-scrolled):not(.is-open),
+.cw-landing .cw-header:not(.is-scrolled):not(.is-open) {
+  background: transparent;
+  border-color: transparent;
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+@media (max-width: 768px) {
+  .cw-landing .cw-header:not(.is-scrolled):not(.is-open) {
+    background: transparent;
+    border-color: transparent;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+}
+.pf-row-note {
+  display: block;
+  margin-top: 2px;
+  font-size: 11px;
+  color: var(--ink-secondary);
+}
+.pf-stats {
+  display: grid;
+  margin: 40px 0;
+  border: 1px solid var(--rule);
+  border-radius: 10px;
+  overflow: hidden;
+  background: #0b0b0b;
+}
+.pf-stats > div {
+  display: flex;
+  flex-direction: column-reverse;
+  gap: 6px;
+  padding: 20px;
+  box-shadow: 0 0 0 0.5px var(--rule);
+}
+.pf-stats dd {
+  margin: 0;
+  font-family: var(--font-heading);
+  font-size: 28px;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink);
+}
+.pf-stats dt {
+  font-size: 12px;
+  color: var(--ink-secondary);
+}
+.pf-callout {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  margin: 24px 0;
+  padding: 18px 20px;
+  border: 1px solid rgb(213 216 135 / 0.25);
+  border-radius: 10px;
+  background: rgb(213 216 135 / 0.05);
+}
+.pf-callout svg {
+  flex: none;
+  margin-top: 3px;
+  color: #d5d887;
+}
+.pf-callout p {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.8;
+  color: var(--ink);
+}
