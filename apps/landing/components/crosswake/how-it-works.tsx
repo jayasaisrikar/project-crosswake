@@ -43,42 +43,6 @@ export function HowItWorks() {
             </li>
           ))}
         </ol>
-        <figure className="cw-signal-card" aria-label="Example signal message">
-          <div className="cw-signal-head">
-            <span className="cw-signal-badge">
-              <i aria-hidden="true" /> New signal
-            </span>
-            <span>Example · v005</span>
-          </div>
-          <div className="cw-signal-coin">
-            <strong>SOL</strong>
-            <span>Long · daily trend</span>
-          </div>
-          <dl>
-            <div>
-              <dt>Why now</dt>
-              <dd>Closed above its 20-day high</dd>
-            </div>
-            <div>
-              <dt>Market filter</dt>
-              <dd className="is-good">BTC above 100-day average</dd>
-            </div>
-            <div>
-              <dt>Exit rule</dt>
-              <dd>Close below the 10-day low</dd>
-            </div>
-            <div>
-              <dt>Expected hold</dt>
-              <dd>Days to weeks</dd>
-            </div>
-          </dl>
-          <svg viewBox="0 0 300 60" className="cw-signal-spark" aria-hidden="true">
-            <path d="M0 50L20 46L40 52L60 40L80 44L100 34L120 38L140 30L160 33L180 22L200 26L220 14L240 18L260 8L280 12L300 4" />
-          </svg>
-          <figcaption>
-            Illustrative format. Paper signal, not financial advice.
-          </figcaption>
-        </figure>
       </div>
     </section>
   );

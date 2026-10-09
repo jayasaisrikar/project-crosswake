@@ -50,6 +50,7 @@ import { Brand, Status } from '@/components/crosswake/brand';
 import { cn } from '@/lib/utils';
 import { TradeSignals, StrategyLab } from './residual-views';
 import { DataWorkbench } from './data-views';
+import { MarketView } from './market-view';
 
 type Dict = Record<string, any>;
 const number = (x: unknown) =>
@@ -83,6 +84,14 @@ const rolling = (x: unknown) =>
     '—'
   );
 const VIEWS = [
+  {
+    id: 'Market',
+    icon: Activity,
+    caption: 'Daily trend · v005',
+    title: 'Market dashboard',
+    description:
+      'The BTC filter, coins closest to a breakout, open paper trades and every signal sent to Telegram.',
+  },
   {
     id: 'Trade signals',
     icon: ArrowUpRight,
@@ -242,7 +251,7 @@ function EvidenceDetails({ record }: { record: Dict }) {
 }
 
 export default function Workbench() {
-  const [tab, setTab] = useState<View>('Overview'),
+  const [tab, setTab] = useState<View>('Market'),
     [live, setLive] = useState<Dict | null>(null),
     [protocols, setProtocols] = useState<string[]>([]),
     [runs, setRuns] = useState<string[]>([]),
@@ -260,7 +269,8 @@ export default function Workbench() {
   const [signals, setSignals] = useState<Dict | null>(null),
     [research, setResearch] = useState<Dict | null>(null),
     [dataset, setDataset] = useState<Dict | null>(null),
-    [backtests, setBacktests] = useState<Dict | null>(null);
+    [backtests, setBacktests] = useState<Dict | null>(null),
+    [trend, setTrend] = useState<Dict | null>(null);
   const searchButtonRef = useRef<HTMLButtonElement>(null),
     detailOpenerRef = useRef<HTMLElement | null>(null);
   const showDetail = (record: Dict) => {
@@ -273,7 +283,16 @@ export default function Workbench() {
     const id = ++requestId.current;
     setLoading(true);
     try {
-      const [l, p, r, signalData, researchData, datasetData, backtestData] =
+      const [
+        l,
+        p,
+        r,
+        signalData,
+        researchData,
+        datasetData,
+        backtestData,
+        trendData,
+      ] =
         await Promise.all([
           read('live'),
           read('protocols'),
@@ -282,6 +301,7 @@ export default function Workbench() {
           read('research').catch(() => null),
           read('data').catch(() => null),
           read('backtests').catch(() => null),
+          read('trend').catch(() => null),
         ]);
       if (id !== requestId.current) return;
       setLive(l);
@@ -289,6 +309,7 @@ export default function Workbench() {
       setResearch(researchData);
       setDataset(datasetData);
       setBacktests(backtestData);
+      setTrend(trendData);
       setProtocols(Array.isArray(p.protocols) ? p.protocols : []);
       setRuns(Array.isArray(r.experiments) ? r.experiments : []);
       setError('');
@@ -521,6 +542,12 @@ export default function Workbench() {
                   exit={{ opacity: 0 }}
                   transition={{ duration: 0.12 }}
                 >
+                  {tab === 'Market' && (
+                    <MarketView
+                      data={trend}
+                      onInspect={(x) => showDetail(x)}
+                    />
+                  )}
                   {tab === 'Trade signals' && (
                     <div className="residual-surface">
                       <TradeSignals

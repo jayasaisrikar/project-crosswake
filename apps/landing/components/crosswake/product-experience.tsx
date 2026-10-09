@@ -9,33 +9,31 @@ import {
 } from 'motion/react';
 import Link from 'next/link';
 import { ArrowUpRight } from 'lucide-react';
+import { DashboardDemo, LabDemo, SignalLogDemo } from './demo-screens';
 const chapters = [
   {
     title: 'The market, in view.',
     label: 'Observe',
-    text: 'See collection health, market coverage, and the state of the research in one workspace. Missing evidence stays visible.',
-    image: '/images/research-workspace.png',
-    alt: 'Actual Crosswake market overview showing local collection health and research status',
-    caption: 'Research workspace · Local capture; market feed not connected',
+    text: 'See whether the Bitcoin filter is on, which coins are close to a breakout, and how every open paper trade is doing, in one dashboard.',
+    screen: DashboardDemo,
+    caption: 'Market dashboard · BTC filter, watchlist and open paper trades',
     href: '/docs',
   },
   {
     title: 'A process you can inspect.',
-    label: 'Investigate',
-    text: 'Open the strategy lab to separate a hypothesis from a validated result. Failed and unfinished research stays on the record.',
-    image: '/images/strategy-lab.png',
-    alt: 'Actual Crosswake strategy validation workspace',
-    caption: 'Strategy lab · Actual local workspace capture',
+    label: 'Validate',
+    text: 'Every strategy is tested on data it has never seen before it sends a signal. Failed versions stay on the record next to the live ones.',
+    screen: LabDemo,
+    caption: 'Strategy lab · Unseen-data test and every version, failures included',
     href: '/docs/validation',
   },
   {
-    title: 'Nothing behind a black box.',
-    label: 'Understand',
-    text: 'Read the entry, exit, cost assumptions, and test results before interpreting a signal. Every version has a place in the documentation.',
-    image: '/images/strategy-docs.png',
-    alt: 'Crosswake strategy documentation showing daily breakout rules and testing results',
-    caption: 'Strategy documentation · Rules and limitations included',
-    href: '/docs/strategies',
+    title: 'Every call, accounted for.',
+    label: 'Track',
+    text: 'Each buy and sell posted to Telegram lands in the signal log with its rule and its result after fees. Losses stay on the page next to the wins.',
+    screen: SignalLogDemo,
+    caption: 'Signal log · Every Telegram signal with its outcome',
+    href: '/docs/signals',
   },
 ];
 export function ProductExperience() {
@@ -112,13 +110,7 @@ export function ProductExperience() {
                 }
                 aria-hidden={i !== active}
               >
-                <img
-                  src={c.image}
-                  alt={c.alt}
-                  width="1160"
-                  height="850"
-                  loading="lazy"
-                />
+                <c.screen />
                 <figcaption>{c.caption}</figcaption>
               </figure>
             ))}
@@ -131,13 +123,7 @@ export function ProductExperience() {
             <h3>{c.title}</h3>
             <p>{c.text}</p>
             <figure>
-              <img
-                src={c.image}
-                alt={c.alt}
-                width="1160"
-                height="850"
-                loading="lazy"
-              />
+              <c.screen />
               <figcaption>{c.caption}</figcaption>
             </figure>
             <Link className="cw-text-button" href={c.href}>
@@ -166,20 +152,14 @@ export function ProductEntrance() {
       aria-label="Research workspace preview"
     >
       <div className="entrance-caption">
-        <span>REAL WORKSPACE. INSPECTABLE EVIDENCE.</span>
+        <span>ONE DASHBOARD. EVERY SIGNAL ON THE RECORD.</span>
         <a href="#workspace">Take a closer look ↓</a>
       </div>
       <motion.figure style={reduced ? {} : { rotateX: rotate, scale, y }}>
-        <img
-          src="/images/research-workspace.png"
-          alt="Actual Crosswake research dashboard with collection health, market watch, and frozen protocols; local feed is not connected"
-          width="1160"
-          height="850"
-          fetchPriority="high"
-        />
+        <DashboardDemo />
         <figcaption>
-          <span>Crosswake / Research workspace</span>
-          <span>Local capture · Market feed not connected</span>
+          <span>Crosswake / Market dashboard</span>
+          <span>Shown with demo data</span>
         </figcaption>
       </motion.figure>
     </section>

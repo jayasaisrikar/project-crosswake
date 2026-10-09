@@ -2,6 +2,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
 @import '../../../packages/ui/tokens.css';
 @import 'tailwindcss';
+@custom-variant dark (&:where(.dark, .dark *));
 
 @theme inline {
   --font-display: var(--font-heading);
@@ -2015,4 +2016,251 @@ h3 {
 }
 .residual-surface .text-rose-500 {
   color: var(--error);
+}
+
+/* ---------- Crosswake dark theme, matching the landing page ---------- */
+:root {
+  --paper: oklch(15% 0.008 260);
+  --surface: oklch(19% 0.009 260);
+  --surface-muted: oklch(23% 0.009 260);
+  --ink: oklch(96% 0.008 80);
+  --ink-secondary: oklch(71% 0.013 260);
+  --rule: oklch(30% 0.012 260);
+  --signal: oklch(77% 0.18 50);
+  --signal-soft: oklch(77% 0.18 50 / 0.14);
+  --signal-ink: oklch(16% 0.02 50);
+  --success: oklch(78% 0.13 155);
+  --success-soft: oklch(78% 0.13 155 / 0.14);
+  --warning: oklch(80% 0.14 80);
+  --warning-soft: oklch(80% 0.14 80 / 0.14);
+  --error: oklch(70% 0.17 25);
+  --error-soft: oklch(70% 0.17 25 / 0.14);
+  --dark-surface: oklch(12% 0.008 260);
+  --dark-ink: oklch(96% 0.008 80);
+  --shadow-panel: 0 12px 40px oklch(8% 0.012 260 / 0.45);
+  --shadow-dialog: 0 30px 80px oklch(8% 0.012 260 / 0.6);
+  --font-heading: var(--font-geist), 'Inter', system-ui, sans-serif;
+  --font-body: var(--font-geist), 'Inter', system-ui, sans-serif;
+  --font-record: var(--font-geist-mono), 'JetBrains Mono', ui-monospace, monospace;
+  color-scheme: dark;
+}
+body {
+  background: var(--paper);
+  color: var(--ink);
+}
+.brand {
+  gap: 10px;
+  font-family: var(--font-heading);
+  font-weight: 600;
+  letter-spacing: -0.035em;
+  font-size: 20px;
+}
+.brand-mark {
+  width: 28px;
+  height: 28px;
+  border-radius: 9px;
+  box-shadow: 0 6px 18px oklch(70% 0.18 45 / 0.28);
+}
+
+/* ---------- Market view ---------- */
+.mv {
+  background: oklch(13% 0.008 260);
+  border: 1px solid var(--rule);
+  border-radius: 12px;
+  overflow: hidden;
+  font-size: 13px;
+}
+.mv-bar {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 11px 18px;
+  border-bottom: 1px solid var(--rule);
+  font-family: var(--font-record);
+  font-size: 11px;
+  color: var(--ink-secondary);
+}
+.mv-dots {
+  display: flex;
+  gap: 6px;
+}
+.mv-dots i {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--rule);
+}
+.mv-tag {
+  margin-left: auto;
+  padding: 2px 10px;
+  border: 1px solid oklch(77% 0.18 50 / 0.35);
+  border-radius: 999px;
+  color: var(--signal);
+}
+.mv-body {
+  display: grid;
+  gap: 14px;
+  padding: 18px;
+}
+.mv-kpis {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+}
+.mv-kpi,
+.mv-panel {
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: 10px;
+  padding: 16px;
+  min-width: 0;
+}
+.mv-kpi small {
+  display: block;
+  font-size: 11px;
+  color: var(--ink-secondary);
+}
+.mv-kpi strong {
+  display: block;
+  font-size: 30px;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  margin: 8px 0 4px;
+  font-variant-numeric: tabular-nums;
+}
+.mv-kpi span {
+  font-size: 11px;
+  color: var(--ink-secondary);
+}
+.mv-kpi.is-good strong {
+  color: var(--success);
+}
+.mv-split {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  gap: 14px;
+}
+.mv-panel header {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-family: var(--font-record);
+  font-size: 11px;
+  color: var(--ink-secondary);
+  margin-bottom: 10px;
+}
+.mv-scroll {
+  overflow-x: auto;
+}
+.mv table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.mv td,
+.mv th {
+  padding: 10px 8px;
+  border-top: 1px solid var(--rule);
+  white-space: nowrap;
+  text-align: left;
+}
+.mv th {
+  font-weight: 500;
+  font-size: 11px;
+  color: var(--ink-secondary);
+  border-top: 0;
+}
+.mv .num {
+  font-family: var(--font-record);
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.mv .up {
+  color: var(--success);
+}
+.mv .down {
+  color: var(--error);
+}
+.mv-log tbody tr {
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.mv-log tbody tr:hover,
+.mv-log tbody tr:focus-visible {
+  background: var(--surface-muted);
+  outline: none;
+}
+.mv-chip {
+  display: inline-block;
+  padding: 2px 9px;
+  border-radius: 999px;
+  font-size: 11px;
+  background: var(--surface-muted);
+  color: var(--ink-secondary);
+}
+.mv-chip.is-go {
+  background: var(--success-soft);
+  color: var(--success);
+}
+.mv-chip.is-near,
+.mv-chip.is-hold {
+  background: var(--signal-soft);
+  color: var(--signal);
+}
+.mv-pos {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 56px 1fr 80px 70px;
+  align-items: center;
+  gap: 8px;
+  padding: 11px 0;
+  border: 0;
+  border-top: 1px solid var(--rule);
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.mv-pos > span:nth-child(2) {
+  color: var(--ink-secondary);
+}
+.mv-spark {
+  width: 100%;
+  height: 24px;
+}
+.mv-spark path {
+  fill: none;
+  stroke: var(--success);
+  stroke-width: 1.5;
+  vector-effect: non-scaling-stroke;
+}
+.mv-spark.is-down path {
+  stroke: var(--error);
+}
+.mv-note,
+.mv-quiet {
+  margin: 12px 0 0;
+  font-size: 11px;
+  color: var(--ink-secondary);
+}
+.mv-quiet {
+  font-size: 13px;
+  padding: 12px 0;
+}
+.mv-empty {
+  border: 1px dashed var(--rule);
+  border-radius: 12px;
+  padding: 40px;
+  text-align: center;
+}
+.mv-empty p {
+  color: var(--ink-secondary);
+}
+@media (max-width: 900px) {
+  .mv-kpis {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .mv-split {
+    grid-template-columns: 1fr;
+  }
 }

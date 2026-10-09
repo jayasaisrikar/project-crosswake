@@ -236,6 +236,23 @@ async function live() {
             }
           : null,
       symbols: [...bars.keys()],
+      // Per-coin distance to the entry trigger, from closed daily bars only.
+      watch: [...bars]
+        .filter(([symbol]) => symbol !== plan.regimeSymbol)
+        .map(([symbol, b]) => {
+          const closed = b.slice(0, -1),
+            last = closed.at(-1)!,
+            prior = closed.slice(-plan.entry.breakoutDays - 1, -1),
+            high = Math.max(...prior.map((x) => x.close));
+          return {
+            symbol,
+            close: last.close,
+            changeBps: (last.close / closed.at(-2)!.close - 1) * 10_000,
+            breakoutHigh: high,
+            toHighBps: (last.close / high - 1) * 10_000,
+          };
+        })
+        .sort((a, b) => b.toHighBps - a.toHighBps),
       channels,
       executionEnabled: false,
     };

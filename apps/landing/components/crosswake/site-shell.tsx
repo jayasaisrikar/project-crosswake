@@ -4,9 +4,10 @@ import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { ArrowUpRight, Menu, X } from 'lucide-react';
 import { Brand } from './brand';
-import { telegramUrl, workspaceUrl } from '@/lib/site';
+import { telegramUrl } from '@/lib/site';
 const links = [
   ['how', 'How it works'],
+  ['signals', 'Signals'],
   ['approach', 'Strategy'],
   ['research', 'Results'],
 ] as const;
@@ -34,7 +35,7 @@ export function SiteHeader() {
     };
   }, []);
   const close = () => setOpen(false);
-  const cta = telegramUrl ?? workspaceUrl;
+  const cta = telegramUrl ?? '/#signals';
   return (
     <header
       className={`cw-header${scrolled ? ' is-scrolled' : ''}${open ? ' is-open' : ''}`}
@@ -64,7 +65,7 @@ export function SiteHeader() {
           <i aria-hidden="true" /> Paper tracking live
         </span>
         <Link className="cw-nav-action" href={cta}>
-          {telegramUrl ? 'Get signals' : 'Explore Crosswake'}
+          {telegramUrl ? 'Join Telegram' : 'Get signals'}
           <ArrowUpRight size={15} />
         </Link>
       </div>

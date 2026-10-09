@@ -8,6 +8,7 @@ import {
 import { SiteHeader, SiteFooter } from '@/components/crosswake/site-shell';
 import { ScrollEffects } from '@/components/crosswake/scroll-effects';
 import { MarketScene } from '@/components/crosswake/market-scene';
+import { TelegramFeed } from '@/components/crosswake/telegram-feed';
 import { HowItWorks } from '@/components/crosswake/how-it-works';
 import {
   HeroParallax,
@@ -74,11 +75,11 @@ export default function Page() {
                 tracked live on paper.
               </p>
               <div className="cw-actions hero-rise">
-                <Link className="cw-button" href="#how">
-                  See how it works <ArrowUpRight size={18} />
+                <Link className="cw-button" href="#signals">
+                  Get free signals <ArrowUpRight size={18} />
                 </Link>
-                <Link className="cw-text-button" href="#research">
-                  View the results <ArrowRight size={16} />
+                <Link className="cw-text-button" href="#how">
+                  How it works <ArrowRight size={16} />
                 </Link>
               </div>
               <ul className="hero-facts hero-rise" aria-label="At a glance">
@@ -115,6 +116,7 @@ export default function Page() {
           </div>
         </div>
         <HowItWorks />
+        <TelegramFeed />
         <div id="product-preview">
           <ProductEntrance />
         </div>
