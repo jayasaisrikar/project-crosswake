@@ -28,10 +28,17 @@ function apiBase() {
   return /^\d{4,5}$/.test(port) ? `http://127.0.0.1:${port}` : null;
 }
 async function forward(url: string, init: RequestInit = {}) {
+  const token = process.env.RESEARCH_API_TOKEN;
   try {
     const response = await fetch(url, {
       ...init,
       cache: 'no-store',
+      headers: token
+        ? {
+            ...(init.headers as Record<string, string> | undefined),
+            Authorization: `Bearer ${token}`,
+          }
+        : init.headers,
       signal: AbortSignal.timeout(10000),
     });
     return NextResponse.json(await response.json(), {

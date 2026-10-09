@@ -6,6 +6,7 @@ import {
 } from './residual-evidence.js';
 import { latestContext } from '../../context/src/index.js';
 import { createServer, type Server } from 'node:http';
+import { timingSafeEqual } from 'node:crypto';
 import { readFile, readdir } from 'node:fs/promises';
 import { join } from 'node:path';
 import { z } from 'zod';
@@ -20,7 +21,10 @@ import {
 import { backtestRuns, datasetInventory } from './dataset-evidence.js';
 /** Dataset sweeps touch thousands of small manifests; they change slowly. */
 const CACHE_TTL_MS = 30_000;
-export function createEvidenceServer(paths: RuntimePaths): Server {
+export function createEvidenceServer(
+  paths: RuntimePaths,
+  options: { token?: string } = {},
+): Server {
   const cache = new Map<string, { at: number; value: unknown }>();
   const cached = async <T>(key: string, load: () => Promise<T>) => {
     const hit = cache.get(key);
@@ -37,6 +41,21 @@ export function createEvidenceServer(paths: RuntimePaths): Server {
       response.statusCode = status;
       response.end(JSON.stringify(body));
     };
+    // Optional bearer token. Unset means "loopback-only trust", which is the default and is
+    // correct while only this host can reach the port. Set RESEARCH_API_TOKEN before this
+    // server becomes reachable from anywhere else (a tunnel, a proxy, a public IP): the
+    // dashboard proxy sends the matching header, so an unauthenticated caller still gets 401.
+    if (options.token) {
+      const provided = Buffer.from(request.headers.authorization ?? ''),
+        expected = Buffer.from(`Bearer ${options.token}`);
+      if (
+        provided.length !== expected.length ||
+        !timingSafeEqual(provided, expected)
+      ) {
+        send(401, { error: 'unauthorized' });
+        return;
+      }
+    }
     // Loopback API. Its only mutation records a user's own reported fill for a published
     // paper signal; it never places orders, returns credentials or serves arbitrary files.
     const url = new URL(request.url ?? '/', 'http://localhost'),

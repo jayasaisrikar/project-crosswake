@@ -270,6 +270,42 @@ it('serves local evidence read-only and rejects mutation and arbitrary file path
   }
 });
 
+it('requires the bearer token once configured, and accepts no other scheme or value', async () => {
+  const f = await fixture();
+  const server = createEvidenceServer(f, { token: 'test-token' });
+  server.listen(0, '127.0.0.1');
+  await once(server, 'listening');
+  const address = server.address();
+  if (!address || typeof address === 'string')
+    throw new Error('Missing listener');
+  const base = `http://127.0.0.1:${address.port}`;
+  const withAuth = (value: string) => ({ headers: { Authorization: value } });
+  try {
+    expect((await fetch(base + '/health')).status).toBe(401);
+    expect(
+      (await fetch(base + '/health', withAuth('Bearer wrong'))).status,
+    ).toBe(401);
+    // Same length as the expected header, so this exercises the comparison itself.
+    expect(
+      (await fetch(base + '/health', withAuth('Bearer test-tokeN'))).status,
+    ).toBe(401);
+    expect(
+      (await fetch(base + '/health', withAuth('Basic test-token'))).status,
+    ).toBe(401);
+    const allowed = await fetch(
+      base + '/health',
+      withAuth('Bearer test-token'),
+    );
+    expect(allowed.status).toBe(200);
+    expect((await allowed.json()).researchStatus).toBe('UNVALIDATED');
+  } finally {
+    await new Promise<void>((resolve, reject) =>
+      server.close((error) => (error ? reject(error) : resolve())),
+    );
+    await rm(f.root, { recursive: true, force: true });
+  }
+});
+
 it('summarises dataset coverage and backtest runs from local files', async () => {
   const root = await mkdtemp(join(tmpdir(), 'crosswake-data-')),
     protocolDir = join(root, 'protocols');

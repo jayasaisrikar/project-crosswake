@@ -1775,9 +1775,7 @@
   pointer-events: none;
   background:
     radial-gradient(60% 55% at 72% 45%, rgb(122 199 79 / 0.12), transparent 70%),
-    radial-gradient(40% 40% at 8% 10%, rgb(213 216 135 / 0.05), transparent 70%),
-    linear-gradient(rgb(255 255 255 / 0.035) 1px, transparent 1px) 0 0 / 64px 64px,
-    linear-gradient(90deg, rgb(255 255 255 / 0.035) 1px, transparent 1px) 0 0 / 64px 64px;
+    radial-gradient(40% 40% at 8% 10%, rgb(213 216 135 / 0.05), transparent 70%);
   mask-image: radial-gradient(80% 70% at 50% 40%, #000 30%, transparent 85%);
 }
 /* How it works: a faint candlestick skyline rising behind the steps */
@@ -1861,4 +1859,58 @@
     url('/bg/wake.svg') center / cover no-repeat;
   mask-image: none;
   opacity: 0.9;
+}
+
+/* Hero photo backdrop: kept very dim so the particle scene stays the focus */
+.cw-landing .kinetic-hero::after {
+  content: '';
+  position: absolute;
+  inset: -120px 0 0;
+  z-index: -2;
+  pointer-events: none;
+  background:
+    image-set(url('/bg/hero.webp') type('image/webp'), url('/bg/hero.jpg') type('image/jpeg'))
+    left center / cover no-repeat;
+  opacity: 0.2;
+  filter: saturate(0.85) blur(1px);
+  mask-image: linear-gradient(#000 55%, transparent 98%);
+}
+@media (max-width: 768px) {
+  .cw-landing .kinetic-hero::after {
+    opacity: 0.16;
+  }
+}
+
+/* How it works: dimmed guide-character scene on the right */
+.cw-landing .cw-how::before {
+  inset: 0;
+  height: auto;
+  background:
+    image-set(url('/bg/how.webp') type('image/webp'), url('/bg/how.jpg') type('image/jpeg'))
+    right center / cover no-repeat;
+  opacity: 0.28;
+  filter: saturate(0.85);
+  mask-image: linear-gradient(90deg, transparent 15%, #000 55%), linear-gradient(transparent, #000 15%, #000 85%, transparent);
+  mask-composite: intersect;
+}
+.cw-landing .cw-how-steps {
+  background: transparent;
+  gap: 0;
+}
+.cw-landing .cw-how-steps li {
+  background: rgb(0 0 0 / 0.55);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+.cw-landing .cw-how-steps li + li {
+  border-left: 1px solid var(--rule);
+}
+.cw-landing .cw-how-steps li:hover {
+  background: rgb(13 13 13 / 0.7);
+}
+@media (max-width: 900px) {
+  .cw-landing .cw-how-steps li + li {
+    border-left: 0;
+    border-top: 1px solid var(--rule);
+  }
 }
