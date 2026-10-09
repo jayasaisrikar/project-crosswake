@@ -1,21 +1,19 @@
 import Link from 'next/link';
-import { ArrowUpRight, Check, Send } from 'lucide-react';
+import {
+  ArrowUpRight,
+  BatteryFull,
+  Check,
+  ChevronLeft,
+  MoreVertical,
+  Send,
+  Signal,
+  Wifi,
+} from 'lucide-react';
 import { telegramUrl } from '@/lib/site';
 
 // Messages mirror the real Telegram cards sent by apps/trend and the 4h digest;
 // prices and results here are demo values.
 const messages = [
-  {
-    time: '08:05',
-    body: (
-      <>
-        <b>📊 Market update · 4h</b>
-        <br />
-        BTC holds above its 100-day average, so the daily trend filter stays{' '}
-        <b>on</b>. Strongest 4h momentum: SOL, INJ, LINK.
-      </>
-    ),
-  },
   {
     time: '00:05',
     tone: 'buy',
@@ -45,6 +43,17 @@ const messages = [
         <br />▸ <b>Reason</b> close below 10-day low
         <br />
         <i>v005 · paper result</i>
+      </>
+    ),
+  },
+  {
+    time: '08:05',
+    body: (
+      <>
+        <b>📊 Market update · 4h</b>
+        <br />
+        BTC holds above its 100-day average, so the daily trend filter stays{' '}
+        <b>on</b>. Strongest 4h momentum: SOL, INJ, LINK.
       </>
     ),
   },
@@ -88,23 +97,48 @@ export function TelegramFeed() {
           </Link>
         </div>
       </div>
-      <figure className="cw-phone" aria-label="Example Telegram channel messages with demo data">
-        <div className="cw-phone-head">
-          <span className="cw-phone-avatar" aria-hidden="true">
-            C
-          </span>
-          <div>
-            <b>Crosswake Signals</b>
-            <small>channel · demo messages</small>
+      <figure
+        className="tg-phone"
+        aria-label="Example Telegram channel messages with demo data"
+      >
+        <div className="tg-screen">
+          <div className="tg-status" aria-hidden="true">
+            <span>9:41</span>
+            <i className="tg-notch" />
+            <span className="tg-status-icons">
+              <Signal size={13} />
+              <Wifi size={13} />
+              <BatteryFull size={16} />
+            </span>
           </div>
-        </div>
-        <div className="cw-phone-feed" data-stagger>
-          {messages.map((m, i) => (
-            <div key={i} className={`cw-msg${m.tone ? ` is-${m.tone}` : ''}`}>
-              <p>{m.body}</p>
-              <time>{m.time} UTC</time>
+          <div className="tg-head">
+            <ChevronLeft size={22} aria-hidden="true" />
+            <span className="tg-avatar" aria-hidden="true">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/brand/logo-mark.png" alt="" />
+            </span>
+            <div className="tg-title">
+              <b>Crosswake Signals</b>
+              <small>channel · demo messages</small>
             </div>
-          ))}
+            <MoreVertical size={18} aria-hidden="true" />
+          </div>
+          <div className="tg-chat" data-stagger>
+            <span className="tg-date">Today</span>
+            {messages.map((m, i) => (
+              <div key={i} className={`tg-post${m.tone ? ` is-${m.tone}` : ''}`}>
+                <span className="tg-post-from">Crosswake Signals</span>
+                <p>{m.body}</p>
+                <span className="tg-meta">
+                  {m.time}
+                </span>
+              </div>
+            ))}
+          </div>
+          <div className="tg-join" aria-hidden="true">
+            <span>Join Channel</span>
+          </div>
+          <i className="tg-home" aria-hidden="true" />
         </div>
       </figure>
     </section>

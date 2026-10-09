@@ -1925,3 +1925,201 @@
   mask-image: linear-gradient(90deg, transparent 20%, #000 60%), linear-gradient(transparent, #000 15%, #000 85%, transparent);
   mask-composite: intersect;
 }
+
+/* ---------- Telegram phone mockup ---------- */
+.tg-phone {
+  margin: 0 auto;
+  width: 100%;
+  max-width: 360px;
+  padding: 11px;
+  border-radius: 52px;
+  background: linear-gradient(145deg, #2a2d2b, #0c0d0c 40%, #1b1d1b);
+  box-shadow:
+    0 0 0 1px rgb(255 255 255 / 0.08),
+    inset 0 0 0 1px rgb(255 255 255 / 0.06),
+    0 50px 100px rgb(0 0 0 / 0.7),
+    0 0 80px rgb(122 199 79 / 0.08);
+}
+.tg-screen {
+  position: relative;
+  border-radius: 42px;
+  overflow: hidden;
+  background: #0e1621;
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', var(--font-body);
+  color: #f5f5f5;
+  height: 640px;
+  display: flex;
+  flex-direction: column;
+}
+.tg-status {
+  position: relative;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 28px 6px;
+  font-size: 14px;
+  font-weight: 600;
+  background: #17212b;
+}
+.tg-notch {
+  position: absolute;
+  left: 50%;
+  top: 9px;
+  width: 104px;
+  height: 30px;
+  border-radius: 20px;
+  background: #000;
+  transform: translateX(-50%);
+}
+.tg-status-icons {
+  display: flex;
+  gap: 5px;
+  align-items: center;
+}
+.tg-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px 10px 8px;
+  background: #17212b;
+  border-bottom: 1px solid #0b1118;
+  color: #6ab3f3;
+}
+.tg-avatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 30% 30%, #1e2b22, #050806);
+  display: grid;
+  place-items: center;
+  flex: none;
+}
+.tg-avatar img {
+  width: 26px;
+  height: 26px;
+}
+.tg-title {
+  flex: 1;
+  min-width: 0;
+  line-height: 1.25;
+}
+.tg-title b {
+  display: block;
+  color: #f5f5f5;
+  font-size: 15px;
+  font-weight: 600;
+}
+.tg-title small {
+  color: #7d8b99;
+  font-size: 12px;
+}
+.tg-head > svg:last-child {
+  color: #7d8b99;
+}
+.tg-chat {
+  flex: 1;
+  overflow: hidden;
+  padding: 10px 10px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background:
+    radial-gradient(circle at 20% 20%, rgb(122 199 79 / 0.05), transparent 40%),
+    radial-gradient(circle at 80% 70%, rgb(106 179 243 / 0.05), transparent 45%),
+    #0e1621;
+}
+.tg-date {
+  align-self: center;
+  padding: 3px 10px;
+  border-radius: 12px;
+  background: rgb(0 0 0 / 0.35);
+  color: #e6e6e6;
+  font-size: 12px;
+  font-weight: 500;
+  opacity: 1 !important;
+  transform: none !important;
+}
+.tg-post {
+  position: relative;
+  max-width: 92%;
+  background: #182533;
+  border-radius: 16px 16px 16px 5px;
+  padding: 7px 11px 6px;
+  font-size: 13.5px;
+  line-height: 1.42;
+}
+.tg-post::before {
+  content: '';
+  position: absolute;
+  left: -6px;
+  bottom: 0;
+  width: 12px;
+  height: 12px;
+  background: radial-gradient(circle at 0 0, transparent 11px, #182533 12px);
+}
+.tg-post-from {
+  display: block;
+  color: #6ab3f3;
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 2px;
+}
+.tg-post p {
+  margin: 0;
+  color: #f5f5f5;
+}
+.tg-post code {
+  font-family: ui-monospace, 'SF Mono', var(--font-record);
+  font-size: 12.5px;
+  color: #a1cf6b;
+}
+.tg-post i {
+  color: #7d8b99;
+  font-size: 12px;
+}
+.tg-post.is-buy {
+  box-shadow: inset 3px 0 0 #7ac74f;
+}
+.tg-post.is-win {
+  box-shadow: inset 3px 0 0 #d5d887;
+}
+.tg-meta {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 4px;
+  margin-top: 2px;
+  font-size: 11px;
+  color: #6d7f8f;
+}
+.tg-join {
+  padding: 12px 14px 26px;
+  background: #17212b;
+  border-top: 1px solid #0b1118;
+  text-align: center;
+}
+.tg-join span {
+  color: #6ab3f3;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+.tg-home {
+  position: absolute;
+  left: 50%;
+  bottom: 8px;
+  width: 120px;
+  height: 4px;
+  border-radius: 4px;
+  background: rgb(255 255 255 / 0.55);
+  transform: translateX(-50%);
+}
+@media (max-width: 540px) {
+  .tg-screen {
+    height: 600px;
+  }
+}
+.cw-landing .cw-tg::before {
+  opacity: 0.22;
+  mask-image: linear-gradient(90deg, transparent 45%, #000 80%), linear-gradient(transparent, #000 15%, #000 85%, transparent);
+}
