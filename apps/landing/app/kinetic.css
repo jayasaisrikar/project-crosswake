@@ -2818,3 +2818,8 @@
     display: none;
   }
 }
+
+/* ---------- Landing body copy reads in full ink; headings and small labels keep the grey ---------- */
+.cw-landing main p:not(.cw-strategy-visual > p) {
+  --ink-secondary: var(--ink);
+}
