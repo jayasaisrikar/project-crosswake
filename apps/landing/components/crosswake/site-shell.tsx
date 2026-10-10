@@ -67,9 +67,10 @@ export function SiteHeader() {
   }, []);
   // The phone menu covers the screen, so the page behind it must not scroll.
   useEffect(() => {
-    document.body.style.overflow = open ? 'hidden' : '';
+    // Lock the root, not <body>: a body scroll container would unstick the sticky header.
+    document.documentElement.style.overflowY = open ? 'hidden' : '';
     return () => {
-      document.body.style.overflow = '';
+      document.documentElement.style.overflowY = '';
     };
   }, [open]);
   const close = () => {
