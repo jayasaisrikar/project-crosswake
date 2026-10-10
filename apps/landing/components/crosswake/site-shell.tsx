@@ -48,7 +48,11 @@ export function SiteHeader() {
       const el = document.getElementById(id);
       if (el) observer.observe(el);
     });
-    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && setMenu(null);
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== 'Escape') return;
+      setMenu(null);
+      setOpen(false);
+    };
     const onDown = (e: PointerEvent) => {
       if (!navRef.current?.contains(e.target as Node)) setMenu(null);
     };
@@ -61,6 +65,13 @@ export function SiteHeader() {
       observer.disconnect();
     };
   }, []);
+  // The phone menu covers the screen, so the page behind it must not scroll.
+  useEffect(() => {
+    document.body.style.overflow = open ? 'hidden' : '';
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [open]);
   const close = () => {
     setOpen(false);
     setMenu(null);
@@ -113,7 +124,13 @@ export function SiteHeader() {
           aria-current={path.startsWith('/docs') ? 'page' : undefined}
           onClick={close}
         >
-          Docs
+          <b>Docs</b>
+          <small>Strategies, signals and how we test</small>
+          <ArrowUpRight size={18} aria-hidden="true" />
+        </Link>
+        <Link className="cw-nav-cta" href={cta} onClick={close}>
+          {telegramUrl ? 'Join Telegram' : 'Get signals'}
+          <ArrowUpRight size={16} aria-hidden="true" />
         </Link>
       </nav>
       <div className="cw-nav-end">

@@ -449,15 +449,6 @@ export default function Workbench() {
                 <span>Exchange execution disabled</span>
               </div>
             </div>
-            <a
-              href="https://github.com/jayasaisrikar/project-crosswake"
-              target="_blank"
-              rel="noreferrer"
-              className="rail-repo"
-            >
-              Open repository
-              <ArrowUpRight size={14} aria-hidden />
-            </a>
             <div className="rail-credit">CROSSWAKE / RESEARCH LAB</div>
           </div>
         </aside>

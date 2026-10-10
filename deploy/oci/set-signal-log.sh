@@ -64,7 +64,6 @@ sudo systemctl restart crosswake@signals-daily crosswake@signals-daily-v006 cros
 echo 'Restarted the daily engines; existing signals are backfilled into the log on this run.'
 cat <<MSG
 
-Now set these on Vercel (landing project), then redeploy:
+Now set this on Vercel (landing project), then redeploy:
   NEXT_PUBLIC_SIGNAL_LOG_BASE=https://raw.githubusercontent.com/$OWNER/$REPO/main
-  NEXT_PUBLIC_SIGNAL_LOG_REPO=$URL/commits/main
 MSG

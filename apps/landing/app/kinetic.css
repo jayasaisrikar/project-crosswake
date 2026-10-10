@@ -2117,14 +2117,6 @@
   font-size: 16px;
   line-height: 1.8;
 }
-.sl-repo {
-  display: inline-flex;
-  gap: 8px;
-  align-items: center;
-  margin-top: 8px;
-  color: var(--signal);
-  font-size: 13px;
-}
 .sl-strategy {
   margin-top: 48px;
   border: 1px solid var(--rule);
@@ -2755,4 +2747,74 @@
 .cw-footer-bottom a,
 .cw-footer-bottom span {
   font-size: 11px;
+}
+
+/* ---------- Phone menu: opaque full-height panel, Docs as a full row, CTA ---------- */
+.cw-nav .cw-nav-link b {
+  font-weight: inherit;
+}
+.cw-nav .cw-nav-link small,
+.cw-nav .cw-nav-link svg,
+.cw-nav .cw-nav-cta {
+  display: none;
+}
+@media (max-width: 540px) {
+  .cw-site .cw-header .cw-nav,
+  .cw-landing .cw-header .cw-nav {
+    align-content: start;
+    min-height: calc(100dvh - 64px);
+    padding: 16px 16px calc(24px + env(safe-area-inset-bottom));
+    background: #050505;
+    overscroll-behavior: contain;
+  }
+  .cw-nav .cw-nav-link {
+    order: -1;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 2px 12px;
+    margin-bottom: 8px;
+    padding: 14px 16px;
+    border: 1px solid var(--rule);
+    border-radius: 12px;
+    background: rgb(255 255 255 / 0.04);
+    color: var(--ink);
+  }
+  .cw-nav .cw-nav-link[aria-current] {
+    border-color: rgb(122 199 79 / 0.4);
+    background: var(--signal-soft);
+  }
+  .cw-nav .cw-nav-link b {
+    font-size: 15px;
+    font-weight: 500;
+  }
+  .cw-nav .cw-nav-link small {
+    display: block;
+    grid-column: 1;
+    font-size: 12px;
+    color: var(--ink-secondary);
+  }
+  .cw-nav .cw-nav-link svg {
+    display: block;
+    grid-column: 2;
+    grid-row: 1 / span 2;
+    color: var(--signal);
+  }
+  .cw-nav .cw-nav-cta {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 48px;
+    margin-top: 12px;
+    padding: 0 20px;
+    border-radius: 999px;
+    background: var(--signal);
+    color: #000;
+    font-size: 14px;
+    font-weight: 500;
+  }
+  .cw-nav .cw-nav-cta::after {
+    display: none;
+  }
 }

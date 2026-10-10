@@ -14,12 +14,6 @@ export const signalLogBase = process.env.NEXT_PUBLIC_SIGNAL_LOG_BASE?.match(
 )
   ? process.env.NEXT_PUBLIC_SIGNAL_LOG_BASE.replace(/\/$/, '')
   : undefined;
-// Browsable history of the same logs (e.g. the GitHub repo's commits page).
-export const signalLogRepo = process.env.NEXT_PUBLIC_SIGNAL_LOG_REPO?.match(
-  /^https:\/\//,
-)
-  ? process.env.NEXT_PUBLIC_SIGNAL_LOG_REPO
-  : undefined;
 export const signalLogs = [
   { file: 'trend-daily-v005.jsonl', label: 'v005 · Daily Trend' },
   { file: 'trend-daily-v006.jsonl', label: 'v006 · Wider universe' },

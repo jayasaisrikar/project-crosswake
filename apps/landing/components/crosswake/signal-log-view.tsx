@@ -1,6 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { CircleAlert, ExternalLink, ShieldCheck, ShieldX } from 'lucide-react';
+import { CircleAlert, ShieldCheck, ShieldX } from 'lucide-react';
 import {
   fingerprint,
   parseLog,
@@ -9,7 +9,7 @@ import {
   type Verification,
 } from '../../../../packages/signal-log/src/index';
 import { SiteFooter, SiteHeader } from './site-shell';
-import { signalLogBase, signalLogRepo, signalLogs } from '@/lib/site';
+import { signalLogBase, signalLogs } from '@/lib/site';
 
 type Loaded =
   | { state: 'loading' }
@@ -164,11 +164,6 @@ export function SignalLogView() {
           it, so no past signal can be edited, reordered or deleted without
           breaking every fingerprint after it.
         </p>
-        {signalLogRepo && (
-          <a className="sl-repo" href={signalLogRepo} target="_blank" rel="noreferrer">
-            Full commit history on GitHub <ExternalLink size={14} aria-hidden="true" />
-          </a>
-        )}
         {signalLogs.map((l) => (
           <Strategy key={l.file} {...l} />
         ))}
