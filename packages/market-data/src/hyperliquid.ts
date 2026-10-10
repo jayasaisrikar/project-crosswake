@@ -2,6 +2,7 @@
  * Read-only client for Hyperliquid's public info API (no key, no signing).
  * Hyperliquid quotes perpetuals by coin name ("BTC", "HYPE"), not by pair.
  */
+import { parseBook, type Book } from './depth.js';
 type Fetch = typeof fetch;
 const pause = (ms: number) => new Promise((r) => setTimeout(r, ms));
 export const HL_INFO_URL = 'https://api.hyperliquid.xyz/info';
@@ -103,7 +104,7 @@ export async function fetchHlCandles(
   const step = INTERVAL_MS[interval],
     now = options.now ?? Date.now(),
     candles: HlCandle[] = [];
-  for (let from = startTs; from < endTs; ) {
+  for (let from = startTs; from < endTs;) {
     const rows = await postInfo<
       { t: number; o: string; h: string; l: string; c: string; v: string }[]
     >(
@@ -142,7 +143,7 @@ export async function fetchHlFunding(
   options: HlOptions = {},
 ) {
   const events: HlFunding[] = [];
-  for (let from = startTs; from < endTs; ) {
+  for (let from = startTs; from < endTs;) {
     const rows = await postInfo<{ time: number; fundingRate: string }[]>(
       { type: 'fundingHistory', coin, startTime: from, endTime: endTs - 1 },
       options,
@@ -185,6 +186,50 @@ export async function fetchHlContexts(options: HlOptions = {}) {
     });
   });
   return out;
+}
+
+export interface HlBook {
+  coin: string;
+  ts: number;
+  book: Book;
+}
+
+export async function fetchHlBook(
+  coin: string,
+  options: HlOptions & { attempts?: number } = {},
+): Promise<HlBook> {
+  const { attempts = 5, ...rest } = options,
+    payload = await postInfo<{
+      coin?: unknown;
+      time?: unknown;
+      levels?: unknown;
+    }>({ type: 'l2Book', coin }, rest, attempts);
+  if (
+    typeof payload?.coin !== 'string' ||
+    !Array.isArray(payload.levels) ||
+    payload.levels.length !== 2
+  )
+    throw new Error('Unexpected l2Book response');
+  const side = (rows: unknown) => {
+    if (!Array.isArray(rows) || !rows.length)
+      throw new Error('Order book side is empty');
+    return rows.map((row) => {
+      const level = row as { px?: unknown; sz?: unknown },
+        price = Number(level?.px),
+        size = Number(level?.sz);
+      if (!(price > 0) || !(size > 0))
+        throw new Error('Invalid order book level');
+      return [price, size] as [number, number];
+    });
+  };
+  const book = parseBook({
+      bids: side(payload.levels[0]),
+      asks: side(payload.levels[1]),
+    }),
+    ts = Number(payload.time);
+  if (!Number.isFinite(ts) || ts <= 0)
+    throw new Error('Unexpected l2Book timestamp');
+  return { coin: payload.coin, ts, book };
 }
 
 /** Current mid price for a perp ("HYPE") or spot market ("@107"). */

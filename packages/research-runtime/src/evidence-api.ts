@@ -5,7 +5,12 @@ import {
   residualSignals,
 } from './residual-evidence.js';
 import { latestContext } from '../../context/src/index.js';
-import { createServer, type Server } from 'node:http';
+import {
+  createServer,
+  type IncomingMessage,
+  type ServerResponse,
+  type Server,
+} from 'node:http';
 import { timingSafeEqual } from 'node:crypto';
 import { readFile, readdir } from 'node:fs/promises';
 import { join } from 'node:path';
@@ -24,10 +29,21 @@ import { listSandboxRuns, runSandbox, sandboxSymbols } from './sandbox.js';
 import { launchExperiment, listJobs } from './experiment-jobs.js';
 import { resolve } from 'node:path';
 /** Dataset sweeps touch thousands of small manifests; they change slowly. */
+// jay logs: we have to increase ts if cache issues in future
 const CACHE_TTL_MS = 30_000;
+/**
+ * Mounted by the composition root (apps/api) for `/research/commerce/*`. The
+ * commerce subsystem owns its own authentication and refuses money-moving
+ * routes without a token, so this server only forwards the request.
+ */
+export type MountedRouter = (
+  request: IncomingMessage,
+  response: ServerResponse,
+  segments: string[],
+) => Promise<boolean>;
 export function createEvidenceServer(
   paths: RuntimePaths,
-  options: { token?: string } = {},
+  options: { token?: string; commerce?: MountedRouter } = {},
 ): Server {
   const cache = new Map<string, { at: number; value: unknown }>();
   const cached = async <T>(key: string, load: () => Promise<T>) => {
@@ -59,6 +75,20 @@ export function createEvidenceServer(
         send(401, { error: 'unauthorized' });
         return;
       }
+    }
+    // jay logs: carry router if present
+    const mounted = new URL(request.url ?? '/', 'http://localhost'),
+      mountedSegments = mounted.pathname
+        .split('/')
+        .filter(Boolean)
+        .map(decodeURIComponent);
+    if (
+      options.commerce &&
+      mountedSegments[0] === 'research' &&
+      mountedSegments[1] === 'commerce'
+    ) {
+      await options.commerce(request, response, mountedSegments);
+      return;
     }
     // Loopback API. Its mutations: a user's own reported fill for a published paper signal,
     // an exploratory sandbox backtest (stored apart from evidence), and starting a frozen
@@ -102,7 +132,8 @@ export function createEvidenceServer(
           send(400, { error: 'invalid_request' });
           return;
         }
-        if (segments[0] === 'sandbox') send(201, await runSandbox(paths.dataDir, input));
+        if (segments[0] === 'sandbox')
+          send(201, await runSandbox(paths.dataDir, input));
         else if (segments[0] === 'jobs')
           try {
             send(202, await launchExperiment(paths, input));
@@ -178,7 +209,14 @@ export function createEvidenceServer(
           200,
           JSON.parse(
             await readFile(
-              join(paths.dataDir, 'sandbox', `${z.string().regex(/^sandbox-[\w-]+$/).parse(segments[1])}.json`),
+              join(
+                paths.dataDir,
+                'sandbox',
+                `${z
+                  .string()
+                  .regex(/^sandbox-[\w-]+$/)
+                  .parse(segments[1])}.json`,
+              ),
               'utf8',
             ),
           ),

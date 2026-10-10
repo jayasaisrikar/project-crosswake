@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  fetchHlBook,
   fetchHlCandles,
   fetchHlContexts,
   fetchHlFunding,
@@ -7,6 +8,7 @@ import {
   hlCoin,
   postInfo,
 } from '../packages/market-data/src/hyperliquid.js';
+import { measureBook, sweepBps } from '../packages/market-data/src/depth.js';
 import { compareCloses } from '../packages/market-data/src/crosscheck.js';
 
 const DAY = 86_400_000;
@@ -79,8 +81,20 @@ describe('hyperliquid client', () => {
       json([
         { universe: [{ name: 'HYPE' }, { name: 'OLD', isDelisted: true }] },
         [
-          { markPx: '85.4', oraclePx: '85.5', funding: '0.0000125', openInterest: '2', dayNtlVlm: '3' },
-          { markPx: '1', oraclePx: '1', funding: '0', openInterest: '0', dayNtlVlm: '0' },
+          {
+            markPx: '85.4',
+            oraclePx: '85.5',
+            funding: '0.0000125',
+            openInterest: '2',
+            dayNtlVlm: '3',
+          },
+          {
+            markPx: '1',
+            oraclePx: '1',
+            funding: '0',
+            openInterest: '0',
+            dayNtlVlm: '0',
+          },
         ],
       ])) as typeof fetch;
     const ctx = await fetchHlContexts({ fetcher });
@@ -96,20 +110,30 @@ describe('compareCloses', () => {
     { ts: 2 * DAY, close: 100 },
   ];
   it('passes small basis and reports the median', () => {
-    const r = compareCloses('X', bn, [
-      { ts: 0, close: 100.02 },
-      { ts: DAY, close: 100.03 },
-      { ts: 2 * DAY, close: 99.99 },
-    ], 50);
+    const r = compareCloses(
+      'X',
+      bn,
+      [
+        { ts: 0, close: 100.02 },
+        { ts: DAY, close: 100.03 },
+        { ts: 2 * DAY, close: 99.99 },
+      ],
+      50,
+    );
     expect(r.status).toBe('ok');
     expect(r.medianGapBps).toBeCloseTo(2);
     expect(r.unmatchedDays).toBe(0);
   });
   it('flags a gap past the threshold and names the day', () => {
-    const r = compareCloses('X', bn, [
-      { ts: 0, close: 100 },
-      { ts: DAY, close: 101 },
-    ], 50);
+    const r = compareCloses(
+      'X',
+      bn,
+      [
+        { ts: 0, close: 100 },
+        { ts: DAY, close: 101 },
+      ],
+      50,
+    );
     expect(r.status).toBe('flagged');
     expect(r.worst!.ts).toBe(DAY);
     expect(r.maxAbsGapBps).toBeCloseTo(100);
@@ -122,8 +146,100 @@ describe('compareCloses', () => {
 
 describe('fetchHlMid', () => {
   it('reads a spot market mid and rejects a missing one', async () => {
-    const fetcher = (async () => json({ '@107': '85.5', BTC: '1' })) as typeof fetch;
+    const fetcher = (async () =>
+      json({ '@107': '85.5', BTC: '1' })) as typeof fetch;
     expect(await fetchHlMid('@107', { fetcher })).toBe(85.5);
-    await expect(fetchHlMid('@999', { fetcher })).rejects.toThrow('No Hyperliquid mid');
+    await expect(fetchHlMid('@999', { fetcher })).rejects.toThrow(
+      'No Hyperliquid mid',
+    );
+  });
+});
+
+/** Shape captured from a live l2Book response: string prices, `{px, sz, n}` rows. */
+const l2Book = (bids: [number, number][], asks: [number, number][]) => ({
+  coin: 'SOL',
+  time: 1_791_640_297_416,
+  levels: [
+    bids.map(([px, sz]) => ({ px: String(px), sz: String(sz), n: 3 })),
+    asks.map(([px, sz]) => ({ px: String(px), sz: String(sz), n: 4 })),
+  ],
+});
+
+describe('fetchHlBook', () => {
+  it('parses the live response shape into a numeric book and reports impact', async () => {
+    const bodies: unknown[] = [],
+      fetcher = (async (_url: string, init: RequestInit) => {
+        bodies.push(JSON.parse(String(init.body)));
+        return json(
+          l2Book(
+            [
+              [109.95, 1000],
+              [109.94, 500],
+            ],
+            [
+              [109.96, 1200],
+              [109.97, 600],
+            ],
+          ),
+        );
+      }) as typeof fetch,
+      { coin, ts, book } = await fetchHlBook('SOL', { fetcher });
+    expect(bodies[0]).toEqual({ type: 'l2Book', coin: 'SOL' });
+    expect(coin).toBe('SOL');
+    expect(ts).toBe(1_791_640_297_416);
+    expect(book.bids).toEqual([
+      [109.95, 1000],
+      [109.94, 500],
+    ]);
+    expect(book.asks[0]).toEqual([109.96, 1200]);
+    const measured = measureBook(book, [10_000]);
+    expect(measured.spreadBps).toBeCloseTo(0.9095, 3);
+    expect(measured.bidDepthUsdt).toBeCloseTo(109_950 + 54_970, 3);
+    // Walking both sides of the visible book.
+    expect(sweepBps(book.asks, measured.mid, 250_000, true)).toBeNull();
+    expect(measureBook(book, [250_000]).impact[0]!.buyBps).toBeNull();
+  });
+
+  it('bounds its retries so a venue outage cannot stall a research run', async () => {
+    let calls = 0;
+    const dead = (async () => {
+      calls++;
+      throw new Error('connection refused');
+    }) as typeof fetch;
+    await expect(
+      fetchHlBook('SOL', { fetcher: dead, attempts: 1 }),
+    ).rejects.toThrow('connection refused');
+    expect(calls).toBe(1);
+  });
+
+  it('rejects a crossed book, an empty side and an unexpected payload', async () => {
+    const crossed = (async () =>
+      json(l2Book([[100, 1]], [[99, 1]]))) as typeof fetch;
+    await expect(fetchHlBook('SOL', { fetcher: crossed })).rejects.toThrow(
+      'Crossed order book',
+    );
+    const emptySide = (async () =>
+      json({
+        coin: 'SOL',
+        time: 1,
+        levels: [[], [{ px: '1', sz: '1' }]],
+      })) as typeof fetch;
+    await expect(fetchHlBook('SOL', { fetcher: emptySide })).rejects.toThrow(
+      'Order book side is empty',
+    );
+    const noLevels = (async () =>
+      json({ coin: 'SOL', time: 1 })) as typeof fetch;
+    await expect(fetchHlBook('SOL', { fetcher: noLevels })).rejects.toThrow(
+      'Unexpected l2Book response',
+    );
+    const badTimestamp = (async () =>
+      json({
+        coin: 'SOL',
+        time: 'soon',
+        levels: [[{ px: '1', sz: '1' }], [{ px: '2', sz: '1' }]],
+      })) as typeof fetch;
+    await expect(fetchHlBook('SOL', { fetcher: badTimestamp })).rejects.toThrow(
+      'Unexpected l2Book timestamp',
+    );
   });
 });

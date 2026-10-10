@@ -13,8 +13,10 @@ case "$1" in
   retention)    exec node --import tsx apps/retention/src/main.ts --watch ;;
   api)          exec node --import tsx apps/api/src/main.ts ;;
   dashboard)    cd apps/dashboard && exec node node_modules/next/dist/bin/next start --hostname 127.0.0.1 --port 3000 ;;
-  signals-spot) exec node --import tsx apps/residual/src/main.ts live --config configs/residual-spot-v003.json ;;
-  signals-perp) exec node --import tsx apps/residual/src/main.ts live --config configs/catchdown-perp-v004.json ;;
+  # v003 and v004 failed their tests: they keep running on paper for observation but never post.
+  # The variable set here wins because loadEnvFile does not override the existing environment.
+  signals-spot) TELEGRAM_ENABLED=false exec node --import tsx apps/residual/src/main.ts live --config configs/residual-spot-v003.json ;;
+  signals-perp) TELEGRAM_ENABLED=false exec node --import tsx apps/residual/src/main.ts live --config configs/catchdown-perp-v004.json ;;
   signals-daily) exec node --import tsx apps/trend/src/main.ts live ;;
   signals-daily-v006) exec node --import tsx apps/trend/src/main.ts live --plan configs/trend-plan-v006.json ;;
   signals-htf-v007) exec node --import tsx apps/htf/src/main.ts live ;;

@@ -115,8 +115,8 @@ const versions = [
   ['v005', 'Daily trend', 'Live paper', 'live'],
   ['v006', 'Daily trend · wider universe', 'Live paper', 'live'],
   ['v007', '15m RSI perp', 'Failed test', 'fail'],
+  ['v004', 'Catch-down shorts', 'Failed test', 'fail'],
   ['v003', 'Laggard catch-up', 'Failed test', 'fail'],
-  ['v001', 'BTC lead-lag', 'Rejected', 'fail'],
 ] as const;
 
 export function LabDemo() {

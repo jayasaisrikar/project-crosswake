@@ -21,9 +21,23 @@ const body = `
 - One coin (ZEC, up 24.7x) drives much of the result; without it v005 was roughly flat while holding the other coins lost about 46%.
 - Re-pricing every trade 1 or 4 hours after the daily open barely changes the result.
 - Live paper tracking started 1 October 2026 (v005) and 9 October 2026 (v006, 36 coins).
+- First live signal: ATOM entry at 2.066 on 10 October 2026, open and about 6.7% below entry that day.
+
+## Hyperliquid data
+- Crosswake reads Hyperliquid's public API (no key, no payment) for perp prices, funding, open interest and order-book depth.
+- Order-book depth and market impact are therefore measured in-house rather than bought, and are labelled as a cross-venue proxy because Hyperliquid's book is for perpetuals, not spot.
+- Prices and funding are cross-checked against Binance daily closes.
+
+## Research agent (simulation only)
+- Crosswake works out which facts its own research is missing, checks whether a paid source is worth the money, and can buy one through x402.
+- Purchases run against local fixtures in simulation. No real money has moved and no on-chain payment has been made.
+- A language model may request a purchase; it cannot sign, pay, change a cap or approve its own request. Caps, allowlists and an emergency stop are enforced in code.
+- Paid evidence never changes signal confidence on its own, and it is recorded separately from Crosswake's own measurements.
 
 ## Research record
 - Seven strategy versions so far; five failed or were retired (v001–v004, v007). All remain public.
+- Only v005 and v006 send signals. v003, v004 and v007 run on paper for observation and send nothing.
+- v004 posted 10 short alerts to the channel between 8 and 10 October 2026 while listed as failed; this was disclosed in the changelog and its delivery was turned off.
 
 ## Pages
 - [Home](${siteUrl}/): what Crosswake is and how signals work
@@ -36,8 +50,11 @@ const body = `
 - [Reading a signal](${siteUrl}/docs/signals)
 - [Validation standard](${siteUrl}/docs/validation)
 - [Market updates](${siteUrl}/docs/market-updates)
+- [Research agent](${siteUrl}/docs/research-agent)
 `;
 
 export function GET() {
-  return new Response(body, { headers: { 'Content-Type': 'text/plain; charset=utf-8' } });
+  return new Response(body, {
+    headers: { 'Content-Type': 'text/plain; charset=utf-8' },
+  });
 }

@@ -56,7 +56,23 @@
     "status:live": "tsx apps/status/src/main.ts",
     "status:preview": "tsx apps/status/src/main.ts --dry-run",
     "venue:check": "tsx apps/venue/src/main.ts",
-    "data:retention": "tsx apps/retention/src/main.ts"
+    "data:retention": "tsx apps/retention/src/main.ts",
+    "commerce:demo": "tsx apps/commerce/src/main.ts demo",
+    "commerce:run": "tsx apps/commerce/src/main.ts run",
+    "commerce:providers": "tsx apps/commerce/src/main.ts providers",
+    "commerce:offers": "tsx apps/commerce/src/main.ts offers",
+    "commerce:budget": "tsx apps/commerce/src/main.ts budget",
+    "commerce:purchases": "tsx apps/commerce/src/main.ts purchases",
+    "commerce:purchase": "tsx apps/commerce/src/main.ts purchase",
+    "commerce:audit": "tsx apps/commerce/src/main.ts audit",
+    "commerce:approve": "tsx apps/commerce/src/main.ts approve",
+    "commerce:decline": "tsx apps/commerce/src/main.ts decline",
+    "commerce:execute": "tsx apps/commerce/src/main.ts execute",
+    "commerce:reconcile": "tsx apps/commerce/src/main.ts reconcile",
+    "commerce:disable": "tsx apps/commerce/src/main.ts disable",
+    "commerce:enable": "tsx apps/commerce/src/main.ts enable",
+    "commerce:evaluate": "tsx apps/commerce/src/main.ts evaluate",
+    "commerce:agent": "tsx apps/commerce/src/main.ts agent"
   },
   "dependencies": {
     "@ai-sdk/openai": "^4.0.86",
@@ -67,6 +83,7 @@
     "ai": "^7.0.130",
     "pino": "^10.0.0",
     "unzipper": "^0.12.3",
+    "viem": "^2.57.4",
     "ws": "^8.18.0",
     "zod": "^4.0.0"
   },

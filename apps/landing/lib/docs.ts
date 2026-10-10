@@ -6,12 +6,14 @@ export type DocSection = {
 };
 export const docs: {
   slug: string;
+  nav: string;
   title: string;
   description: string;
   sections: DocSection[];
 }[] = [
   {
     slug: '',
+    nav: 'Introduction',
     title: 'Meet Crosswake.',
     description:
       'A clear starting point for the signals, the strategies, and the evidence behind them.',
@@ -35,13 +37,15 @@ export const docs: {
           'Reading signals: understand entries, exits, and the difference between a signal and market context.',
           'Validation: see why a positive average does not automatically prove an edge.',
           'Market updates: understand the four-hour summaries and their boundaries.',
+          'Research agent: how Crosswake decides whether a missing fact is worth paying for.',
         ],
       },
       {
         id: 'hyperliquid',
         title: 'Hyperliquid integration',
         paragraphs: [
-          'Crosswake is integrating Hyperliquid, an on-chain perpetuals exchange. The first step is market data: Hyperliquid prices, funding and open interest, starting with HYPE, cross-checked against our Binance data.',
+          'Crosswake reads Hyperliquid, an on-chain perpetuals exchange, for market data: prices, funding and open interest, cross-checked against our Binance data. Hyperliquid prices and funding also feed the HYPE coverage in v006.',
+          'Hyperliquid order-book depth is now part of research too. It is free and needs no key, so Crosswake measures its own liquidity instead of treating it as a fact it has to buy. The order book is for perpetuals, so it is recorded as a cross-venue proxy rather than a spot measurement.',
           'Later, once a strategy passes live paper confirmation, Hyperliquid could make results publicly verifiable: every order and fill sits on-chain under a public address. Until then, nothing changes: all strategies stay in paper mode and no real orders are placed.',
         ],
       },
@@ -49,7 +53,7 @@ export const docs: {
         id: 'status',
         title: 'Current stage',
         paragraphs: [
-          'The signal dashboard, paper tracking, Telegram paper alerts, and four-hour market summaries are running. v005 began live paper tracking on 1 October 2026; v006 began on 9 October 2026.',
+          'The signal dashboard, paper tracking, Telegram paper alerts, and four-hour market summaries are running. v005 began live paper tracking on 1 October 2026; v006 began on 9 October 2026. The first live signal, an ATOM entry, was sent on 10 October 2026.',
           'Research results are not a promise of future performance. The main strategy’s unseen-data confidence interval includes zero, so its edge remains unproven.',
         ],
       },
@@ -57,6 +61,7 @@ export const docs: {
   },
   {
     slug: 'strategies',
+    nav: 'Strategies',
     title: 'Every strategy. On record.',
     description:
       'The rules, the differences, and the outcomes—including the ideas that did not work.',
@@ -92,16 +97,25 @@ export const docs: {
         ],
       },
       {
+        id: 'live-record',
+        title: 'The live record so far',
+        paragraphs: [
+          'Only v005 and v006 send signals. As of 10 October 2026 they have sent one: an ATOM entry at 2.066 after that day’s close, marked about 6.7% below entry later the same day. It stays open until the exit rule closes it.',
+          'One open trade says nothing about the strategy. In testing about two trades in three lost and the average winner was roughly +19%, so a losing start is the expected case, not a surprise. Every live signal is added to the record, win or lose.',
+        ],
+      },
+      {
         id: 'failed-research',
         title: 'Retired and failed research',
         paragraphs: [
           'Failed strategies remain part of the record. They are not quietly retuned and presented as fresh successes.',
+          'v003, v004 and v007 still run on paper so their forward behavior can be compared with the tests. They send no signals.',
         ],
         items: [
           'v001: seconds-scale Bitcoin lead–lag. Responses were too fast for a person to act. Retired.',
           'v002: delayed entries and cost-aware forecasts. No tradable signals. Retired.',
-          'v003: hour-scale altcoin catch-up. Variants lost money or produced insufficient trades. Failed.',
-          'v004: shorting altcoins that held up while Bitcoin fell. −0.46% per trade across 349 trades. Failed.',
+          'v003: hour-scale altcoin catch-up. Variants lost money or produced insufficient trades. Failed; paper observation only.',
+          'v004: shorting altcoins that held up while Bitcoin fell. −0.46% per trade across 349 trades. Failed; paper observation only. Its first 8 live paper trades averaged −0.84%.',
           'v007: 15-minute RSI rebounds in a four-hour trend on BTC, ETH, and SOL futures. The unseen test had 32 trades, −0.15R per trade, and a 0.79 profit factor. Failed; paper observation only.',
         ],
       },
@@ -109,6 +123,7 @@ export const docs: {
   },
   {
     slug: 'signals',
+    nav: 'Reading signals',
     title: 'Read a signal clearly.',
     description:
       'Know what a paper signal means before interpreting its outcome.',
@@ -146,6 +161,7 @@ export const docs: {
   },
   {
     slug: 'validation',
+    nav: 'Validation',
     title: 'Evidence has a standard.',
     description:
       'How Crosswake separates an interesting result from a reliable conclusion.',
@@ -178,7 +194,7 @@ export const docs: {
         title: 'Report uncertainty, not just averages',
         paragraphs: [
           'A positive mean is only one part of the result. Crosswake considers sample size, profit factor, and a 95% confidence interval. The validation standard requires positive expectancy with a confidence interval above zero.',
-          'v005 has a positive test average, but its confidence interval crosses zero. It has not established a proven edge. v007 failed its test and runs only for observation.',
+          'v005 has a positive test average, but its confidence interval crosses zero. It has not established a proven edge. v003, v004 and v007 failed their tests and run only for observation.',
         ],
       },
       {
@@ -193,6 +209,7 @@ export const docs: {
   },
   {
     slug: 'market-updates',
+    nav: 'Market updates',
     title: 'Context between signals.',
     description:
       'Four-hour market summaries, kept separate from strategy decisions.',
@@ -223,6 +240,67 @@ export const docs: {
         title: 'Context is not a trade call',
         paragraphs: [
           'A market summary describes observed conditions. It does not create or override a strategy signal. Trade signals come only from the strategy rules.',
+        ],
+      },
+    ],
+  },
+  {
+    slug: 'research-agent',
+    nav: 'Research agent',
+    title: 'Buying evidence, not opinions.',
+    description:
+      'How Crosswake decides whether a missing fact is worth paying for, and what Hyperliquid now supplies for free.',
+    sections: [
+      {
+        id: 'why',
+        title: 'Why a research agent',
+        paragraphs: [
+          'A strategy can only be as good as the facts behind it. When Crosswake evaluates a coin, some of what matters is already in our own data and some of it is not.',
+          'Rather than assume a missing metric must be bought, Crosswake first works out what it genuinely cannot measure itself. That list is short, it is written down, and it shrinks as our own coverage improves.',
+        ],
+      },
+      {
+        id: 'decision',
+        title: 'How a purchase would be decided',
+        paragraphs: [
+          'Every step below is ordinary code, not a language model’s judgement. The model may ask for a purchase. It can never make one.',
+        ],
+        items: [
+          'What is missing: the metric needed is compared against evidence already held, and anything already covered and fresh is ignored.',
+          'Who sells it: only providers an operator has registered and verified are considered. Prices come from the seller’s own quote, never from a model.',
+          'Is it worth the price: the offer is filtered against fixed caps and allowlists, then scored on relevance, freshness, coverage and reliability. Cheaper is not automatically better.',
+          'Who authorises it: a person approves each purchase. Hard caps apply per payment, per research run and per day, and an emergency stop halts spending immediately.',
+          'Was the data any good: a paid payload is checked for schema, asset, freshness, duplicates and hidden instructions before it is used. A settled payment does not prove the data is correct.',
+        ],
+      },
+      {
+        id: 'hyperliquid',
+        title: 'Where Hyperliquid fits',
+        paragraphs: [
+          'Hyperliquid is an on-chain perpetuals exchange whose public data needs no key and no payment. Crosswake already reads its prices, funding and open interest, and now reads its order book as well.',
+          'That matters for cost. Order-book depth and market impact were two of the metrics Crosswake could not measure itself, so they sat on the list of things worth buying. With Hyperliquid’s book they no longer do: the research run measures its own liquidity, and the buy list shrinks to what genuinely cannot be obtained for free.',
+          'One caveat, stated plainly. Hyperliquid’s order book is for perpetuals, so it is a cross-venue proxy for spot liquidity rather than a measurement of the spot market. Our evidence records it that way.',
+        ],
+      },
+      {
+        id: 'status',
+        title: 'What is live, and what is not',
+        paragraphs: [
+          'Live: Hyperliquid market data feeds research, including prices, funding, open interest and order-book depth.',
+          'Not live: the purchase path. It runs against local fixtures in simulation. No real money has moved, no on-chain payment has been made, and no purchase has been authorised by a person.',
+          'Buying data never changes a signal on its own. Paid evidence is recorded separately from our own measurements, and it cannot raise confidence without a rule that can be tested. No such rule exists yet.',
+        ],
+      },
+      {
+        id: 'limits',
+        title: 'Hard limits',
+        paragraphs: [
+          'These are enforced in code, independently of anything the model is told.',
+        ],
+        items: [
+          'The model cannot sign a payment, move funds, change a spending cap, change a recipient, or approve its own request.',
+          'Only registered providers, approved recipients, one blockchain network and one payment asset are reachable.',
+          'Every purchase attempt is written to an append-only ledger, including the attempts that were refused and the reason.',
         ],
       },
     ],

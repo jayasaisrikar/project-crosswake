@@ -1,0 +1,73 @@
+{
+  "version": "commerce-registry-v001",
+  "comment": "Manually verified service registry. Every entry needs a documented endpoint and payment terms. Mock entries are deterministic local fixtures, not real vendors. Prices are metadata, never LLM-generated; a live quote always comes from the seller's 402 challenge.",
+  "providers": [
+    {
+      "providerId": "mock-liquidity-analytics",
+      "serviceId": "orderbook-liquidity-v1",
+      "name": "Mock Liquidity Analytics",
+      "description": "Order-book depth and market-impact liquidity for a spot asset.",
+      "endpoint": "https://mock-liquidity.invalid/v1/liquidity",
+      "supportedAssets": ["SOLUSDT", "BTCUSDT", "ETHUSDT"],
+      "supportedDataTypes": ["order_book_depth", "market_impact_liquidity"],
+      "supportedNetworks": ["eip155:84532"],
+      "acceptedPaymentAsset": "0x036CbD53842c5426634e7929541eC2318f3dCF7e",
+      "acceptedPaymentAssetSymbol": "USDC",
+      "quotedPrice": "0.05",
+      "quoteExpirationMs": 120000,
+      "dataFreshness": "5m",
+      "responseSchema": "liquidity-v1",
+      "providerIdentity": "mock://mock-liquidity-analytics",
+      "verificationStatus": "mock",
+      "reliability": 0.9,
+      "historicalValidationPass": 0.95,
+      "payTo": "0x1111111111111111111111111111111111111111"
+    },
+    {
+      "providerId": "mock-market-intel",
+      "serviceId": "holder-flow-v1",
+      "name": "Mock Market Intelligence",
+      "description": "Holder concentration and token flow metrics for a spot asset.",
+      "endpoint": "https://mock-intel.invalid/v1/flows",
+      "supportedAssets": ["SOLUSDT", "ETHUSDT"],
+      "supportedDataTypes": [
+        "holder_concentration",
+        "token_flow_metrics",
+        "onchain_liquidity"
+      ],
+      "supportedNetworks": ["eip155:84532"],
+      "acceptedPaymentAsset": "0x036CbD53842c5426634e7929541eC2318f3dCF7e",
+      "acceptedPaymentAssetSymbol": "USDC",
+      "quotedPrice": "0.08",
+      "quoteExpirationMs": 120000,
+      "dataFreshness": "1h",
+      "responseSchema": "flows-v1",
+      "providerIdentity": "mock://mock-market-intel",
+      "verificationStatus": "mock",
+      "reliability": 0.7,
+      "historicalValidationPass": 0.8,
+      "payTo": "0x2222222222222222222222222222222222222222"
+    },
+    {
+      "providerId": "unverified-example-seller",
+      "serviceId": "everything-scraper-v1",
+      "name": "Unverified Example Seller",
+      "description": "Presence-only example of a seller that is NOT allowlisted and whose recipient is not approved. Used to prove the allowlist rejects it.",
+      "endpoint": "https://unverified.invalid/scrape",
+      "supportedAssets": ["SOLUSDT"],
+      "supportedDataTypes": ["order_book_depth"],
+      "supportedNetworks": ["eip155:84532"],
+      "acceptedPaymentAsset": "0x036CbD53842c5426634e7929541eC2318f3dCF7e",
+      "acceptedPaymentAssetSymbol": "USDC",
+      "quotedPrice": "0.01",
+      "quoteExpirationMs": 120000,
+      "dataFreshness": "1d",
+      "responseSchema": "liquidity-v1",
+      "providerIdentity": "unverified://example",
+      "verificationStatus": "unverified",
+      "reliability": 0.2,
+      "historicalValidationPass": 0.1,
+      "payTo": "0x9999999999999999999999999999999999999999"
+    }
+  ]
+}

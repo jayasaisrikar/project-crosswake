@@ -14,6 +14,7 @@ import { signalLogBase, signalLogRepo, signalLogs } from '@/lib/site';
 type Loaded =
   | { state: 'loading' }
   | { state: 'missing' }
+  | { state: 'offline' }
   | { state: 'error'; message: string }
   | { state: 'ready'; log: SignalLogEntry[]; check: Verification };
 
@@ -28,7 +29,7 @@ const utc = (ms: number) =>
 function useLog(file: string): Loaded {
   const [s, set] = useState<Loaded>({ state: 'loading' });
   useEffect(() => {
-    if (!signalLogBase) return set({ state: 'missing' });
+    if (!signalLogBase) return set({ state: 'offline' });
     let live = true;
     fetch(`${signalLogBase}/${file}`, { cache: 'no-store' })
       .then(async (r) => {
@@ -73,6 +74,13 @@ function Strategy({ file, label }: { file: string; label: string }) {
         <p className="sl-quiet">
           No public entries yet. The first signal will appear here the moment
           it is sent.
+        </p>
+      )}
+      {s.state === 'offline' && (
+        <p className="sl-quiet">
+          The public copy of this log is not connected yet, so there is nothing
+          to verify here for now. Signals are already being recorded and will
+          appear with their fingerprints once it is.
         </p>
       )}
       {s.state === 'error' && (

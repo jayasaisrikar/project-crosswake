@@ -75,4 +75,4 @@ Discarding ideas that don't hold up is the core of the product.
 
 *Crosswake is research software. Signals are not financial advice, and past performance doesn't guarantee future results.*
 
-<sub>Developers: see the [technical reference](docs/reference.md).</sub>
+<sub>Developers: see the [technical reference](docs/reference.md). The research purchasing agent (x402, mock-first) is documented in [docs/agentic-commerce](docs/agentic-commerce/README.md).</sub>
