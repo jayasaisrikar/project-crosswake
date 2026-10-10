@@ -2823,3 +2823,8 @@
 .cw-landing main p:not(.cw-strategy-visual > p) {
   --ink-secondary: var(--ink);
 }
+
+/* ---------- Landing headings: the second line takes the signal green instead of grey ---------- */
+.cw-landing main h2 > span {
+  --ink-secondary: var(--signal);
+}
