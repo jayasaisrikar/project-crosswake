@@ -4,7 +4,7 @@ import { PerformanceView } from '@/components/crosswake/performance-view';
 export const metadata = pageMeta({
   title: 'Performance',
   description:
-    'v005 portfolio results on unseen data: +12.8% with a −16.9% maximum drawdown, against −53% for holding BTC. Equity curve, delay test and all 243 trades.',
+    'v005 on unseen data: +12.8% with a −16.9% maximum drawdown; holding the same coins made +40.5% with a −54.2% drawdown. Without ZEC, v005 is about flat. All 243 trades.',
   path: '/performance',
 });
 export default function Page() {
