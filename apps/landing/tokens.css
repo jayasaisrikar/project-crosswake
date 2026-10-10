@@ -1,11 +1,11 @@
 /* Hallmark · pre-emit critique: P4 H5 E4 S5 R4 V4 */
 :root {
-  --paper: #000000;
-  --surface: #0d0d0d;
-  --surface-muted: #181818;
+  --paper: #0b0d0c;
+  --surface: #141716;
+  --surface-muted: #1e2220;
   --ink: #f2f2ee;
-  --ink-secondary: #9a9a94;
-  --rule: #232323;
+  --ink-secondary: #a8a8a2;
+  --rule: #2a2e2c;
   --signal: #7ac74f;
   --signal-soft: rgb(122 199 79 / 0.14);
   --signal-ink: #0b1206;

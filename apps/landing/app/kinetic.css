@@ -1,12 +1,12 @@
 /* Hallmark · macrostructure: Feature Stack · tone: kinetic crypto research · anchor hue: orange
  * pre-emit critique: P4 H5 E5 S5 R4 V5 · screenshot-led product narrative */
 .cw-landing {
-  --paper: #000000;
-  --surface: #0d0d0d;
-  --surface-muted: #181818;
+  --paper: #0b0d0c;
+  --surface: #141716;
+  --surface-muted: #1e2220;
   --ink: #f2f2ee;
-  --ink-secondary: #9a9a94;
-  --rule: #232323;
+  --ink-secondary: #a8a8a2;
+  --rule: #2a2e2c;
   --signal: #7ac74f;
   --color-halo: rgb(122 199 79 / 0.12);
   --color-shadow: rgb(0 0 0 / 0.5);
@@ -756,7 +756,7 @@
     box-shadow 0.4s var(--ease-in-out);
 }
 .cw-landing .cw-header.is-scrolled {
-  background: rgb(0 0 0 / 0.72);
+  background: rgb(11 13 12 / 0.78);
   backdrop-filter: blur(18px) saturate(1.4);
   -webkit-backdrop-filter: blur(18px) saturate(1.4);
   border-color: rgb(122 199 79 / 0.18);
@@ -1229,7 +1229,7 @@
   height: 100%;
   display: flex;
   flex-direction: column;
-  background: #050505;
+  background: #101312;
   border: 1px solid var(--rule);
   border-radius: 10px;
   overflow: hidden;
@@ -1516,11 +1516,11 @@
   margin: 0;
   border: 1px solid var(--rule);
   border-radius: 28px;
-  background: #0b0b0b;
+  background: #121514;
   padding: 14px;
   box-shadow:
     0 40px 100px var(--color-shadow),
-    0 0 0 6px #161616;
+    0 0 0 6px #1f2321;
 }
 .cw-phone-head {
   display: flex;
@@ -1550,7 +1550,7 @@
   padding: 14px 4px 4px;
 }
 .cw-msg {
-  background: #151515;
+  background: #1b1f1d;
   border-radius: 14px 14px 14px 4px;
   padding: 12px 14px 8px;
   font-size: 13px;
@@ -1809,7 +1809,7 @@
   }
 }
 .cw-landing .cw-docs-callout {
-  background: #070907;
+  background: #101311;
   color: var(--ink);
   border: 1px solid rgb(122 199 79 / 0.28);
   border-radius: 10px;
@@ -1867,7 +1867,7 @@
   gap: 0;
 }
 .cw-landing .cw-how-steps li {
-  background: rgb(0 0 0 / 0.55);
+  background: rgb(11 13 12 / 0.55);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
 }
@@ -1875,7 +1875,7 @@
   border-left: 1px solid var(--rule);
 }
 .cw-landing .cw-how-steps li:hover {
-  background: rgb(13 13 13 / 0.7);
+  background: rgb(20 23 22 / 0.7);
 }
 @media (max-width: 900px) {
   .cw-landing .cw-how-steps li + li {
@@ -2121,7 +2121,7 @@
   margin-top: 48px;
   border: 1px solid var(--rule);
   border-radius: 12px;
-  background: #070707;
+  background: var(--surface);
   padding: 22px;
 }
 .sl-strategy > header {
@@ -2304,7 +2304,7 @@
   position: relative;
   border: 1px solid var(--rule);
   border-radius: 12px;
-  background: #0b0b0b;
+  background: var(--surface);
   padding: 12px 8px 4px;
 }
 .pf-chart svg {
@@ -2342,7 +2342,7 @@
   gap: 4px;
   padding: 10px 12px;
   border-radius: 8px;
-  background: rgb(18 18 18 / 0.95);
+  background: rgb(30 34 32 / 0.95);
   border: 1px solid var(--rule);
   font-size: 12px;
   color: var(--ink);
@@ -2453,7 +2453,7 @@
   padding: 8px;
   border: 1px solid var(--rule);
   border-radius: 12px;
-  background: rgb(8 8 8 / 0.96);
+  background: rgb(20 23 22 / 0.97);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   box-shadow: 0 24px 60px rgb(0 0 0 / 0.6);
@@ -2553,7 +2553,7 @@
     border-radius: 0;
     border-width: 0 0 1px;
     padding: 12px 16px;
-    background: rgb(0 0 0 / 0.82);
+    background: rgb(11 13 12 / 0.86);
     backdrop-filter: blur(16px) saturate(1.3);
     -webkit-backdrop-filter: blur(16px) saturate(1.3);
     box-shadow: none;
@@ -2568,7 +2568,7 @@
     right: 0;
     border-radius: 0;
     border-width: 0 0 1px;
-    background: rgb(0 0 0 / 0.96);
+    background: var(--paper);
     max-height: calc(100dvh - 64px);
     overflow-y: auto;
   }
@@ -2606,7 +2606,7 @@
   border: 1px solid var(--rule);
   border-radius: 10px;
   overflow: hidden;
-  background: #0b0b0b;
+  background: var(--surface);
 }
 .pf-stats > div {
   display: flex;
@@ -2764,7 +2764,7 @@
     align-content: start;
     min-height: calc(100dvh - 64px);
     padding: 16px 16px calc(24px + env(safe-area-inset-bottom));
-    background: #050505;
+    background: var(--paper);
     overscroll-behavior: contain;
   }
   .cw-nav .cw-nav-link {

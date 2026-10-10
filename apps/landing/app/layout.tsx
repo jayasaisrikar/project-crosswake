@@ -38,7 +38,7 @@ export const metadata: Metadata = {
   },
   robots: { index: true, follow: true },
 };
-export const viewport: Viewport = { themeColor: '#000000', colorScheme: 'dark' };
+export const viewport: Viewport = { themeColor: '#0b0d0c', colorScheme: 'dark' };
 
 const sans = Geist({ subsets: ['latin'], variable: '--font-geist' });
 const mono = Geist_Mono({ subsets: ['latin'], variable: '--font-geist-mono' });

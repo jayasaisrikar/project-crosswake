@@ -128,7 +128,7 @@ function EquityChart({ points }: { points: Point[] }) {
         ))}
         {ends.map((s) => (
           <g key={s.key}>
-            <circle cx={x(n - 1)} cy={y(points[n - 1]![s.key])} r={4} fill={s.color} stroke="#0b0b0b" strokeWidth={2} />
+            <circle cx={x(n - 1)} cy={y(points[n - 1]![s.key])} r={4} fill={s.color} stroke="#141716" strokeWidth={2} />
             <text className="pf-end" x={x(n - 1) + 10} y={s.y + 4}>
               {s.short} {pct(points[n - 1]![s.key] - 1, 0)}
             </text>
@@ -138,7 +138,7 @@ function EquityChart({ points }: { points: Point[] }) {
           <g>
             <line className="pf-cross" x1={x(hover.i!)} x2={x(hover.i!)} y1={PAD.t} y2={H - PAD.b} />
             {SERIES.map((s) => (
-              <circle key={s.key} cx={x(hover.i!)} cy={y(h[s.key])} r={4} fill={s.color} stroke="#0b0b0b" strokeWidth={2} />
+              <circle key={s.key} cx={x(hover.i!)} cy={y(h[s.key])} r={4} fill={s.color} stroke="#141716" strokeWidth={2} />
             ))}
           </g>
         )}
