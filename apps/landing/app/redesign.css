@@ -716,9 +716,9 @@ body {
 }
 .cw-doc-article section p,
 .cw-doc-article li {
-  font-size: 14px;
-  line-height: 1.95;
-  color: var(--ink-secondary);
+  font-size: 15px;
+  line-height: 1.9;
+  color: var(--ink);
   margin: 14px 0;
 }
 .cw-doc-article ul {
@@ -1036,6 +1036,53 @@ body {
   }
   .cw-doc-toc {
     padding: 20px;
+  }
+}
+/* Docs page change: the title rises word by word out of a mask, the rest settles in behind it.
+   The resting state is the visible one, so reduced motion (animation: none) shows everything. */
+.cw-doc-word {
+  display: inline-block;
+  white-space: pre;
+  overflow: hidden;
+  vertical-align: bottom;
+  padding-bottom: 0.12em;
+  margin-bottom: -0.12em;
+}
+.cw-doc-word > span {
+  display: inline-block;
+  animation: cw-doc-word-in 0.9s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.cw-doc-breadcrumb,
+.cw-doc-lead,
+.cw-doc-meta,
+.cw-doc-toc,
+.cw-doc-article section,
+.cw-doc-pagination {
+  animation: cw-doc-settle 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.cw-doc-lead {
+  animation-delay: 0.22s;
+}
+.cw-doc-meta {
+  animation-delay: 0.3s;
+}
+.cw-doc-toc {
+  animation-delay: 0.36s;
+}
+.cw-doc-pagination {
+  animation-delay: 0.7s;
+}
+@keyframes cw-doc-word-in {
+  from {
+    transform: translateY(110%) rotate(4deg);
+    opacity: 0;
+  }
+}
+@keyframes cw-doc-settle {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+    filter: blur(6px);
   }
 }
 @media (prefers-reduced-motion: reduce) {
