@@ -3,10 +3,15 @@ paper:
   initial_capital: 100000.0
   dir: data/paper                     # ledger, fills, equity and signal log (gitignored)
   min_trade_frac: 0.001               # skip trades smaller than 0.1% of equity
+  max_fill_lag_bars: 1                # stale-order rule: cancel a pending order whose fill bar is > 1 bar
+                                      # older than the latest closed bar (engine was down); decide afresh
 feed:
   history_days: 200                   # on-disk + fetched history; >= max trend lookback (120d) + vol (30d)
   timeout_s: 15
-  retries: 4
+  retries: 4                          # 429/5xx/network only; 451/403/418 abort the step at once
+  step_deadline_s: 600                # whole `engine live step` fetch budget (all versions); keep the
+                                      # scheduler limit above it (Task Scheduler 30 min, cron timeout 50m)
+  cache_dir: data/paper/live_cache    # closed live bars + funding cache (gitignored), merged like data/cleaned
 risk:
   max_drawdown: 0.20                  # kill switch (latched) if equity < (1 - x) * peak
   daily_loss_limit: 0.05              # no new trading for the rest of the UTC day if day loss > x
@@ -15,3 +20,13 @@ risk:
   max_gross_leverage: 2.0             # combined |weights| across spot+perp; scaled down if exceeded
   flatten_on_kill: true               # kill switch => target all-flat
   reconcile_tolerance: 1.0e-6         # relative tolerance, ledger vs replayed fills
+monitor:
+  log_predictions: true               # append sleeve predictions to <paper dir>/predictions.jsonl (engine.monitor.ledger)
+ensemble:
+  enabled: false                      # optional veto layer (health multipliers + NO TRADE gate on weight changes).
+                                      # Applies ONLY to versions frozen with a pinned live_hash (never v001/v002).
+  min_samples: 30                     # resolved predictions per sleeve before its beta/confidence exist
+  prior_n: 30                         # shrinkage: beta_post = n * beta_hat / (n + prior_n)
+  horizon_hours: {trend: 168, carry: 24}   # sleeve holding horizon for the expected-return-vs-cost test
+  no_trade: {}                        # NoTradeConfig overrides
+  risk: {}                            # (unused by the veto layer; kept for RiskConfig overrides)

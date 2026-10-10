@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import math
 
 import numpy as np
 import pandas as pd
@@ -181,3 +182,50 @@ def test_registry_appends(tmp_path) -> None:
         recs[0]
     )
     assert recs[0]["params_hash"] != recs[1]["params_hash"]
+
+
+# ---------- review 01 #2/#3/#4 (2026-10-10) ----------
+def test_pbo_identical_variants_are_degenerate_not_overfit() -> None:
+    rng = np.random.default_rng(3)
+    col = rng.normal(0.001, 0.01, 800)
+    same = pd.DataFrame({i: col for i in range(3)})
+    res = pbo_cscv(same, S=16)
+    assert res["degenerate"] and math.isnan(res["pbo"]) and res["n_distinct"] == 1
+
+
+def test_pbo_min_distinct_and_dedupe() -> None:
+    rng = np.random.default_rng(4)
+    m = pd.DataFrame(rng.normal(0, 0.01, (800, 4)))
+    m[4] = m[0]  # duplicate column is dropped before counting
+    assert pbo_cscv(m, S=10, min_distinct=5)["degenerate"]
+    assert pbo_cscv(m, S=10, min_distinct=4)["n_distinct"] == 4
+
+
+def test_pbo_null_unbiased_with_strict_logit() -> None:
+    """No-skill configs: v1 (logit <= 0) gave ~0.62 at N=3; strict < 0 with mid-ranks is ~0.5 or below."""
+    rng = np.random.default_rng(5)
+    vals = [pbo_cscv(pd.DataFrame(rng.normal(0, 0.01, (600, 3))), S=10)["pbo"] for _ in range(30)]
+    assert np.mean(vals) < 0.55
+
+
+def test_dsr_deflates_with_total_trial_count() -> None:
+    from engine.validation.stats import expected_max_sharpe
+
+    rng = np.random.default_rng(6)
+    r = pd.Series(rng.normal(0.001, 0.01, 1000))
+    trials = [0.02, 0.05, -0.01]
+    assert expected_max_sharpe(trials, 200) > expected_max_sharpe(trials)
+    assert deflated_sharpe(r, trials, 200) < deflated_sharpe(r, trials)
+    assert expected_max_sharpe([0.05]) == 0.0
+
+
+def test_alpha_vs_benchmark_detects_pure_beta() -> None:
+    from engine.validation.stats import alpha_vs_benchmark
+
+    idx = pd.date_range("2021-01-01", periods=600, freq="D", tz="UTC")
+    rng = np.random.default_rng(7)
+    b = pd.Series(rng.normal(0.002, 0.03, 600), index=idx)
+    beta_only = alpha_vs_benchmark(b * 1.0, b)
+    assert abs(beta_only["alpha_ann"]) < 1e-9 and beta_only["beta"] == pytest.approx(1.0)
+    alpha = alpha_vs_benchmark(b * 0.2 + 0.003 + rng.normal(0, 0.005, 600), b)
+    assert alpha["alpha_p"] < 0.01 and alpha["alpha_t"] > 3

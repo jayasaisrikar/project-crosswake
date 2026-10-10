@@ -1,0 +1,82 @@
+# PROMOTION RULES v2 — pre-registered 2026-10-10, after batch_001 invalidation; changes are bug fixes
+# listed in review 01 (reports/review/01_research.md).
+# Written BEFORE batch_002 was planned or run. v1 (config/promotion_rules.yaml) is frozen and unchanged;
+# batch_001 records (EXP-000001..000012) were decided under v1 and stay as recorded.
+# Thresholds for Sharpe / DSR / PBO / cost stress / perturbation / HAC / sample size are IDENTICAL to v1.
+# Only rules that review 01 proved broken were changed or added; every change is listed in `changelog`.
+# engine.research.promotion.decide(results) reads ONLY this file; there is no override argument.
+pre_registered: "2026-10-10"
+version: 2
+supersedes: "config/promotion_rules.yaml (v1, 2026-10-10)"
+
+# Hard gates: failing any of these => REJECT.
+reject_if:
+  leakage_test_fail: true          # results["leakage_pass"] must be True (checks can now fail: review 01 #10)
+  max_pbo: 0.5                     # applies only to a NON-degenerate, finite PBO (see pbo_validity)
+  nonpositive_oos_sharpe: true
+  nonpositive_cost_stress: true
+
+# PBO validity (new in v2; review 01 #2, #3, #8).
+pbo_validity:
+  min_distinct_variants: 5         # fewer distinct neighbour return series => PBO degenerate
+  degenerate_decision: INCONCLUSIVE   # degenerate PBO is missing information, not evidence of overfit
+  nan_decision: INCONCLUSIVE       # a NaN PBO can never pass (neither the hard gate nor PROMOTE/WATCH)
+  logit_rule: "strict: overfit iff logit < 0"   # implemented in engine.validation.stats.pbo_cscv
+  ties: "mid-ranks OOS; IS-best ties averaged"
+
+# Sample adequacy: below these => INCONCLUSIVE (cannot judge).
+min_trades: 30
+min_oos_days: 180
+
+# Benchmark / market-beta gate (new in v2; review 01 #1, #8).
+# Benchmark = buy-and-hold of the experiment's universe (equal weight over assets with a valid
+# return, or the PIT universe), funding included. alpha from daily OLS strategy = a + b * benchmark
+# with Newey-West HAC t; alpha_p is one-sided (H1: alpha > 0).
+benchmark:
+  promote_max_alpha_p: 0.05        # PROMOTE needs significant positive alpha vs buy-and-hold
+  watch_min_alpha_ann: 0.0         # WATCH needs a positive alpha point estimate
+  missing_decision: INCONCLUSIVE   # missing / NaN alpha => cannot pass
+
+# DSR trial count (new in v2; review 01 #4): N = all registered trials (every batch incl. batch_001,
+# every family, crashed trials included) + parameter neighbours evaluated + the run itself.
+dsr_trials: "registry_all + neighbours + 1"
+
+# PROMOTE (to paper trading) requires ALL of:
+promote:
+  min_oos_net_sharpe: 0.8
+  min_dsr: 0.95
+  max_pbo: 0.2
+  cost_stress_multiplier: 2.0
+  min_cost_stress_sharpe: 0.3
+  min_perturbation_frac_positive: 0.7
+  min_regimes_positive_frac: 0.6   # flag only (non-blocking), as v1
+  max_hac_p: 0.05
+
+# WATCH: positive but not proven.
+watch:
+  min_oos_net_sharpe: 0.4
+  min_dsr: 0.5
+
+live:
+  min_paper_trading_days: 60
+  paper_sharpe_must_be_positive: true
+
+changelog:
+  - rule: reject_if.max_pbo
+    change: "v1 applied it to any finite PBO; v2 applies it only when PBO is non-degenerate (>= 5 distinct variants)"
+    why: "review 01 #2/#3: PBO=1.00 came from identical variants + tie handling; at N=3 a no-skill PBO is ~0.62"
+  - rule: pbo_validity (new)
+    change: "degenerate or NaN PBO => INCONCLUSIVE; NaN can no longer reach WATCH"
+    why: "review 01 #8: a NaN PBO skipped the hard gate and could become WATCH; degenerate looked like 1.0"
+  - rule: pbo computation
+    change: "dedupe identical variants, mid-rank ties, strict logit < 0, min 5 distinct variants"
+    why: "review 01 #2/#3 (implementation bug fix; threshold 0.5 / 0.2 unchanged)"
+  - rule: benchmark (new)
+    change: "PROMOTE requires one-sided alpha p <= 0.05 vs buy-and-hold; WATCH requires alpha > 0"
+    why: "review 01 #1/#8: donchian (Sharpe 0.95) == buy-and-hold BTC/ETH (0.95); no beta gate existed"
+  - rule: dsr trial count
+    change: "N counts all registry trials incl. batch_001 and crashes, plus neighbours"
+    why: "review 01 #4: n_trials was 1-2 per family so DSR was just PSR"
+  - rule: leakage_test_fail
+    change: "unchanged rule; the checks behind leakage_pass now include fit causality, perturbation-after-t and pointwise-vs-batch equality"
+    why: "review 01 #10: v1 checks were tautological"

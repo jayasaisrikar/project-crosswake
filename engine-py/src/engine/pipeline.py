@@ -11,6 +11,9 @@ Integrity rules enforced here:
     Sharpe uses the honest number of trials. PBO / DSR use the development-period trial grid as the
     selection-relevant figures; holdout values are reported separately.
   * Results are re-run at 1.0x / 1.5x / 2.0x costs. Allocation mixes are re-run at the exact sleeve capital.
+  * H2 (>= engine.research.contract.H2_START) is sealed. Even with unlock_holdout the data stops before
+    H2_START; open_h2=True (CLI --open-h2, needs a reason) is the only way past it and every such run is
+    appended to experiments/holdout_log.jsonl with its params_hash (AUDIT_REPORT B7).
 """
 
 from __future__ import annotations
@@ -18,6 +21,7 @@ from __future__ import annotations
 import copy
 import hashlib
 import json
+import logging
 import math
 import shutil
 import subprocess
@@ -37,13 +41,17 @@ from engine.backtest.portfolio import benchmark_buy_hold, combine
 from engine.contracts import BacktestResult, Dataset, Strategy, TargetWeights
 from engine.costs import CostModel
 from engine.data.load import load_dataset
+from engine.live.signals_live import resolve_allocation
 from engine.reporting.csv_export import export_period_tables
 from engine.reporting.html_report import build_report
 from engine.signals.registry import build_strategies
 from engine.validation import metrics, stats
 from engine.validation.walkforward import ExperimentRegistry, HoldoutLock, walk_forward_splits
 
+log = logging.getLogger(__name__)
+
 ROOT = Path(__file__).resolve().parents[2]
+HOLDOUT_LOG = ROOT / "experiments" / "holdout_log.jsonl"
 
 PRIMARY = "Combined"
 BENCH = "BTC buy&hold"
@@ -63,15 +71,21 @@ LEGACY_OUTPUTS = ("report_dev.html", "report_holdout.html", "stats_dev.json", "s
 
 
 def load_config(name: str) -> dict[str, Any]:
+    """Load config/<name> and validate it against engine.config_schema (unknown keys and
+    out-of-range risk limits raise ConfigError)."""
+    from engine.config_schema import validate
+
     with open(ROOT / "config" / name, encoding="utf-8") as f:
-        return yaml.safe_load(f)
+        cfg: dict[str, Any] = validate(name, yaml.safe_load(f))
+    return cfg
 
 
 def git_sha() -> str:
     try:
         return subprocess.check_output(["git", "rev-parse", "--short", "HEAD"], cwd=ROOT, text=True,
                                        stderr=subprocess.DEVNULL).strip()
-    except Exception:
+    except (OSError, subprocess.CalledProcessError) as e:
+        log.warning("git_sha unavailable (%s): recording 'uncommitted'", e)
         return "uncommitted"
 
 
@@ -271,7 +285,7 @@ def allocation_table(period_allocs: Mapping[str, BacktestResult], trend: Backtes
 def _safe(fn: Callable[[], Any]) -> Any:
     try:
         v = fn()
-    except Exception as exc:  # too few observations etc. -> reported, not hidden
+    except Exception as exc:  # noqa: BLE001 - too few observations etc. -> reported, not hidden
         return f"n/a ({type(exc).__name__})"
     return v
 
@@ -399,16 +413,56 @@ class _CachedStrategy:
 def _cost_model(exp: dict, mult: float) -> CostModel:
     cfg = copy.deepcopy(exp["costs"])
     cfg["stress_multiplier"] = cfg.get("stress_multiplier", 1.0) * mult
-    return CostModel.from_config(cfg)
+    return CostModel.from_config(cfg, base_dir=ROOT)   # spreads_file resolved vs repo, not CWD (B3)
+
+
+def h2_last_bar() -> pd.Timestamp:
+    """Last hourly bar strictly before the sealed H2 window."""
+    from engine.research.contract import H2_START
+
+    return pd.Timestamp(H2_START) - pd.Timedelta(hours=1)
+
+
+def log_holdout_view(reason: str, params_hash: str, source: str, window: str = "H2",
+                     log_path: str | Path | None = None) -> dict[str, Any]:
+    """Append one holdout view to experiments/holdout_log.jsonl (append-only) and return the record.
+
+    window="H2": tagged `holdout: "H2"` so engine.research.holdout_guard.h2_open_count() counts it.
+    window="H1": a view of the consumed H1 window by a script outside run_pipeline (e.g. lead-lag --full);
+    recorded with params_hash so HoldoutLock.reserve() can see it (AUDIT_REPORT B6/B9)."""
+    from engine.research.contract import H1_START, H2_START
+    from engine.research.holdout_guard import H2_TAG, h2_open_count
+
+    if not reason or not reason.strip():
+        raise ValueError("a holdout view needs a non-empty reason")
+    p = Path(log_path) if log_path is not None else HOLDOUT_LOG
+    p.parent.mkdir(parents=True, exist_ok=True)
+    rec: dict[str, Any] = {"timestamp": datetime.now(UTC).isoformat(), "reason": reason.strip(),
+                           "params_hash": params_hash, "source": source}
+    if window == "H2":
+        rec.update(holdout=H2_TAG, holdout_start=pd.Timestamp(H2_START).isoformat(),
+                   h2_opening_number=h2_open_count(p) + 1)
+    elif window == "H1":
+        rec.update(holdout_start=pd.Timestamp(H1_START).isoformat(), contaminated=True)
+    else:
+        raise ValueError(f"unknown holdout window {window!r}")
+    with p.open("a", encoding="utf-8") as f:
+        f.write(json.dumps(rec) + "\n")
+    return rec
 
 
 def run_all(cost_multiplier: float, data: Dataset, exp: dict, start: Any, end: Any,
             strategies: Sequence[Strategy] | None = None) -> dict[str, BacktestResult]:
     cm = _cost_model(exp, cost_multiplier)
     cap = float(exp["initial_capital"])
-    alloc = exp["strategies"]["allocation"]
+    strats = list(strategies if strategies is not None else build_strategies(exp))
+    # Same allocation rule as live (engine.live.signals_live.resolve_allocation): unallocated sleeves
+    # are skipped instead of being run with zero capital (AUDIT_REPORT B2).
+    alloc = resolve_allocation([s.name for s in strats], exp["strategies"].get("allocation"))
     sleeves: dict[str, BacktestResult] = {}
-    for strat in strategies if strategies is not None else build_strategies(exp):
+    for strat in strats:
+        if alloc[strat.name] <= 0.0:
+            continue
         sleeves[strat.name] = run_backtest(
             strat, data, cm, cap * alloc.get(strat.name, 0.0), start=start, end=end, name=strat.name
         )
@@ -447,7 +501,11 @@ def _jsonable(o: Any) -> Any:
 
 
 def run_pipeline(unlock_holdout: bool = False, reason: str = "", out_dir: str = "reports",
-                 acknowledge_reuse: bool = False) -> Path:
+                 acknowledge_reuse: bool = False, open_h2: bool = False) -> Path:
+    if open_h2 and not unlock_holdout:
+        raise ValueError("open_h2 requires unlock_holdout")
+    if open_h2 and not reason.strip():
+        raise ValueError("opening H2 requires an explicit --reason")
     uni, exp = load_config("universe.yaml"), load_config("experiment.yaml")
     data_root = ROOT / "data" / "cleaned"
     data = load_dataset(str(data_root), symbols=uni["symbols"])
@@ -462,7 +520,12 @@ def run_pipeline(unlock_holdout: bool = False, reason: str = "", out_dir: str = 
         ph = params_hash(exp["strategies"], list(uni["symbols"]), {})
         prior_views = lock.reserve(ph, acknowledge_reuse)     # raises before any holdout data is read
         lock.unlock(reason or "final evaluation", params_hash=ph, prior_views=prior_views)
-    end = None if unlock_holdout else _utc(split["dev_end"]) + pd.Timedelta(hours=23)
+        if open_h2:
+            log_holdout_view(reason, ph, source="pipeline --open-h2", window="H2", log_path=log_path)
+    if unlock_holdout:
+        end: pd.Timestamp | None = None if open_h2 else h2_last_bar()   # H2 sealed unless opened (B7)
+    else:
+        end = _utc(split["dev_end"]) + pd.Timedelta(hours=23)
     if end is not None:
         data = data.truncate(end)
     lock.check(data.perp.close)
@@ -520,12 +583,15 @@ def run_pipeline(unlock_holdout: bool = False, reason: str = "", out_dir: str = 
     stats_json["holdout_views"] = len(hlog)
     stats_json["holdout_unlocked_this_run"] = unlock_holdout
     stats_json["holdout_contaminated"] = bool(unlock_holdout and prior_views)
+    stats_json["h2_opened_this_run"] = open_h2
     stats_json["n_trials"] = len(grid)
 
     full_idx = results[PRIMARY].equity.index
     ctx = {
         "title": "Systematic Crypto Engine — Backtest Report"
-                 + (" (all periods, holdout unlocked)" if unlock_holdout else " (DEVELOPMENT period only)")
+                 + ((" (all periods incl. H2, holdout unlocked)" if open_h2 else
+                     " (DEVELOPMENT + H1, holdout unlocked; H2 sealed)")
+                    if unlock_holdout else " (DEVELOPMENT period only)")
                  + (f" — HOLDOUT CONTAMINATED: viewed {prior_views} time(s) before, NOT out-of-sample"
                     if prior_views else ""),
         "generated_at": datetime.now(UTC).strftime("%Y-%m-%d %H:%M UTC"),
@@ -543,7 +609,9 @@ def run_pipeline(unlock_holdout: bool = False, reason: str = "", out_dir: str = 
         if unlock_holdout else {},
         "notes": [
             "Fills at next 1h bar open after the decision bar; taker fees, half-spread, sqrt impact.",
-            "Spreads are configured estimates, not measured historical quotes.",
+            "Half-spreads come from data/cleaned/spreads.json (perp: Binance bookTicker sample 2023-24; "
+            "spot and other perps: Abdi-Ranaldo estimator). They are full-sample statistics, not "
+            "point-in-time (AUDIT_REPORT B10, section 7.2).",
             "Universe picked in 2026 includes LUNA and FTT but is still partly survivorship-biased.",
             "Exchange/counterparty failure (e.g. FTX 2022) is not modeled; carry assumes Binance solvency.",
             "Period statistics use only returns inside that period; equity is rebased at each period start.",

@@ -7,3 +7,24 @@ __pycache__/
 .mypy_cache/
 .ruff_cache/
 data/paper/
+.coverage
+htmlcov/
+
+# --- data rebuild backups (engine data rebuild keeps the previous tree) ---
+data/cleaned_prev_*/
+
+# --- runtime logs (heartbeat.json, alerts.log, live.log) ---
+logs/
+
+# --- archives ---
+*.zip
+
+# --- generated report outputs (regenerate with the engine; review 04 finding 9) ---
+# Frozen / reviewed artifacts stay tracked: reports/baseline_v0/**, reports/review/**.
+reports/*.html
+reports/app/index.html
+reports/tables/**/trades_*.csv
+reports/leadlag/events_k*.csv
+reports/audit/funding_ledger_events.csv
+!reports/baseline_v0/**
+!reports/review/**

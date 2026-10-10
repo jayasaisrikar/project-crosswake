@@ -88,8 +88,10 @@ def equity_svg(equity: list[dict[str, Any]], initial: float, w: int = 960, h: in
 
 
 def _read(p: Path) -> list[dict[str, Any]]:
-    return [json.loads(x) for x in p.read_text(encoding="utf-8").splitlines() if x.strip()] \
-        if p.exists() else []
+    """Read-only, tolerant: a torn last line is skipped (repair is the step's / recover's job)."""
+    from engine.live.journal import read_rows
+
+    return read_rows(p, repair=False)[0]
 
 
 def _table(headers: list[str], rows: list[list[str]]) -> str:

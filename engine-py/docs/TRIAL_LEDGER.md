@@ -3,7 +3,7 @@
 This file lists every material research and design decision and every experiment that could have
 shaped the reported results. Its purpose is to make the multiple-testing burden explicit so that
 the Deflated Sharpe Ratio (DSR), PBO and SPA results can be read against an honest trial count.
-Sources: `docs/REVIEW_FOR_CHATGPT.md`, `experiments/registry.jsonl` (26 rows),
+Sources: `docs/archive/REVIEW_FOR_CHATGPT.md`, `experiments/registry.jsonl` (26 rows),
 `experiments/holdout_log.jsonl` (2 rows), `config/experiment.yaml`, and
 `experiments/dsr_sensitivity.py` (output: `experiments/dsr_sensitivity.json`).
 

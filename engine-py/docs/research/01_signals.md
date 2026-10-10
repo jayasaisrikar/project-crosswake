@@ -18,7 +18,7 @@ quoting them externally. No number below was produced by our engine.
 | 8 | Short-term reversal (daily / intraday) | Documented gross in daily crypto data [K] | Very high; costs eat most of it for 16 large coins | Fast; an HFT domain | [LTW](https://papers.ssrn.com/abstract=3379131) |
 | 9 | Open interest / liquidation | Practitioner research (Kaiko, Glassnode, Coinglass): OI build-ups plus extreme funding come before liquidation cascades; little peer-reviewed out-of-sample evidence [K] | Medium | Unknown; heavily data-mined by retail | [Kaiko](https://research.kaiko.com/), [Glassnode](https://insights.glassnode.com/) |
 | 10 | On-chain (MVRV, SOPR, exchange flows, NVT) | Useful as regime context; predictive power at weekly horizons is weak and unstable [K] | Low turnover, low signal | Indicators re-parameterised after the fact; data revisions add look-ahead | [Glassnode](https://insights.glassnode.com/) |
-| 11 | BTC-to-alt lead-lag | Real, but milliseconds-scale for liquid coins (already rejected in REVIEW_FOR_CHATGPT.md) | Prohibitive at 1h | Gone | — |
+| 11 | BTC-to-alt lead-lag | Real, but milliseconds-scale for liquid coins (already rejected in docs/archive/REVIEW_FOR_CHATGPT.md) | Prohibitive at 1h | Gone | — |
 
 ## Notes
 

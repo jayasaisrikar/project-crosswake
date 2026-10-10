@@ -7,7 +7,7 @@ Written 2026-10-09. Read alongside `docs/LEAD_LAG_RESEARCH_REVIEW.md` (evidence)
 
 All numbers below are reproduced from this repo:
 - `uv run python -m engine.leadlag.study` → `reports/leadlag/event_study.csv`, `xcorr_by_year.csv`
-- `uv run python -m engine.leadlag.research_predictive` → `reports/leadlag/predictive_granger.csv`, `rolling_lag.csv`, `predictive_oos.csv`
+- (removed 2026-10-10: `engine.leadlag.research_predictive` was unreachable dead code; its outputs `reports/leadlag/predictive_granger.csv`, `rolling_lag.csv`, `predictive_oos.csv` remain as historical files; the canonical stack is `engine.leadlag.engine`/`methods`)
 - `uv run python -m engine.leadlag.backtest_leadlag` → `reports/leadlag/strategy_comparison.csv`, `scorecard.csv`
 
 Scope note: this doc covers the **lead-lag research track**. The engine's production sleeves (trend, carry,

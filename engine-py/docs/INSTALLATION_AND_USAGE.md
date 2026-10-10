@@ -26,7 +26,7 @@ trading when you opt in with `--send`.
 ## 2. Installation
 
 ```bash
-uv sync
+uv sync --frozen        # exactly uv.lock (pyproject bounds are not enough for reproducibility)
 ```
 
 That creates the virtual environment and installs all runtime dependencies (pandas, numpy, pyarrow, scipy,
@@ -46,7 +46,7 @@ Python modules with `uv run python -m ...`.
 
 ## 3. Single command to start
 
-If you only want to see the engine produce a result, after `uv sync`:
+If you only want to see the engine produce a result, after `uv sync --frozen`:
 
 ```bash
 uv run engine download && uv run engine clean && uv run engine backtest
@@ -185,7 +185,7 @@ Create a Task Scheduler job that runs this script **hourly** with the repository
 `deploy/oracle_setup.sh` is a one-time setup script for an Oracle Cloud Always Free Ubuntu VM. It:
 
 1. installs `curl`/`ca-certificates` and `uv` (if missing),
-2. runs `uv sync`, creates `logs/`, sets the timezone to **UTC**,
+2. runs `uv sync --frozen`, creates `logs/`, sets the timezone to **UTC**,
 3. performs a Binance reachability check (HTTP 451/403 there means the region is blocked),
 4. installs an hourly cron entry at minute `:02`, and
 5. runs the first step immediately.

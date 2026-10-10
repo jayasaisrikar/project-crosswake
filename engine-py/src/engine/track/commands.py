@@ -58,8 +58,10 @@ def version_cmd(root: Path, a: Any, exp: dict[str, Any], uni: dict[str, Any]) ->
         print(f"{v.id} -> {v.status}")
         return
     symbols = [s.strip().upper() for s in a.symbols.split(",")] if a.symbols else list(uni["symbols"])
+    from engine.pipeline import load_config
+
     v = freeze_version(root, a.name, a.hypothesis, exp, symbols, vid=a.id, status=a.status,
-                       paper_dir=a.paper_dir, notes=a.notes)
+                       paper_dir=a.paper_dir, notes=a.notes, live_cfg=load_config("live.yaml"))
     print(f"froze {v.id} ({v.params_hash}) -> config/versions/{v.id}.yaml, ledger {v.paper_dir}")
 
 
@@ -72,12 +74,27 @@ def dashboard_cmd(root: Path) -> Path:
                             root / "reports" / "dashboard.html")
 
 
-def health_cmd(root: Path) -> int:
-    from engine.track.health import format_health, run_health
+def health_cmd(root: Path, alert: bool = False, send: bool = False) -> int:
+    """Exit 1 on FAIL. With --alert: writes logs/health.json and, on FAIL, appends to logs/alerts.log
+    (local only); --send additionally posts the FAIL to Telegram ONLY if TELEGRAM_* env vars are
+    already configured (no other remote service is ever contacted)."""
+    from engine.track.health import Check, format_health, local_alert, run_health, write_health_state
 
-    checks = run_health(root, running_versions(root))
-    print(format_health(checks))
-    return 1 if any(c.status == "FAIL" for c in checks) else 0
+    checks: list[Check] = []
+    try:
+        vs = running_versions(root)
+    except Exception as e:  # noqa: BLE001  (a broken version file is itself a FAIL, not a crash)
+        vs = []
+        checks.append(Check("versions", "FAIL", f"cannot load config/versions: {type(e).__name__}: {e}"))
+    checks += run_health(root, vs)
+    text = format_health(checks)
+    print(text)
+    failed = any(c.status == "FAIL" for c in checks)
+    if alert:
+        write_health_state(root, checks)
+        if failed:
+            local_alert(root, text, send=send)
+    return 1 if failed else 0
 
 
 def market_cmd(root: Path, send: bool) -> None:
@@ -143,7 +160,11 @@ def add_parsers(sub: Any, live_sub: Any) -> None:
     sc = sub.add_parser("scorecard", help="per-trade scorecard and pass/fail gate")
     sc.add_argument("--version", default=None)
     sub.add_parser("dashboard", help="write reports/dashboard.html")
-    sub.add_parser("health", help="engine health checks (exit 1 on FAIL)")
+    hp = sub.add_parser("health", help="engine health checks (exit 1 on FAIL)")
+    hp.add_argument("--alert", action="store_true",
+                    help="write logs/health.json; on FAIL append logs/alerts.log")
+    hp.add_argument("--send", action="store_true",
+                    help="with --alert: also post FAIL to Telegram if TELEGRAM_* env vars are set")
     mk = sub.add_parser("market", help="market context")
     msub = mk.add_subparsers(dest="market_cmd", required=True)
     mu = msub.add_parser("update", help="4-hourly market update (prints; --send posts to Telegram)")

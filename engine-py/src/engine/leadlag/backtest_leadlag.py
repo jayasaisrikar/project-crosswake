@@ -3,16 +3,18 @@
 This turns the event study (engine.leadlag.events) into an executable strategy and prices it with the
 SAME backtester and cost model as every other sleeve, so the "is BTC->alt lead-lag tradable on hourly
 bars?" question is answered in net-return terms, not just t-stats. Runs on the DEVELOPMENT period only by
-default (truncates at split.dev_end) to keep the locked holdout clean; pass --full for a descriptive
-all-period view (logged). Writes reports/leadlag/strategy_comparison.csv and appends to the experiment
-registry.
+default (truncates at split.dev_end) to keep the locked holdout clean. --full adds a descriptive H1
+view (data stop before H2_START) and appends an H1 view with params_hash to
+experiments/holdout_log.jsonl; --full --open-h2 --reason "..." also includes the sealed H2 window and is
+logged as an H2 opening (AUDIT_REPORT B9). Writes reports/leadlag/strategy_comparison.csv and appends to
+the experiment registry.
 
-Usage: uv run python -m engine.leadlag.backtest_leadlag [--full]
+Usage: uv run python -m engine.leadlag.backtest_leadlag [--full [--open-h2 --reason "..."]]
 """
 
 from __future__ import annotations
 
-import sys
+import argparse
 from pathlib import Path
 from typing import Any
 
@@ -59,16 +61,35 @@ def _period_rows(res: Any, name: str, dev_end: pd.Timestamp, full: bool) -> list
     return rows
 
 
-def run(full: bool = False) -> pd.DataFrame:
-    OUT.mkdir(parents=True, exist_ok=True)
+def run_params_hash(exp: dict[str, Any], symbols: list[str]) -> str:
+    from engine.track.versions import params_hash
+
+    return params_hash({"leadlag": exp["strategies"]["leadlag"], "trend": exp["strategies"]["trend"]},
+                       symbols, {"variants": VARIANTS, "script": "backtest_leadlag"})
+
+
+def run(full: bool = False, open_h2: bool = False, reason: str = "",
+        log_path: str | Path | None = None) -> pd.DataFrame:
+    from engine.pipeline import h2_last_bar, log_holdout_view
+
+    if open_h2 and not full:
+        raise ValueError("--open-h2 requires --full")
     uni, exp = _cfg("universe.yaml"), _cfg("experiment.yaml")
+    if full:   # log BEFORE any post-dev data is read
+        ph = run_params_hash(exp, list(uni["symbols"]))
+        log_holdout_view(reason or "backtest_leadlag --full descriptive H1 view", ph,
+                         source="backtest_leadlag --full", window="H1", log_path=log_path)
+        if open_h2:
+            log_holdout_view(reason, ph, source="backtest_leadlag --full --open-h2", window="H2",
+                             log_path=log_path)
+    OUT.mkdir(parents=True, exist_ok=True)
     data = load_dataset(str(ROOT / "data" / "cleaned"), symbols=uni["symbols"])
     dev_end = pd.Timestamp(exp["split"]["dev_end"], tz="UTC") + pd.Timedelta(hours=23)
-    end = None if full else dev_end
+    end = (None if open_h2 else h2_last_bar()) if full else dev_end
     if end is not None:
         data = data.truncate(end)
     cap = float(exp["initial_capital"])
-    cm = CostModel.from_config(exp["costs"])
+    cm = CostModel.from_config(exp["costs"], base_dir=ROOT)   # B3: spreads resolved vs repo root
     cm0 = cm.with_multiplier(0.0)   # gross: zero trade costs (funding still applies)
     cm2 = cm.with_multiplier(2.0)
     reg = ExperimentRegistry(str(ROOT / "experiments" / "registry.jsonl"))
@@ -151,4 +172,9 @@ def _daily_sharpe(r: pd.Series) -> float:
 
 
 if __name__ == "__main__":
-    run(full="--full" in sys.argv[1:])
+    ap = argparse.ArgumentParser(prog="engine.leadlag.backtest_leadlag")
+    ap.add_argument("--full", action="store_true", help="add a descriptive H1 view (logged)")
+    ap.add_argument("--open-h2", action="store_true", help="with --full: include sealed H2 (logged)")
+    ap.add_argument("--reason", default="")
+    a = ap.parse_args()
+    run(full=a.full, open_h2=a.open_h2, reason=a.reason)

@@ -1,0 +1,39 @@
+# PROMOTION RULES — pre-registered 2026-10-10
+# Written BEFORE any Phase-3 candidate was evaluated. Changing a threshold after seeing results
+# is forbidden; a change requires a new dated version of this file and re-evaluating every
+# candidate under it (all trials stay in experiments/exp_registry.jsonl).
+# engine.research.promotion.decide(results) reads ONLY this file; there is no override argument.
+pre_registered: "2026-10-10"
+version: 1
+
+# Hard gates: failing any of these => REJECT.
+reject_if:
+  leakage_test_fail: true          # results["leakage_pass"] must be True
+  max_pbo: 0.5                     # PBO (CSCV over the parameter neighbourhood) above this => REJECT
+  nonpositive_oos_sharpe: true     # OOS net annual Sharpe <= 0 => REJECT
+  nonpositive_cost_stress: true    # net annual Sharpe at 2x costs <= 0 => REJECT
+
+# Sample adequacy: below these => INCONCLUSIVE (cannot judge).
+min_trades: 30
+min_oos_days: 180
+
+# PROMOTE (to paper trading) requires ALL of:
+promote:
+  min_oos_net_sharpe: 0.8          # annualised, net of 1x costs, walk-forward OOS, < H2_START
+  min_dsr: 0.95                    # Deflated Sharpe probability vs the family's trial count
+  max_pbo: 0.2
+  cost_stress_multiplier: 2.0
+  min_cost_stress_sharpe: 0.3      # net annual Sharpe at 2x costs
+  min_perturbation_frac_positive: 0.7   # share of parameter neighbours with OOS Sharpe > 0
+  min_regimes_positive_frac: 0.6   # positive in >= 60% of regimes, else FLAGGED regime-specific (non-blocking)
+  max_hac_p: 0.05
+
+# WATCH: positive but not proven.
+watch:
+  min_oos_net_sharpe: 0.4
+  min_dsr: 0.5
+
+# Live capital (separate from PROMOTE, which only admits to paper trading).
+live:
+  min_paper_trading_days: 60
+  paper_sharpe_must_be_positive: true

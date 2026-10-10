@@ -17,6 +17,7 @@ class RiskLimits:
     max_gross_leverage: float = 2.0
     flatten_on_kill: bool = True
     reconcile_tolerance: float = 1e-6
+    stale_mark_tolerance: float = 0.05     # stale-marked |notional| / equity above this => cannot value book
 
     @classmethod
     def from_config(cls, cfg: dict[str, Any]) -> RiskLimits:
@@ -30,6 +31,7 @@ class RiskReport:
     halt: bool = False          # no new trades this step (kill, daily loss, stale, errors)
     reasons: list[str] = field(default_factory=list)
     notes: list[str] = field(default_factory=list)
+    valuation_stale: bool = False   # book could not be valued at fresh prices (no kill / flatten)
 
 
 def check_risk(
@@ -41,16 +43,34 @@ def check_risk(
     last_bar: pd.Timestamp | None,
     errors: list[str],
     already_killed: bool = False,
+    stale_marks: list[str] | None = None,
+    stale_frac: float | None = None,
 ) -> RiskReport:
+    """`stale_marks` (O3): held positions that could not be valued at a fresh price; they are marked
+    to their last-known price. If they are material (`stale_frac` = their |notional| / equity above
+    `limits.stale_mark_tolerance`, or unknown), drawdown / daily loss are NOT evaluated (no new kill,
+    no flatten) and the step halts (holds) with reason "cannot value book". Immaterial stale marks
+    (e.g. a small position in a settled perp) are only noted; the checks run normally."""
     rep = RiskReport()
+    material = bool(stale_marks) and (stale_frac is None or stale_frac > limits.stale_mark_tolerance)
+    rep.valuation_stale = material
     dd = 1.0 - equity / peak if peak > 0 else 0.0
     if already_killed:
         rep.kill = True
-        rep.reasons.append("kill switch latched (manual reset required: set killed=false in state.json)")
-    elif dd > limits.max_drawdown:
+        rep.reasons.append("kill switch latched (manual reset: `engine live reset-kill --version vNNN "
+                           "--reason ...`)")
+    if material:
+        rep.halt = True
+        rep.reasons.append("cannot value book (stale marks, kill switch not evaluated): "
+                           + ", ".join((stale_marks or [])[:5])
+                           + (" ..." if len(stale_marks or []) > 5 else ""))
+    elif stale_marks:
+        rep.notes.append(f"immaterial stale marks ({stale_frac:.1%} of equity): "
+                         + ", ".join(stale_marks[:5]))
+    if not material and not already_killed and dd > limits.max_drawdown:
         rep.kill = True
         rep.reasons.append(f"drawdown {dd:.1%} > limit {limits.max_drawdown:.1%}")
-    if day_start_equity and day_start_equity > 0:
+    if not material and day_start_equity and day_start_equity > 0:
         dl = 1.0 - equity / day_start_equity
         if dl > limits.daily_loss_limit:
             rep.halt = True
@@ -73,9 +93,14 @@ def check_risk(
 
 def reconcile(ledger_qty: dict[str, dict[str, float]], fills: list[dict[str, Any]],
               tol: float = 1e-6) -> list[str]:
-    """Ledger positions vs positions replayed from the append-only fill log. Returns mismatches."""
+    """Ledger positions vs positions replayed from the append-only fill log. Returns mismatches.
+
+    Fills are deduplicated by fill identity first (engine.live.paper.effective_fills), so a log
+    duplicated by an interrupted pre-journal step heals instead of halting the version forever."""
+    from engine.live.paper import effective_fills
+
     exp: dict[str, dict[str, float]] = {}
-    for f in fills:
+    for f in effective_fills([f for f in fills if f.get("side") != "funding"]):
         m = exp.setdefault(f["market"], {})
         m[f["symbol"]] = m.get(f["symbol"], 0.0) + float(f["qty"])
     out = []

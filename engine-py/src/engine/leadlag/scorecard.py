@@ -20,13 +20,20 @@ already fails earlier, cheaper criteria -- it is recorded so the honest-null ver
 
 from __future__ import annotations
 
+import logging
 from dataclasses import dataclass, field
 from typing import Any
 
+import numpy as np
 import pandas as pd
 
 from engine.validation import metrics
 from engine.validation.stats import deflated_sharpe, sharpe_hac_tstat
+
+log = logging.getLogger(__name__)
+
+# Numerical failures expected from short / degenerate series; anything else is a bug and propagates.
+STAT_ERRORS = (ValueError, ZeroDivisionError, FloatingPointError, np.linalg.LinAlgError)
 
 # PRE-REGISTERED gate (declared before inspecting final results; see module docstring for rationale).
 REJECTION = {
@@ -73,13 +80,18 @@ def build(candidates: list[Candidate], trial_sharpes: list[float] | None = None)
         s = metrics.performance_summary(c.net)
         gross_sh, net_sh, stress_sh = _sharpe(c.gross), s.get("sharpe", float("nan")), _sharpe(c.stress)
         daily = metrics.daily_returns(c.net)
+        errors: list[str] = []
         try:
             hac_t = sharpe_hac_tstat(c.net) if len(daily) > 5 else float("nan")
-        except Exception:
+        except STAT_ERRORS as e:
+            log.warning("scorecard %s: HAC t-stat failed: %s: %s", c.name, type(e).__name__, e)
+            errors.append(f"hac_t: {type(e).__name__}: {e}")
             hac_t = float("nan")
         try:
             dsr = deflated_sharpe(daily, trials) if len(daily) > 5 and len(trials) >= 2 else float("nan")
-        except Exception:
+        except STAT_ERRORS as e:
+            log.warning("scorecard %s: DSR failed: %s: %s", c.name, type(e).__name__, e)
+            errors.append(f"dsr: {type(e).__name__}: {e}")
             dsr = float("nan")
         incr = (net_sh - base_sharpe) if (base_sharpe == base_sharpe and not c.is_baseline) else float("nan")
         row: dict[str, Any] = {"strategy": c.name, "is_baseline": c.is_baseline,
@@ -92,7 +104,8 @@ def build(candidates: list[Candidate], trial_sharpes: list[float] | None = None)
                     if (gross_sh == gross_sh and net_sh == net_sh) else None,
                     "incremental_sharpe": round(incr, 4) if incr == incr else None,
                     "hac_t": round(hac_t, 3) if hac_t == hac_t else None,
-                    "dsr": round(dsr, 4) if dsr == dsr else None})
+                    "dsr": round(dsr, 4) if dsr == dsr else None,
+                    "stat_errors": "; ".join(errors) or None})
         if not c.is_baseline:
             passed, reason = _gate(net_sh, s.get("total_return"), gross_sh, incr, hac_t, stress_sh)
             row["gate"] = "PASS" if passed else "REJECT"

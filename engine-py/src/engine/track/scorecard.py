@@ -183,7 +183,9 @@ def evaluate_gate(gate: dict[str, Any], eq: dict[str, Any], tr: dict[str, Any]) 
 
 def scorecard(fills: list[dict[str, Any]], equity: list[dict[str, Any]], initial: float,
               gate: dict[str, Any]) -> dict[str, Any]:
-    closed, open_ = build_trades(fills)
+    from engine.live.paper import effective_fills
+
+    closed, open_ = build_trades(effective_fills(fills))   # duplicated rows (pre-journal crash) ignored
     tr, eq = trade_stats(closed), equity_stats(equity, initial)
     g = evaluate_gate(gate, eq, tr)
     return {"trades": tr, "equity": eq, "gate": {"verdict": g.verdict, "summary": g.summary,

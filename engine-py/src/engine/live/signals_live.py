@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import logging
+from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, field
 from typing import Any
 
@@ -11,6 +13,31 @@ from engine.contracts import Dataset
 from engine.signals.registry import build_strategies
 
 Weights = dict[str, dict[str, float]]   # market -> symbol -> weight (fraction of equity)
+
+log = logging.getLogger(__name__)
+
+
+def resolve_allocation(names: Sequence[str], alloc_cfg: Mapping[str, Any] | None) -> dict[str, float]:
+    """Capital share per enabled sleeve, shared by the backtest pipeline and the live paper loop.
+
+    * No `strategies.allocation` block at all -> equal weight 1/N over the enabled sleeves.
+    * Otherwise the block is authoritative: an enabled sleeve missing from it gets 0.0 and is SKIPPED
+      (not traded, not backtested), with a warning. Previously the backtest gave such a sleeve zero
+      capital (instantly "ruined") while live silently gave it 1/N on top of the configured weights
+      (AUDIT_REPORT B2); skipping is the less surprising rule because the configured weights keep
+      summing to what the user wrote.
+    """
+    names = list(names)
+    if not alloc_cfg:
+        return {n: 1.0 / len(names) for n in names} if names else {}
+    out: dict[str, float] = {}
+    for n in names:
+        if n in alloc_cfg:
+            out[n] = float(alloc_cfg[n])
+        else:
+            log.warning("sleeve %r is enabled but has no strategies.allocation entry; skipped", n)
+            out[n] = 0.0
+    return out
 
 
 @dataclass
@@ -39,8 +66,10 @@ def latest_signal(exp_cfg: dict[str, Any], data: Dataset) -> LiveSignal:
     decided: dict[str, str | None] = {}
     combined: Weights = {"spot": {}, "perp": {}}
     strategies = build_strategies(exp_cfg)
-    alloc = {s.name: float(alloc_cfg.get(s.name, 1.0 / max(len(strategies), 1))) for s in strategies}
+    alloc = resolve_allocation([s.name for s in strategies], alloc_cfg)
     for strat in strategies:
+        if alloc[strat.name] == 0.0:
+            continue
         tw = strat.target_weights(data)
         w: Weights = {}
         ts_used: str | None = None

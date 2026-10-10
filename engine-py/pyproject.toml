@@ -4,8 +4,8 @@ version = "0.1.0"
 description = "Systematic crypto research + backtest engine (trend, carry, lead-lag overlay)"
 requires-python = ">=3.12,<3.13"
 dependencies = [
-    "pandas>=2.2",
-    "numpy>=1.26",
+    "pandas>=2.2,<4",          # locked at 3.x; next major needs a re-validation run
+    "numpy>=1.26,<3",
     "pyarrow>=16",
     "scipy>=1.13",
     "statsmodels>=0.14",
@@ -17,7 +17,7 @@ dependencies = [
 ]
 
 [dependency-groups]
-dev = ["pytest>=8", "ruff>=0.6", "mypy>=1.11", "pandas-stubs", "types-requests", "types-PyYAML"]
+dev = ["pytest>=8", "pytest-cov>=5", "ruff>=0.6", "mypy>=1.11", "pandas-stubs", "types-requests", "types-PyYAML"]
 
 [project.scripts]
 engine = "engine.cli:main"
@@ -34,7 +34,7 @@ line-length = 110
 src = ["src", "tests"]
 
 [tool.ruff.lint]
-select = ["E", "F", "I", "B", "UP", "SIM"]
+select = ["E", "F", "I", "B", "UP", "SIM", "BLE"]   # BLE: blind `except Exception` needs a noqa + reason
 
 [tool.mypy]
 python_version = "3.12"

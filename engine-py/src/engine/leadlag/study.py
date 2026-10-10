@@ -1,11 +1,17 @@
 """Run the event study + lagged cross-correlations; writes CSVs to reports/leadlag/.
 
-Usage: uv run python -m engine.leadlag.study [config/leadlag.yaml]
+Usage: uv run python -m engine.leadlag.study [config/leadlag.yaml] [--open-h2 --reason "..."]
+
+By default the data stop before H2_START (2025-10-01, sealed; AUDIT_REPORT B8): the "holdout" segment
+is H1 only (consumed, ordinary OOS) and no per-year segment reaches H2. `--open-h2` includes H2 and
+appends a logged view (with params_hash) to experiments/holdout_log.jsonl.
 """
 
 from __future__ import annotations
 
-import sys
+import argparse
+import hashlib
+import json
 from pathlib import Path
 from typing import Any
 
@@ -30,10 +36,22 @@ def load_cfg(path: str = "config/leadlag.yaml") -> dict[str, Any]:
         return dict(yaml.safe_load(f))
 
 
-def run(cfg: dict[str, Any]) -> None:
-    OUT.mkdir(parents=True, exist_ok=True)
+def cfg_hash(cfg: dict[str, Any]) -> str:
+    return hashlib.sha256(json.dumps(cfg, sort_keys=True, default=str).encode()).hexdigest()[:16]
+
+
+def run(cfg: dict[str, Any], open_h2: bool = False, reason: str = "",
+        log_path: str | Path | None = None) -> None:
+    from engine.pipeline import h2_last_bar, log_holdout_view
+
     leader, fol = cfg["leader"], list(cfg["followers"])
+    if open_h2:
+        log_holdout_view(reason, cfg_hash(cfg), source="leadlag.study --open-h2", window="H2",
+                         log_path=log_path)
+    OUT.mkdir(parents=True, exist_ok=True)
     ds = load_dataset(cfg["data_root"], symbols=[leader, *fol])
+    if not open_h2:
+        ds = ds.truncate(h2_last_bar())
     md = ds.perp
     r = log_returns(md.close, md.is_filled)
     r_btc, r_alt = r[leader], r[fol]
@@ -76,4 +94,9 @@ def run(cfg: dict[str, Any]) -> None:
 
 
 if __name__ == "__main__":
-    run(load_cfg(sys.argv[1] if len(sys.argv) > 1 else "config/leadlag.yaml"))
+    ap = argparse.ArgumentParser(prog="engine.leadlag.study")
+    ap.add_argument("config", nargs="?", default="config/leadlag.yaml")
+    ap.add_argument("--open-h2", action="store_true", help="include sealed H2 (logged)")
+    ap.add_argument("--reason", default="")
+    a = ap.parse_args()
+    run(load_cfg(a.config), open_h2=a.open_h2, reason=a.reason)

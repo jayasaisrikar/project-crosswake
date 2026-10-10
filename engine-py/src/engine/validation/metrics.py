@@ -70,8 +70,14 @@ def _round_trip_pnls(trades: pd.DataFrame) -> pd.Series | None:
     if "ts" in t.columns:
         t = t.sort_values("ts", kind="stable")
     side = t["side"].astype(str).str.lower()
-    sign = np.where(side.isin(["buy", "long", "b", "1"]), 1.0, -1.0)
-    notional = t["qty_notional"].astype(float).abs().to_numpy() * sign
+    raw = t["qty_notional"].astype(float).to_numpy()
+    # Explicit buy/sell labels set the sign; any other side (e.g. the engine's "forced_exit", whose
+    # qty_notional is signed: -qty*p, so a SHORT's forced exit is a buy) uses the sign of
+    # qty_notional (AUDIT_REPORT B1).
+    is_buy = side.isin(["buy", "long", "b", "1"]).to_numpy()
+    is_sell = side.isin(["sell", "short", "s", "-1"]).to_numpy()
+    sign = np.where(is_buy, 1.0, np.where(is_sell, -1.0, np.sign(raw)))
+    notional = np.abs(raw) * sign
     units = notional / t["price"].astype(float).to_numpy()
     cost = np.zeros(len(t))
     for c in ("fee", "spread", "impact"):

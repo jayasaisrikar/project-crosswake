@@ -62,38 +62,94 @@ def probabilistic_sharpe(
     return float(st.norm.cdf(z))
 
 
-def expected_max_sharpe(trial_sharpes: list[float]) -> float:
-    """E[max SR] over N trials under the null (Euler-Mascheroni approximation)."""
-    n = len(trial_sharpes)
-    if n < 2:
+def expected_max_sharpe(trial_sharpes: list[float], n_trials: int | None = None) -> float:
+    """E[max SR] over N trials under the null (Euler-Mascheroni approximation, Bailey & LdP 2014).
+
+    V[SR] is estimated from the observed (finite) `trial_sharpes`; N defaults to their count but
+    should be the TOTAL number of trials tried (crashed trials, parameter neighbours and earlier
+    batches included), which may exceed the number of Sharpe values on record (review 01 #4)."""
+    fin = [float(x) for x in trial_sharpes if math.isfinite(float(x))]
+    n = int(n_trials) if n_trials is not None else len(fin)
+    n = max(n, len(fin))
+    if n < 2 or len(fin) < 2:
         return 0.0
-    sd = float(np.std(trial_sharpes, ddof=1))
+    sd = float(np.std(fin, ddof=1))
     return sd * (
         (1 - EULER_GAMMA) * st.norm.ppf(1 - 1.0 / n) + EULER_GAMMA * st.norm.ppf(1 - 1.0 / (n * math.e))
     )
 
 
-def deflated_sharpe(returns_daily: pd.Series, trial_sharpes: list[float]) -> float:
-    """DSR = PSR against E[max SR] of N = len(trial_sharpes) trials. trial_sharpes are per-period
-    (daily, non-annualized) Sharpe ratios on the same frequency as returns_daily."""
+def deflated_sharpe(returns_daily: pd.Series, trial_sharpes: list[float],
+                    n_trials: int | None = None) -> float:
+    """DSR = PSR against E[max SR] of N trials. trial_sharpes are per-period (daily, non-annualized)
+    Sharpe ratios on the same frequency as returns_daily; n_trials (>= len) is the total trial count."""
     r = pd.Series(returns_daily, dtype=float).dropna().to_numpy()
     sr = float(r.mean() / r.std(ddof=1))
     skew = float(st.skew(r))
     kurt = float(st.kurtosis(r, fisher=False))
-    return probabilistic_sharpe(sr, len(r), skew, kurt, expected_max_sharpe(trial_sharpes))
+    return probabilistic_sharpe(sr, len(r), skew, kurt, expected_max_sharpe(trial_sharpes, n_trials))
 
 
-def pbo_cscv(returns_matrix: pd.DataFrame, S: int = 16) -> dict[str, Any]:
+def alpha_vs_benchmark(strategy: pd.Series, benchmark: pd.Series) -> dict[str, float]:
+    """Daily regression strategy = alpha + beta * benchmark + e, Newey-West HAC t on alpha.
+
+    Returns alpha (daily and x365), beta, alpha_t, one-sided alpha_p (H1: alpha > 0), and the annual
+    Sharpe of the benchmark and of the excess (strategy - benchmark) series."""
+    df = pd.concat([_to_daily(strategy).rename("s"), _to_daily(benchmark).rename("b")], axis=1).dropna()
+    nan = float("nan")
+    out = {"alpha_daily": nan, "alpha_ann": nan, "beta": nan, "alpha_t": nan, "alpha_p": nan,
+           "benchmark_sharpe": nan, "excess_sharpe": nan, "n_days": float(len(df))}
+    if len(df) < 30:
+        return out
+    T = len(df)
+    lags = int(math.floor(4 * (T / 100.0) ** (2.0 / 9.0)))
+    x = np.column_stack([np.ones(T), df["b"].to_numpy()])
+    if float(df["b"].std()) == 0.0:
+        x = x[:, :1]
+    res = sm.OLS(df["s"].to_numpy(), x).fit(cov_type="HAC", cov_kwds={"maxlags": lags})
+    a, t = float(np.asarray(res.params)[0]), float(np.asarray(res.tvalues)[0])
+    ex = df["s"] - df["b"]
+    out.update(alpha_daily=a, alpha_ann=a * 365.0,
+               beta=float(np.asarray(res.params)[1]) if x.shape[1] > 1 else 0.0,
+               alpha_t=t, alpha_p=float(1.0 - st.norm.cdf(t)) if math.isfinite(t) else nan,
+               benchmark_sharpe=float(df["b"].mean() / df["b"].std() * math.sqrt(365))
+               if df["b"].std() > 0 else nan,
+               excess_sharpe=float(ex.mean() / ex.std() * math.sqrt(365)) if ex.std() > 0 else nan)
+    return out
+
+
+def distinct_columns(M: np.ndarray, rtol: float = 1e-9, atol: float = 1e-12) -> list[int]:
+    """Indices of the first column of each group of columns identical to tolerance."""
+    keep: list[int] = []
+    for j in range(M.shape[1]):
+        if not any(np.allclose(M[:, j], M[:, k], rtol=rtol, atol=atol) for k in keep):
+            keep.append(j)
+    return keep
+
+
+def pbo_cscv(returns_matrix: pd.DataFrame, S: int = 16, min_distinct: int = 2) -> dict[str, Any]:
     """Probability of Backtest Overfitting via Combinatorially Symmetric Cross-Validation.
 
     returns_matrix: T x N (configs). Performance metric = Sharpe (mean/std) on each half.
+    Fixes from review 01 #2/#3 (2026-10-10):
+      * configs identical to tolerance are deduplicated first; if fewer than `min_distinct` distinct
+        configs remain, returns pbo=NaN with degenerate=True (no information, not "overfit");
+      * ties are handled with mid-ranks in OOS and by averaging over the tied IS-best set;
+      * a combination counts as overfit only when logit < 0 STRICTLY (median rank is not overfit).
     """
     if S % 2:
         raise ValueError("S must be even")
     M = returns_matrix.to_numpy(dtype=float)
     M = M[~np.isnan(M).any(axis=1)]
+    n_raw = M.shape[1]
+    keep = distinct_columns(M) if M.size else list(range(n_raw))
+    M = M[:, keep]
     T, N = M.shape
-    if N < 2 or T < S:
+    if max(2, min_distinct) > N:
+        return {"pbo": float("nan"), "degenerate": True, "n_configs": n_raw, "n_distinct": N,
+                "logits": np.array([]), "degradation_slope": float("nan"),
+                "is_best": np.array([]), "oos_best": np.array([])}
+    if T < S:
         raise ValueError("need >= 2 configs and T >= S")
     edges = np.linspace(0, T, S + 1).astype(int)
     blocks = [M[edges[i] : edges[i + 1]] for i in range(S)]
@@ -114,16 +170,26 @@ def pbo_cscv(returns_matrix: pd.DataFrame, S: int = 16) -> dict[str, Any]:
         return mu / np.sqrt(np.maximum(var, 1e-300))
 
     is_perf, oos_perf = sharpe(W), sharpe(1.0 - W)  # (C, N)
-    best = is_perf.argmax(axis=1)
+    tol = 1e-12
+    is_max = is_perf.max(axis=1, keepdims=True)
+    tied = is_perf >= is_max - tol * np.maximum(1.0, np.abs(is_max))          # (C, N) IS-best set
+    # mid-rank of every config's OOS perf within its row (1..N, ascending)
+    less = (oos_perf[:, None, :] < oos_perf[:, :, None] - tol).sum(axis=2)    # (C, N)
+    eq = (np.abs(oos_perf[:, None, :] - oos_perf[:, :, None]) <= tol).sum(axis=2)
+    midrank = less + 0.5 * (eq - 1) + 1.0
+    w = midrank / (N + 1.0)
+    lg = np.log(w / (1.0 - w))
+    logits = (lg * tied).sum(axis=1) / tied.sum(axis=1)
     rows = np.arange(len(combos))
-    oos_best = oos_perf[rows, best]
-    rank = (oos_perf < oos_best[:, None]).sum(axis=1) + 1  # 1..N, ascending
-    w = rank / (N + 1.0)
-    logits = np.log(w / (1.0 - w))
+    best = is_perf.argmax(axis=1)
     is_best = is_perf[rows, best]
+    oos_best = (oos_perf * tied).sum(axis=1) / tied.sum(axis=1)
     slope = float(np.polyfit(is_best, oos_best, 1)[0]) if np.ptp(is_best) > 0 else float("nan")
     return {
-        "pbo": float((logits <= 0).mean()),
+        "pbo": float((logits < 0).mean()),
+        "degenerate": False,
+        "n_configs": n_raw,
+        "n_distinct": N,
         "logits": logits,
         "degradation_slope": slope,
         "is_best": is_best,

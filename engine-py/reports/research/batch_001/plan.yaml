@@ -1,0 +1,243 @@
+created_at: '2026-10-10T07:33:27.422920+00:00'
+spec_sha: 5fb1e8d5d72a3e37
+batch: batch_001
+h2_start: '2025-10-01T00:00:00+00:00'
+data_start: '2020-01-01'
+data_end: '2025-09-30T23:00:00+00:00'
+universe:
+  pit_top_n: engine.universe.pit_universe_mask(perp, top_n=15, monthly, min_history
+    60d, ADV 30d); predictions dropped for assets not in the mask at t; dataset columns
+    = union of members ever (+BTC)
+  majors:
+  - BTC
+  - ETH
+  top_n: 15
+regime_labeler: engine.regimes.api.labels(ds, statistical=False)['trend']
+costs: config/experiment.yaml costs -> CostModel.from_config (unchanged); 2x stress
+  by runner
+run_config:
+  n_splits: 5
+  embargo_hours: 168
+  position_mode: sign
+  seed: 0
+  bootstrap_n: 500
+alpha_bh: 0.05
+promotion_rules: config/promotion_rules.yaml (pre-registered 2026-10-10, untouched)
+experiments:
+- hypothesis: H-0001
+  model_id: tsmom
+  universe: majors
+  params:
+    lookbacks_days:
+    - 7
+    - 30
+    - 90
+  param_grid:
+    lookbacks_days:
+    - - 3
+      - 14
+      - 60
+    - - 7
+      - 30
+      - 90
+    - - 14
+      - 60
+      - 120
+    horizon_hours:
+    - 24
+    - 72
+  model_family: TS_MOMENTUM
+- hypothesis: H-0001
+  model_id: donchian
+  universe: majors
+  params:
+    lookbacks_days:
+    - 20
+    - 55
+  param_grid:
+    lookbacks_days:
+    - - 10
+      - 20
+    - - 20
+      - 55
+    - - 55
+      - 100
+  model_family: DONCHIAN_BREAKOUT
+- hypothesis: H-0002
+  model_id: xs_mom
+  universe: pit_top_n
+  params:
+    formation_days: 30
+    skip_days: 1
+  param_grid:
+    formation_days:
+    - 14
+    - 30
+    - 60
+    skip_days:
+    - 0
+    - 1
+  model_family: XS_MOMENTUM
+- hypothesis: H-0002
+  model_id: residual_mom
+  universe: pit_top_n
+  params:
+    formation_days: 30
+    beta_days: 60
+    btc_symbol: BTC
+  param_grid:
+    formation_days:
+    - 14
+    - 30
+    - 60
+    beta_days:
+    - 30
+    - 60
+  model_family: RESIDUAL_MOMENTUM
+- hypothesis: H-0004
+  model_id: vol_managed_tsmom
+  universe: pit_top_n
+  params:
+    lookbacks_days:
+    - 7
+    - 30
+    target_daily_vol: 0.03
+    max_scale: 2.0
+  param_grid:
+    target_daily_vol:
+    - 0.02
+    - 0.03
+    - 0.04
+    max_scale:
+    - 1.5
+    - 2.0
+  model_family: VOL_MANAGED_SCALING
+- hypothesis: H-0008
+  model_id: funding_reversion
+  universe: pit_top_n
+  params:
+    apr_hours: 72
+    z_days: 30
+    threshold: 1.5
+  param_grid:
+    apr_hours:
+    - 24
+    - 72
+    - 168
+    threshold:
+    - 1.0
+    - 1.5
+    - 2.0
+  model_family: FUNDING_EXTREME_REVERSION
+- hypothesis: H-0010
+  model_id: basis_reversion
+  universe: pit_top_n
+  params:
+    z_hours: 168
+    max_abs_basis: 0.02
+  param_grid:
+    z_hours:
+    - 72
+    - 168
+    - 336
+  model_family: BASIS_REVERSION
+- hypothesis: H-0011
+  model_id: st_reversal
+  universe: majors
+  params:
+    horizon_hours: 4
+    lookback_hours: 4
+  param_grid:
+    lookback_hours:
+    - 4
+    - 24
+    - 72
+    horizon_hours:
+    - 4
+    - 24
+  model_family: SHORT_TERM_REVERSAL
+- hypothesis: H-0011
+  model_id: zscore_reversal
+  universe: majors
+  params:
+    window_hours: 72
+    horizon_hours: 4
+  param_grid:
+    window_hours:
+    - 24
+    - 72
+    - 168
+  model_family: ZSCORE_REVERSAL
+- hypothesis: H-0013
+  model_id: voladj_reversal
+  universe: pit_top_n
+  params:
+    lookback_hours: 24
+    short_vol_hours: 72
+  param_grid:
+    lookback_hours:
+    - 12
+    - 24
+    - 48
+    short_vol_hours:
+    - 48
+    - 72
+    - 168
+  model_family: VOL_ADJUSTED_REVERSAL
+- hypothesis: H-0020
+  model_id: ridge
+  universe: pit_top_n
+  params:
+    lags_hours:
+    - 1
+    - 4
+    - 24
+    - 72
+    - 168
+    use_funding: true
+    use_basis: true
+    ridge: 10.0
+  param_grid:
+    ridge:
+    - 1.0
+    - 10.0
+    - 100.0
+    horizon_hours:
+    - 4
+    - 24
+  model_family: STAT_RIDGE
+unmapped:
+  H-0003: no conditional panic-state scaling model in engine.models
+  H-0005: volatility-forecast QLIKE comparison, not a trading signal (runner measures
+    PnL)
+  H-0006: same model (vol_managed_tsmom, HAR sizing) as H-0004; not run twice (duplicate
+    trial)
+  H-0007: delta-neutral carry needs spot+perp legs + funding PnL; runner is single-leg,
+    no funding
+  H-0009: cross-sectional funding carry needs funding PnL; runner PnL excludes funding
+  H-0012: conditional abnormal-move model not implemented
+  H-0014: no lead-lag SignalModel in registry; assessed via the lead-lag engine BTC->ADA
+    trial
+  H-0015: regime-conditional lead-lag model not implemented
+  H-0016: 'perp->spot lead-lag model not implemented (lead-lag engine verdict: no
+    edge)'
+  H-0017: transfer-entropy model not implemented
+  H-0018: HMM-conditioned trend model not implemented
+  H-0019: BOCPD exposure overlay not implemented
+  H-0021: intraday time-of-day model not implemented
+  H-0022: long-horizon reversal model not implemented; history too short for 1y lookbacks
+  H-0023: 'meta-hypothesis: answered by this batch''s DSR/PBO/BH outputs, not a separate
+    model'
+leadlag_trial:
+  hypothesis: H-0014
+  pair: BTC->ADA
+  family: leadlag
+  method: re-run engine.leadlag.engine.walk_forward (unchanged code/params) for all
+    43 pairs; BH + Holm over the 43 pairs' OOS net HAC p-values; DSR of BTC->ADA vs
+    the 43 pair trials; PBO over the 5 fixed-lag variants + selected; 2x cost stress
+    = CostModel x2
+caveats:
+- perp PnL excludes funding payments
+- square-root impact not applied (runner)
+- position_mode=sign for every model (model-side scaling not used)
+- xs models rank across all dataset columns, PIT mask applied to predictions

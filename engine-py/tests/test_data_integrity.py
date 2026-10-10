@@ -125,7 +125,8 @@ def test_funding_misaligned_and_outside_window():
     funding = pd.DataFrame({"X": [0.0001, 0.0001]}, index=fidx)
     rep = check_dataset(Dataset(spot=spot, perp=perp, funding=funding))
     assert any(i.check == "funding" and "off the hour" in i.detail for i in rep.issues)
-    assert any(i.check == "funding" and "outside the perp listing" in i.detail and i.n == 1
+    assert any(i.check == "funding" and "no live perp bar" in i.detail and i.n == 1
+               and i.severity == "high"
                for i in rep.issues)
 
 
