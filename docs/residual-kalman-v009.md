@@ -141,13 +141,28 @@ At 1e-5 the half-life falls below `halfLifeMinBars` = 4, so the Kalman variant m
 
 ## Results
 
+Run 17 Oct 2026 on Binance USD-M 1-minute bars and settled funding, Dec 2024 to May 2026. No bars from the holdout window were downloaded.
+
 ```
-Pre-flight (§8.1): locks checked [workstation: none; OCI box: NOT CHECKED], v004 reports [none on workstation], coverage [pending]
-Walk-forward Kalman: pending
-Walk-forward OLS control: pending
-Dispersion ratio (median, IQR): pending
-Step B verdict: pending
-Holdout (if run): not run
-Final verdict: pending
+Pre-flight (§8.1): locks checked [workstation: none; OCI box: NOT CHECKED, irrelevant since no holdout was run],
+  v004 reports [none on workstation], coverage [all 15 symbols, 2024-12..2026-05, no missing archives; SUI kept]
+Walk-forward Kalman: 0 trades in every variant. The 4-variant grid never trades:
+  all 673,176 symbol-evaluations were not_cointegrated (no symbol ever eligible)
+Walk-forward OLS control (out-of-sample, 13 folds, 390 test days):
+  125 trades, win rate 30.4%, net -55.8 bps/trade, CI95 [-77.5, -33.4], gross -21.0 bps, cost 34.9 bps,
+  2x-cost net ≈ -91 bps, 0.32 trades/day, PF 0.33; exits 82 stop / 37 target / 6 time
+  In-sample variants: -49 to -55 bps/trade, win rate 27-37%
+Dispersion ratio, Kalman vs OLS spread (median, IQR): 0.13 (0.10-0.16)
+  -> "Kalman absorbs the spread": at delta 1e-5 the filter's alpha soaks up the deviation, the
+     spread's half-life falls below 4 samples, and the eligibility gate never opens.
+Step B verdict: NULL. B1-B5 all fail (Kalman has no trades; control is negative with CI below zero)
+Holdout: NOT RUN, not reserved; 2026-06-01..2026-10-01 stays clean for a future idea
+Final verdict: NULL-AT-WALK-FORWARD
 Post-hoc (labelled, not used for any decision): not run
 ```
+
+**Reading:**
+- **The Kalman variant doesn't fail on costs. It never trades.** The adaptive hedge removes the very deviation it is meant to trade, the same failure mode spec §3.4 anticipated and the synthetic test showed.
+- **The OLS control does trade and loses clearly.** Its gross is already negative (−21 bps) before 35 bps of costs, and its stops outnumber its targets 2:1.
+- Cointegration on 14-day windows of log levels does not give a usable reversion edge on these 15 perps.
+- v009 is retired. Per §11 it won't be retuned: no δ sweep or grid change will be used for selection.

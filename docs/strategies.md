@@ -16,7 +16,7 @@ All results are after fees and slippage. Every strategy is **paper only**: signa
 | v006 | v005 rules on a wider coin list (HYPE and newer coins) | Spot | Days–weeks | 🟡 Live paper only |
 | v007 | 15m RSI rebound in the 4h trend direction | Perps | Hours | ❌ Failed test, paper for observation |
 | v008 | Trend + cross-sectional momentum, long/short | Perps | Days–weeks | 🟡 Live paper only, from 18 Oct 2026 |
-| v009 | Kalman-hedged alt-vs-BTC residual pairs, both directions | Perps (hedged) | Hours | 🔬 Research: walk-forward pending, holdout sealed |
+| v009 | Kalman-hedged alt-vs-BTC residual pairs, both directions | Perps (hedged) | Hours | ❌ Null at walk-forward: Kalman never traded; OLS control −56 bps/trade |
 
 ## How a strategy is judged
 
@@ -99,13 +99,13 @@ All results are after fees and slippage. Every strategy is **paper only**: signa
 
 **Files:** `configs/momentum-plan-v008.json` · engine `packages/backtest/src/momentum.ts` · live `apps/momentum/src/main.ts` · full note [`momentum-strategy-v008.md`](momentum-strategy-v008.md)
 
-## v009 · Kalman-hedged residual pairs (research)
+## v009 · Kalman-hedged residual pairs (failed)
 
 **In plain words:** v003/v004 again, done the textbook stat-arb way. Track a time-varying hedge ratio between each alt and BTC with a Kalman filter, trade the spread only when it's cointegrated with a usable half-life, and hold both legs until the spread reverts. A static-OLS version runs alongside as a control.
 
 - **Expected result:** probably a null. A hedged round trip costs about 35–45 bps.
 - **Procedure:** walk-forward from 2025-05 to 2026-06. The holdout (2026-06 to 2026-10) is opened only if five criteria fixed in advance pass, including beating the OLS control.
-- **Status:** research only. There's no live service.
+- **Result (17 Oct 2026): null at walk-forward.** The Kalman filter absorbed the spread (dispersion ratio 0.13), so no pair ever qualified and it made zero trades. The OLS control made 125 out-of-sample trades with a 30% win rate and −56 bps per trade (CI −78 to −33). The holdout was not opened. Retired, not retuned.
 
 **Files:** [`residual-kalman-v009.md`](residual-kalman-v009.md) · `configs/residual-kalman-*.json` · engine `packages/signals/src/kalman-residual.ts`
 
