@@ -122,6 +122,14 @@ export interface ResidualSignal {
   scoreKind: 'HEURISTIC_NOT_WIN_PROBABILITY';
   configHash: string;
   modelVersion: string;
+  /** v009 only: cointegration and hedge diagnostics. Logged, never used by the simulator. */
+  kalman?: {
+    hedgeModel: 'kalman' | 'ols';
+    pValue: number;
+    halfLife: number;
+    dispersionRatio: number;
+    innovationZ: number;
+  };
 }
 export const roundTripCostBps = (
   c: Pick<
@@ -164,6 +172,10 @@ export class ResidualEngine {
   get warmupBars() {
     const c = this.config;
     return (c.estimationWindowMs + c.refitEveryMs + c.lookbackMs) / MINUTE;
+  }
+  /** Every v003/v004 signal holds exactly holdMs. */
+  get minHoldMs() {
+    return this.config.holdMs;
   }
   isEvaluationBar(store: BarStore, i: number) {
     return store.closeTimeAt(i) % this.config.evaluateEveryMs === 0;

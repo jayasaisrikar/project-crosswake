@@ -42,14 +42,17 @@ import {
 import {
   ResidualSimulator,
   residualReport,
-  runResidual,
+  runEngine,
   type OpenPosition,
 } from '../../../packages/backtest/src/residual.js';
 import {
+  kalmanStepB,
+  planEngine,
   residualHoldout,
   residualPlanSchema,
   residualWalkForward,
 } from '../../../packages/backtest/src/residual-research.js';
+import { kalmanResidualSchema } from '../../../packages/signals/src/kalman-residual.js';
 import { residualStudy } from '../../../packages/backtest/src/residual-study.js';
 import { describeSignal, px, telegramSignal } from './format.js';
 
@@ -66,6 +69,10 @@ const { values } = parseArgs({
     days: { type: 'string' },
     output: { type: 'string' },
     'walk-forward': { type: 'string' },
+    /** residual (v003/v004, default) or kalman (v009). Implied by a plan's `engine`. */
+    engine: { type: 'string' },
+    /** v009: the OLS control's walk-forward report, for the Step B checks. */
+    control: { type: 'string' },
     once: { type: 'boolean', default: false },
     'lookback-hours': { type: 'string', default: '1,2,4' },
     'hold-hours': { type: 'string', default: '1,2,4' },
@@ -76,6 +83,21 @@ const readJson = async (path: string) =>
   JSON.parse(await readFile(path, 'utf8'));
 const loadConfig = async (path: string) =>
   residualSchema.parse(await readJson(path));
+const engineKind = (planEngine?: 'residual' | 'kalman') => {
+  const flag = values.engine as 'residual' | 'kalman' | undefined;
+  if (flag && !['residual', 'kalman'].includes(flag))
+    throw new Error('--engine must be residual or kalman');
+  if (flag && planEngine && flag !== planEngine)
+    throw new Error(
+      `--engine ${flag} does not match the plan's engine ${planEngine}`,
+    );
+  return flag ?? planEngine ?? 'residual';
+};
+/** Parses a config for the chosen engine; only the fields loadData needs are typed. */
+const parseFor = (kind: 'residual' | 'kalman', raw: unknown) =>
+  kind === 'kalman'
+    ? kalmanResidualSchema.parse(raw)
+    : residualSchema.parse(raw);
 const iso = (ts: number) => new Date(ts).toISOString().replace('.000Z', 'Z');
 async function freshDir(path: string) {
   await mkdir(join(path, '..'), { recursive: true });
@@ -88,9 +110,13 @@ async function loadPlan(path: string) {
   return { plan, base };
 }
 
-const marketOf = (c: ResidualConfig) => c.market ?? 'spot';
+const marketOf = (c: Pick<ResidualConfig, 'market'>) => c.market ?? 'spot';
 /** Verified bars (and funding for perps) for [startTs, endTs). */
-async function loadData(c: ResidualConfig, startTs: number, endTs: number) {
+async function loadData(
+  c: Pick<ResidualConfig, 'symbols' | 'market'>,
+  startTs: number,
+  endTs: number,
+) {
   const bars = await loadBarStore(root, c.symbols, startTs, endTs, marketOf(c));
   if (marketOf(c) === 'spot') return { ...bars, funding: undefined };
   const funding = await loadFunding(root, c.symbols, startTs, endTs);
@@ -244,18 +270,20 @@ async function history() {
 }
 
 async function backtest() {
-  const config = await loadConfig(values.config!),
+  const kind = engineKind(),
+    config = parseFor(kind, await readJson(values.config!)),
     startTs = Date.parse(values.from ?? ''),
     endTs = Date.parse(values.to ?? '');
   if (!Number.isFinite(startTs) || !Number.isFinite(endTs))
     throw new Error('Supply --from and --to as UTC times');
-  const warmup = new ResidualEngine(config).warmupBars * MINUTE,
+  const engine = planEngine({ engine: kind }, config),
+    warmup = engine.warmupBars * MINUTE,
     { store, datasetHash, provenance, funding } = await loadData(
       config,
       startTs - warmup,
       endTs,
     ),
-    run = runResidual(store, config, { startTs, endTs }, funding),
+    run = runEngine(store, engine, { startTs, endTs }, funding),
     output = await freshDir(
       values.output ??
         join(root, 'residual', 'backtests', `${config.version}-${Date.now()}`),
@@ -306,6 +334,10 @@ function summary(
 }
 
 async function study() {
+  if (engineKind() === 'kalman')
+    throw new Error(
+      'study replays fixed lookback/hold residuals (v003/v004); v009 has no equivalent. Use backtest --engine kalman.',
+    );
   const config = await loadConfig(values.config!),
     startTs = Date.parse(values.from ?? ''),
     endTs = Date.parse(values.to ?? '');
@@ -361,12 +393,18 @@ async function study() {
 async function walkForward() {
   if (!values.plan) throw new Error('Supply --plan');
   const { plan, base } = await loadPlan(values.plan),
+    kind = engineKind(plan.engine),
     { store, datasetHash, provenance, funding } = await loadData(
-      residualSchema.parse(base),
+      parseFor(kind, base),
       Date.parse(plan.dataStart),
       Date.parse(plan.walkForwardEnd),
     ),
-    report = residualWalkForward(store, plan, base, funding),
+    { variantDiagnostics, ...report } = residualWalkForward(
+      store,
+      plan,
+      base,
+      funding,
+    ),
     output = await freshDir(
       values.output ??
         join(root, 'residual', 'walk-forward', `${plan.id}-${Date.now()}`),
@@ -374,6 +412,10 @@ async function walkForward() {
   await writeFile(
     join(output, 'report.json'),
     JSON.stringify({ ...report, datasetHash, provenance }, null, 2),
+  );
+  await writeFile(
+    join(output, 'diagnostics.json'),
+    JSON.stringify(variantDiagnostics),
   );
   console.log({
     ...summary(
@@ -396,13 +438,31 @@ async function holdout() {
   if (!values.plan || !values['walk-forward'])
     throw new Error('Supply --plan and --walk-forward REPORT.json');
   const { plan, base } = await loadPlan(values.plan),
-    wf = await readJson(values['walk-forward']),
-    warmup =
-      new ResidualEngine(
-        residualSchema.parse(wf.finalSelection?.config ?? base),
+    kind = engineKind(plan.engine),
+    wf = await readJson(values['walk-forward']);
+  if (kind === 'kalman') {
+    // v009 spends its holdout only after the pre-registered Step B (spec §10) passes.
+    if (!values.control)
+      throw new Error(
+        'v009 holdout needs --control OLS-WALK-FORWARD.json for Step B',
+      );
+    const control = await readJson(values.control),
+      b = kalmanStepB(
+        { trades: wf.outOfSampleTrades, testDays: wf.testDays },
+        { trades: control.outOfSampleTrades },
+      );
+    if (!b.go)
+      throw new Error(
+        `Step B failed; the holdout stays sealed: ${JSON.stringify(b.checks)}`,
+      );
+  }
+  const warmup =
+      planEngine(
+        { engine: kind },
+        parseFor(kind, wf.finalSelection?.config ?? base),
       ).warmupBars * MINUTE,
     { store, datasetHash, funding } = await loadData(
-      residualSchema.parse(base),
+      parseFor(kind, base),
       Date.parse(plan.holdout.start) - warmup,
       Date.parse(plan.holdout.end),
     ),
@@ -638,7 +698,26 @@ async function live() {
   console.log(`State saved in ${resolve(out)}`);
 }
 
+/** v009 Step B: go/no-go for the holdout from the Kalman and OLS-control walk-forward reports. Reads no holdout data. */
+async function stepB() {
+  if (!values['walk-forward'] || !values.control)
+    throw new Error('Supply --walk-forward KALMAN.json and --control OLS.json');
+  const k = await readJson(values['walk-forward']),
+    c = await readJson(values.control);
+  console.log(
+    JSON.stringify(
+      kalmanStepB(
+        { trades: k.outOfSampleTrades, testDays: k.testDays },
+        { trades: c.outOfSampleTrades },
+      ),
+      null,
+      2,
+    ),
+  );
+}
+
 const commands: Record<string, () => Promise<void>> = {
+  'step-b': stepB,
   history,
   study,
   backtest,

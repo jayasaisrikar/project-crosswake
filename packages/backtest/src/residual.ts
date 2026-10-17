@@ -11,6 +11,37 @@ import {
   type Side,
 } from '../../signals/src/residual.js';
 
+/** What the simulator needs from an engine (v003/v004 ResidualEngine or v009 KalmanResidualEngine). */
+export interface SignalEngine {
+  readonly config: Pick<
+    ResidualConfig,
+    | 'version'
+    | 'instrument'
+    | 'market'
+    | 'executableSides'
+    | 'entryDelayMs'
+    | 'maxEntryDriftBps'
+    | 'maxConcurrentPositions'
+    | 'cooldownMs'
+    | 'feeBpsPerSide'
+    | 'slippageBpsPerSide'
+    | 'spreadBps'
+  > & {
+    /** Max open + pending positions per (eventId, side); absent means no cap (v003/v004). */
+    maxPositionsPerEvent?: number;
+  };
+  readonly configHash: string;
+  readonly warmupBars: number;
+  /** Shortest hold any signal can have; gates evaluation near the window end. */
+  readonly minHoldMs: number;
+  isEvaluationBar(store: BarStore, i: number): boolean;
+  evaluate(store: BarStore, i: number): ResidualSignal[];
+  readonly diagnostics: { funnel: Record<string, number> } & Record<
+    string,
+    unknown
+  >;
+}
+
 export interface ResidualTrade extends PaperTrade {
   side: Side;
   instrument: ResidualConfig['instrument'];
@@ -76,7 +107,7 @@ export class ResidualSimulator {
   private cooldownUntil = new Map<string, number>();
   private lastCloseTs = -Infinity;
   constructor(
-    readonly engine: ResidualEngine,
+    readonly engine: SignalEngine,
     private window: { startTs: number; endTs: number } = {
       startTs: -Infinity,
       endTs: Infinity,
@@ -139,12 +170,17 @@ export class ResidualSimulator {
     const queued: ResidualSignal[] = [];
     if (
       now >= this.window.startTs &&
-      now + c.entryDelayMs + c.holdMs <= this.window.endTs &&
+      now + c.entryDelayMs + this.engine.minHoldMs <= this.window.endTs &&
       this.engine.isEvaluationBar(store, i)
     ) {
       signals = this.engine.evaluate(store, i);
       for (const signal of signals) {
         if (!signal.accepted) continue;
+        // Each signal's own hold must finish inside the window (equal to minHoldMs for v003/v004).
+        if (now + c.entryDelayMs + signal.holdMs > this.window.endTs) {
+          this.reject('hold_past_window');
+          continue;
+        }
         const k = key(signal.side, signal.symbol),
           busy =
             this.open.some((p) => key(p.signal.side, p.signal.symbol) === k) ||
@@ -158,6 +194,15 @@ export class ResidualSimulator {
           c.maxConcurrentPositions
         )
           this.reject('capacity');
+        else if (
+          c.maxPositionsPerEvent !== undefined &&
+          [...this.open, ...this.pending].filter(
+            (p) =>
+              p.signal.eventId === signal.eventId &&
+              p.signal.side === signal.side,
+          ).length >= c.maxPositionsPerEvent
+        )
+          this.reject('event_capacity');
         else if (!publish(signal)) this.reject('not_published');
         else {
           this.pending.push({ signal });
@@ -246,7 +291,7 @@ export class ResidualSimulator {
           ? 'stop'
           : move >= p.target
             ? 'target'
-            : now - p.entryTs >= c.holdMs
+            : now - p.entryTs >= s.holdMs
               ? 'time'
               : null;
       if (!reason) {
@@ -329,8 +374,17 @@ export function runResidual(
   range: { startTs: number; endTs: number },
   funding?: Map<string, FundingEvent[]>,
 ) {
-  const engine = new ResidualEngine(config),
-    sim = new ResidualSimulator(engine, range, funding),
+  return runEngine(store, new ResidualEngine(config), range, funding);
+}
+
+/** Same as runResidual for any SignalEngine. */
+export function runEngine(
+  store: BarStore,
+  engine: SignalEngine,
+  range: { startTs: number; endTs: number },
+  funding?: Map<string, FundingEvent[]>,
+) {
+  const sim = new ResidualSimulator(engine, range, funding),
     first = Math.max(
       0,
       store.indexClosingAt(Math.max(range.startTs, store.closeTimeAt(0))),
@@ -345,6 +399,7 @@ export function runResidual(
     unfinished: sim.unfinished,
     rejections: sim.rejections,
     diagnostics: engine.diagnostics.funnel,
+    engineDiagnostics: engine.diagnostics,
     configHash: engine.configHash,
   };
 }
