@@ -311,6 +311,22 @@ describe('residual v003 paper simulator', () => {
     expect(loss.exitPrice).toBe(99);
     expect(loss.grossReturnBps).toBeCloseTo(-100);
   });
+  it('books short target exits at -expm1(-target), not +expm1(target)', () => {
+    const shortSignal: Partial<ResidualSignal> = {
+      ...baseSignal,
+      side: 'SHORT',
+      targetBps: 100,
+      stopBps: 300,
+    };
+    const win = drive(
+      stubSimulator(path([100, 100, 99.6, 98.5, 98.5]), shortSignal, [0]),
+      path([100, 100, 99.6, 98.5, 98.5]),
+    );
+    const [t] = win.trades;
+    expect(t!.exitReason).toBe('target');
+    expect(t!.grossReturnBps).toBeCloseTo(-Math.expm1(-0.01) * 1e4);
+    expect(t!.grossReturnBps).toBeLessThan(Math.expm1(0.01) * 1e4);
+  });
   it('exits on time, rejects drifted or missing entries, and keeps gaps visible', () => {
     const flat = path(Array(70).fill(100)),
       timed = drive(stubSimulator(flat, {}, [0]), flat).trades[0]!;

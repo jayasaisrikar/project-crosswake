@@ -258,7 +258,7 @@ export class ResidualSimulator {
         hedgedGross = direction * (altSimple - s.beta * btcSimple) * 1e4,
         gross =
           reason === 'target'
-            ? Math.expm1(p.target) * 1e4
+            ? direction * Math.expm1(direction * p.target) * 1e4
             : hedged
               ? hedgedGross
               : direction * altSimple * 1e4,
