@@ -193,7 +193,12 @@ async function importFunding(
 }
 
 async function history() {
-  const config = await loadConfig(values.config!),
+  // History needs only symbols and market; v009 configs carry `hedgeModel`.
+  const raw = await readJson(values.config!),
+    config = parseFor(
+      'hedgeModel' in raw ? engineKind('kalman') : engineKind(),
+      raw,
+    ),
     symbols = values.symbols?.split(',') ?? config.symbols;
   const periods = [
     ...(values.from ? monthRange(values.from, values.to) : []),

@@ -37,6 +37,7 @@
     "residual:backtest": "tsx apps/residual/src/main.ts backtest",
     "residual:walk-forward": "tsx apps/residual/src/main.ts walk-forward",
     "residual:holdout": "tsx apps/residual/src/main.ts holdout",
+    "residual:step-b": "tsx apps/residual/src/main.ts step-b",
     "residual:live": "tsx apps/residual/src/main.ts live",
     "residual:study": "tsx apps/residual/src/main.ts study",
     "costs:sample": "tsx apps/costs/src/main.ts sample",
