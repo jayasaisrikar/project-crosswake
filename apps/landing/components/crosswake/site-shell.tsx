@@ -135,9 +135,6 @@ export function SiteHeader() {
         </Link>
       </nav>
       <div className="cw-nav-end">
-        <span className="cw-live-pill">
-          <i aria-hidden="true" /> Paper tracking live
-        </span>
         <Link className="cw-nav-action" href={cta}>
           {telegramUrl ? 'Join Telegram' : 'Get signals'}
           <ArrowUpRight size={15} />
