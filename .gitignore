@@ -1,6 +1,5 @@
 node_modules/
 data/
-!engine-py/src/engine/data/
 .env
 .env.local
 .env.vercel
