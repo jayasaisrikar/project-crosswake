@@ -8,6 +8,12 @@ export const changelog: {
   body: string;
 }[] = [
   {
+    date: '2026-10-17',
+    kind: 'strategy',
+    title: 'v008 frozen: a slower, hedged momentum book on futures',
+    body: 'Half the book follows each coin’s own trend over 20, 60 and 120 days, long or short. The other half buys the strongest third of 37 futures over the last month and shorts the weakest third, rebalanced weekly. These rules were already studied on all past data elsewhere, so no clean backtest is left: v008 is judged on its live paper record only, from 18 October 2026. The bar is set now: after 90 days, a Sharpe above 0.5, both halves positive, a drawdown under 25%, and better risk-adjusted returns than holding the same coins. It sends no signals yet.',
+  },
+  {
     date: '2026-10-10',
     kind: 'failed',
     title: 'v004 posted short alerts while listed as failed. Now silenced.',

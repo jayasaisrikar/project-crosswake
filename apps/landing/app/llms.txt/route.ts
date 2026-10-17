@@ -20,7 +20,7 @@ const body = `
 - Portfolio view (29 equal slots, no leverage): +12.8% total return, −16.9% maximum drawdown. Holding BTC over the same period: −11.6%, −53.0% drawdown.
 - One coin (ZEC, up 24.7x) drives much of the result; without it v005 was roughly flat while holding the other coins lost about 46%.
 - Re-pricing every trade 1 or 4 hours after the daily open barely changes the result.
-- Live paper tracking started 1 October 2026 (v005) and 9 October 2026 (v006, 36 coins).
+- Live paper tracking started 1 October 2026 (v005), 9 October 2026 (v006, 36 coins) and 18 October 2026 (v008).
 - First live signal: ATOM entry at 2.066 on 10 October 2026, open and about 6.7% below entry that day.
 
 ## Hyperliquid data
@@ -35,8 +35,9 @@ const body = `
 - Paid evidence never changes signal confidence on its own, and it is recorded separately from Crosswake's own measurements.
 
 ## Research record
-- Seven strategy versions so far; five failed or were retired (v001–v004, v007). All remain public.
+- Eight strategy versions so far; five failed or were retired (v001–v004, v007). All remain public.
 - Only v005 and v006 send signals. v003, v004 and v007 run on paper for observation and send nothing.
+- v008 (frozen 17 October 2026): half trend-following, half long/short cross-sectional momentum on 37 Binance futures. Its rules already saw all past data, so it is judged on live paper only from 18 October 2026, against criteria fixed in advance. It sends no signals.
 - v004 posted 10 short alerts to the channel between 8 and 10 October 2026 while listed as failed; this was disclosed in the changelog and its delivery was turned off.
 
 ## Pages

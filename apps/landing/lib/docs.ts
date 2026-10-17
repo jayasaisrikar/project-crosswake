@@ -53,7 +53,7 @@ export const docs: {
         id: 'status',
         title: 'Current stage',
         paragraphs: [
-          'The signal dashboard, paper tracking, Telegram paper alerts, and four-hour market summaries are running. v005 began live paper tracking on 1 October 2026; v006 began on 9 October 2026. The first live signal, an ATOM entry, was sent on 10 October 2026.',
+          'The signal dashboard, paper tracking, Telegram paper alerts, and four-hour market summaries are running. v005 began live paper tracking on 1 October 2026, v006 on 9 October 2026 and v008 on 18 October 2026. The first live signal, an ATOM entry, was sent on 10 October 2026.',
           'Research results are not a promise of future performance. The main strategy’s unseen-data confidence interval includes zero, so its edge remains unproven.',
         ],
       },
@@ -94,6 +94,15 @@ export const docs: {
         paragraphs: [
           'v006 applies the same daily rules to 36 coins, including newer listings such as HYPE, SUI, ENA, and TAO. It runs alongside v005 rather than replacing it.',
           'Many newer coins lack enough history for a meaningful backtest. This version is evaluated on live paper results from 9 October 2026. A coin requires 20 daily closes before it can become tradable.',
+        ],
+      },
+      {
+        id: 'momentum-v008',
+        title: 'v008 · Trend and momentum on futures',
+        paragraphs: [
+          'v008 holds two halves on 37 Binance futures. The trend half averages the direction of each coin’s 20-, 60- and 120-day returns and goes long or short, sized by volatility and rebalanced daily. The momentum half ranks coins by their last-month return each week, buys the top third and shorts the bottom third in equal amounts, so it is roughly market-neutral. Each half aims for 20% annual volatility, with at most 25% in one coin and 2× gross exposure.',
+          'These rules come from earlier research that has already seen every past period, so no backtest can test them fairly. v008 is judged on live paper results only, from 18 October 2026. After 90 days it passes only if its Sharpe ratio is above 0.5, both halves are positive, the drawdown stays under 25%, and it beats holding the same coins on a risk-adjusted basis. Otherwise it is marked failed, not retuned.',
+          'A replay on 2021–2026 data, which is not a fair test, made about 10% a year with a 21% worst drawdown, mostly from the trend half. It was down about 7% in 2026 and charges no funding costs. v008 runs on paper and sends no signals.',
         ],
       },
       {
