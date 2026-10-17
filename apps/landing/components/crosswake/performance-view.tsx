@@ -20,6 +20,7 @@ type Summary = {
   maxDrawdown: Record<'strategy' | 'btc' | 'basket', number>;
   worstDrawdown: { from: number; to: number };
   basketCoins: number;
+  live?: { from: number; through: number; closedTrades: number; openTrades: number; return: number } | null;
   excludingTop?: { symbol: string; multiple: number; strategy: number; basket: number };
   fillDelay?: {
     skipped: number;
@@ -81,7 +82,26 @@ function ticks(lo: number, hi: number, count = 5) {
   return out;
 }
 
-function EquityChart({ points }: { points: Point[] }) {
+/** Index of the first live-paper point, or null when the data has no live segment. */
+const liveIndex = (points: Point[], from?: number) => {
+  const k = from === undefined ? -1 : points.findIndex((p) => p.t >= from);
+  return k > 0 ? k : null;
+};
+
+function LiveMarker({ x, top, bottom, label }: { x: number; top: number; bottom: number; label?: boolean }) {
+  return (
+    <g>
+      <line className="pf-cross" x1={x} x2={x} y1={top} y2={bottom} strokeDasharray="4 4" />
+      {label && (
+        <text className="pf-axis" x={x + 6} y={top + 12}>
+          Live →
+        </text>
+      )}
+    </g>
+  );
+}
+
+function EquityChart({ points, liveFrom }: { points: Point[]; liveFrom?: number }) {
   const { ref: box, W, PAD, narrow } = useWidth();
   const H = narrow ? 260 : 340, n = points.length;
   const all = points.flatMap((p) => [p.strategy, p.btc, p.basket]);
@@ -99,6 +119,7 @@ function EquityChart({ points }: { points: Point[] }) {
   const ends = SERIES.map((s) => ({ ...s, y: y(points[n - 1]![s.key]) })).sort((a, b) => a.y - b.y);
   for (let j = 1; j < ends.length; j++) if (ends[j]!.y - ends[j - 1]!.y < 16) ends[j]!.y = ends[j - 1]!.y + 16;
   const h = hover.i !== null ? points[hover.i]! : null;
+  const live = liveIndex(points, liveFrom);
   return (
     <div className="pf-chart" ref={box}>
       <svg
@@ -118,6 +139,7 @@ function EquityChart({ points }: { points: Point[] }) {
           </g>
         ))}
         <line className="pf-base" x1={PAD.l} x2={W - PAD.r} y1={y(1)} y2={y(1)} />
+        {live !== null && <LiveMarker x={x(live)} top={PAD.t} bottom={H - PAD.b} label />}
         {months.map(([p, k]) => (
           <text key={p.t} className="pf-axis" x={x(k)} y={H - 8} textAnchor="middle">
             {month(p.t)}
@@ -158,7 +180,7 @@ function EquityChart({ points }: { points: Point[] }) {
   );
 }
 
-function DrawdownChart({ points }: { points: Point[] }) {
+function DrawdownChart({ points, liveFrom }: { points: Point[]; liveFrom?: number }) {
   const { ref: box, W, PAD } = useWidth();
   const H = 150, n = points.length;
   const lo = Math.min(...points.map((p) => p.drawdown)) * 1.1;
@@ -178,6 +200,9 @@ function DrawdownChart({ points }: { points: Point[] }) {
             </text>
           </g>
         ))}
+        {liveIndex(points, liveFrom) !== null && (
+          <LiveMarker x={x(liveIndex(points, liveFrom)!)} top={PAD.t} bottom={H - PAD.b} />
+        )}
         <path d={area} fill={DD_COLOR} fillOpacity={0.22} stroke={DD_COLOR} strokeWidth={1.5} />
         {h && <line className="pf-cross" x1={x(hover.i!)} x2={x(hover.i!)} y1={PAD.t} y2={H - PAD.b} />}
       </svg>
@@ -246,7 +271,14 @@ export function PerformanceView() {
                   ))}
                 </ul>
               </header>
-              <EquityChart points={data.points} />
+              {s.live && (
+                <p className="sl-quiet">
+                  The test ends on {s.period[1]}. After the dashed line is the live paper record since {day(s.live.from)}, updated
+                  through {day(s.live.through)}: {s.live.closedTrades} closed and {s.live.openTrades} open trades, {pct(s.live.return)}{' '}
+                  so far. The figures above and the table below cover the test only.
+                </p>
+              )}
+              <EquityChart points={data.points} liveFrom={s.live?.from} />
             </section>
 
             <section className="pf-section">
@@ -254,7 +286,7 @@ export function PerformanceView() {
                 <h2>Drawdown</h2>
                 <p>How far v005 sat below its previous high. The deepest fall ran from {day(s.worstDrawdown.from)} to {day(s.worstDrawdown.to)}.</p>
               </header>
-              <DrawdownChart points={data.points} />
+              <DrawdownChart points={data.points} liveFrom={s.live?.from} />
             </section>
 
             <section className="pf-section">
