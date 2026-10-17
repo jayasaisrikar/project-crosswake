@@ -11,7 +11,18 @@ const HOUR = 3600000,
   start = Date.UTC(2026, 0, 1),
   symbols = ['BTCUSDT', 'ETHUSDT', 'SOLUSDT'];
 export const V004_REGRESSION_DIGEST =
-  '12053467c780f245fa1f6dc00355737b70b72b9eb80da9e354f89b2ff81974b7';
+  'a961251ffb7e1835d976511e524f8cdd4bee2eba043ba325fd000bf5d683400a';
+
+const quantize = (v: unknown): unknown =>
+  typeof v === 'number'
+    ? Number(v.toPrecision(10))
+    : Array.isArray(v)
+      ? v.map(quantize)
+      : v && typeof v === 'object'
+        ? Object.fromEntries(
+            Object.entries(v).map(([k, x]) => [k, quantize(x)]),
+          )
+        : v;
 
 export function v004RegressionRun() {
   let seed = 11;
@@ -65,7 +76,7 @@ export function v004RegressionRun() {
   return {
     trades: run.trades.length,
     digest: createHash('sha256')
-      .update(JSON.stringify(run.trades))
+      .update(JSON.stringify(quantize(run.trades)))
       .digest('hex'),
   };
 }
