@@ -41,6 +41,7 @@ units_for_app() {
     residual) echo 'signals-spot signals-perp' ;;
     trend) echo 'signals-daily signals-daily-v006' ;;
     htf) echo signals-htf-v007 ;;
+    momentum) echo signals-momentum-v008 ;;
     digest) echo digest ;;
     status) echo status ;;
     costs) echo costs ;;
