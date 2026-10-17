@@ -43,6 +43,7 @@ Every strategy below runs around the clock on our server as paper trading: signa
 | **v005** | The daily trend strategy above, on 28 established coins | Live confirmation of the tested edge, from 1 Oct 2026 |
 | **v006** | The same rules, unchanged, on 36 coins including HYPE and other newer listings | More coins means more signals. Most new coins lack enough history to test, so it's judged on live results only, from 9 Oct 2026 |
 | **v007** | BTC, ETH and SOL futures: 15-minute RSI rebounds taken in the direction of the 4-hour trend | A faster strategy that **failed** its test (see below). It runs for observation only |
+| **v008** | 37 futures: half follows each coin's trend (long or short), half buys the strongest third and shorts the weakest third each week | A slower, market-hedged approach. Its rules were already studied on all past data, so it's judged on live results only, from 18 Oct 2026 |
 
 ## Telegram market updates
 
@@ -67,7 +68,7 @@ Discarding ideas that don't hold up is the core of the product.
 | Data collection and research engine | ✅ Live |
 | Signal dashboard | ✅ Live |
 | 24/7 hosting | ✅ Live on our server |
-| Strategy validation | 🟡 Live paper tracking (v005, v006, v007) |
+| Strategy validation | 🟡 Live paper tracking (v005–v008) |
 | Telegram signal alerts | ✅ Live (paper signals) |
 | Telegram market updates | ✅ Live, every 4 hours |
 

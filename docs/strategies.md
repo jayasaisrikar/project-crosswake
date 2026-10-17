@@ -15,6 +15,7 @@ All results are after fees and slippage. Every strategy is **paper only**: signa
 | **v005** | **Daily 20-day breakout while BTC is in an uptrend** | **Spot** | **Days–weeks** | 🟡 **Live paper, main strategy** |
 | v006 | v005 rules on a wider coin list (HYPE and newer coins) | Spot | Days–weeks | 🟡 Live paper only |
 | v007 | 15m RSI rebound in the 4h trend direction | Perps | Hours | ❌ Failed test, paper for observation |
+| v008 | Trend + cross-sectional momentum, long/short | Perps | Days–weeks | 🟡 Live paper only, from 18 Oct 2026 |
 
 ## How a strategy is judged
 
@@ -86,6 +87,16 @@ All results are after fees and slippage. Every strategy is **paper only**: signa
 **Verdict:** fails. The stacked filters produce about 1.5 trades a month across three coins, and costs eat roughly 0.2R per trade because the stops are tight (~0.55%). It still loses at 5 bps costs (−0.04R). It runs as paper for observation only and won't be retuned.
 
 **Files:** `configs/htf-rsi-plan-v007.json` · live `apps/htf/src/main.ts` · results `data/research/htf-rsi-v007.json`
+
+## v008 · Trend + cross-sectional momentum (perps)
+
+**In plain words:** half the book follows each coin's own trend (long if it's been rising over 20/60/120 days, short if falling). The other half buys the strongest third of coins over the last month and shorts the weakest third, rebalanced weekly. Both halves are sized to 20% annual volatility.
+
+- **Why it's judged on live paper only:** the rules come unchanged from the engine-py research lab, which has already tested them on every period up to now. No clean historical test is left.
+- **Pass gate (after 90+ live days):** Sharpe > 0.5, each half's Sharpe > 0, drawdown < 25%, positive alpha against an equal-weight long of the same coins.
+- **Reference backtest, 2021–2026 (not out-of-sample):** +10.1% a year, Sharpe 0.62, max drawdown −20.6%, against +34.9% a year with a −80% drawdown for an equal-weight long. The trend half carries most of it, and the book is down 7% in 2026 so far. No funding is charged.
+
+**Files:** `configs/momentum-plan-v008.json` · engine `packages/backtest/src/momentum.ts` · live `apps/momentum/src/main.ts` · full note [`momentum-strategy-v008.md`](momentum-strategy-v008.md)
 
 ---
 

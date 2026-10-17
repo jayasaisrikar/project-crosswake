@@ -20,6 +20,7 @@ SERVICES=(
   "signals-daily|$PNPM -s trend:live"
   "signals-daily-v006|$PNPM -s trend:live -- --plan configs/trend-plan-v006.json"
   "signals-htf-v007|$PNPM -s htf:live"
+  "signals-momentum-v008|$PNPM -s momentum:live"
   "digest|$PNPM -s digest:live"
   "retention|$PNPM -s data:retention -- --watch"
   "costs|$PNPM -s costs:sample -- --interval-seconds 300"
