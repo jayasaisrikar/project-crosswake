@@ -369,6 +369,7 @@ Failed versions stay listed (`status: retired`), never deleted. `engine live ste
 |---|---|---|
 | **v001** | Trend + carry on the core 16 coins (the original live setup; keeps its paper record from 9 Oct 2026) | Live paper only. The 2024–26 holdout was viewed 5 times before freezing, so it is no longer unseen data. |
 | **v002** | Exactly the v001 rules on 37 coins, including HYPE, SUI, ENA and TAO | Live paper only. Most of these coins have too little history to backtest. |
+| **v003** | Trend + cross-sectional momentum (`xsmom`, weekly 30-day ranking, long top third / short bottom third), 50/50, on the v002 coins. Replaces carry, which earned about 0% on the 2024–26 holdout. Frozen 17 Oct 2026 | Live paper only. Both sleeves already saw H1 and H2, so no clean backtest test is left. Besides the gate, the notes pre-register: paper Sharpe > 0.5, each sleeve's Sharpe > 0, and a return above equal-weight buy-and-hold of the same coins. |
 
 ### Pass/fail gate
 
