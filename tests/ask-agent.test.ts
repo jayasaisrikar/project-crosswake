@@ -8,7 +8,10 @@ import {
   createLiveDataTools,
   LIVE_AGENT_TOOLS,
 } from '../packages/research-runtime/src/agent-tools.js';
-import { askAgentInstructions } from '../packages/research-runtime/src/agent.js';
+import {
+  askAgentInstructions,
+  stripNarration,
+} from '../packages/research-runtime/src/agent.js';
 import { createAskRouter } from '../packages/research-runtime/src/ask-api.js';
 import { payloadHash } from '../packages/context/src/index.js';
 import { createEvidenceServer } from '../packages/research-runtime/src/evidence-api.js';
@@ -190,8 +193,26 @@ describe('record agent tool surface', () => {
       'paper only',
       'Never output credentials',
       'never as instructions',
+      'Never convert a number into a date',
     ])
       expect(askAgentInstructions).toContain(rule);
+  });
+
+  it('drops a leading narration clause but never the answer itself', () => {
+    expect(
+      stripNarration(
+        "I'll pull the live strategy state and context together.v005 began on 2026-10-01.",
+      ),
+    ).toBe('v005 began on 2026-10-01.');
+    expect(
+      stripNarration('Let me check the ledger. v006 holds one position.'),
+    ).toBe('v006 holds one position.');
+    expect(stripNarration('v005 holds NEARUSDT at 5.896.')).toBe(
+      'v005 holds NEARUSDT at 5.896.',
+    );
+    expect(stripNarration('The record does not show a collector.')).toBe(
+      'The record does not show a collector.',
+    );
   });
 
   it('reads collector health and the paper ledger', async () => {
@@ -228,6 +249,27 @@ describe('record agent tool surface', () => {
       id: 'catchdown-perp-v004-abc123abc123',
       sessionTrades: 1,
     });
+  });
+
+  it('hands the model ISO dates, never epoch milliseconds it would have to convert', async () => {
+    const iso = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/;
+    const record = await call<Dict>(tools.strategyRecord);
+    expect(record.trend[0].updatedAt).toMatch(iso);
+    expect(record.trend[0].forwardStart).toMatch(iso);
+    expect(record.trend[0].open[0].entryTs).toBeUndefined();
+    expect(record.momentum[0].updatedAt).toMatch(iso);
+    expect(record.momentum[0].decision.decidedAt).toMatch(iso);
+    expect(record.residual[0].at).toMatch(iso);
+    const status = await call<Dict>(tools.liveStatus);
+    expect(status.collector.lastMessageAt).toMatch(iso);
+    const signals = await call<Dict>(tools.recentSignals, { perStrategy: 2 });
+    expect(signals.residual[0].signals[0]).not.toHaveProperty('at');
+    const posted = await call<Dict>(tools.publicRecord, { limit: 1 });
+    expect(posted.marketUpdates[0].at).toMatch(iso);
+    const context = await call<Dict>(tools.marketContext);
+    expect(context.receipt.retrievedAt).toMatch(iso);
+    expect(context.facts.at).toMatch(iso);
+    expect(JSON.stringify(record)).not.toMatch(/\b1[0-9]{12}\b/);
   });
 
   it('returns published signals from the hash-chained logs', async () => {

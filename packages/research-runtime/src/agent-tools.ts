@@ -63,12 +63,47 @@ const SIGNAL_FIELDS = [
   'seq',
 ];
 
-const compactSignal = (row: Dict) =>
+/** Fields that hold epoch milliseconds. A model cannot be trusted to convert these. */
+const TIME_FIELDS = [
+  'decidedAt',
+  'decisionTs',
+  'fillAt',
+  'publishedAt',
+  'entryTs',
+  'exitTs',
+  'updatedAt',
+  'forwardStart',
+  'startedAt',
+  'lastMessageAt',
+  'lastStepTs',
+  'retrievedAt',
+  'availableAt',
+  'expiresAt',
+  'at',
+  'ts',
+];
+
+const asIso = (value: unknown) =>
+  typeof value === 'number' && Number.isFinite(value) && value > 0
+    ? new Date(value).toISOString()
+    : null;
+
+const isoDates = (row: Dict) =>
   Object.fromEntries(
-    SIGNAL_FIELDS.filter((key) => row[key] !== undefined).map((key) => [
+    Object.entries(row).map(([key, value]) => [
       key,
-      row[key],
+      TIME_FIELDS.includes(key) ? asIso(value) : value,
     ]),
+  );
+
+const compactSignal = (row: Dict) =>
+  isoDates(
+    Object.fromEntries(
+      SIGNAL_FIELDS.filter((key) => row[key] !== undefined).map((key) => [
+        key,
+        row[key],
+      ]),
+    ),
   );
 
 async function trendRecord(dataDir: string) {
@@ -80,13 +115,13 @@ async function trendRecord(dataDir: string) {
     engines.push({
       id,
       version: state.version,
-      updatedAt: state.updatedAt,
-      forwardStart: state.forwardStart,
+      updatedAt: asIso(state.updatedAt),
+      forwardStart: asIso(state.forwardStart),
       regime: state.regime,
       universe: Array.isArray(state.universe) ? state.universe.length : null,
-      open: (state.open ?? []).slice(0, 10),
+      open: (state.open ?? []).slice(0, 10).map(isoDates),
       closedTrades: (state.closed ?? []).length,
-      latestEvents: (state.events ?? []).slice(-3),
+      latestEvents: (state.events ?? []).slice(-3).map(isoDates),
       stats: state.stats,
       frozenBacktest: state.backtest,
       executionEnabled: state.executionEnabled,
@@ -108,8 +143,8 @@ async function momentumRecord(dataDir: string) {
     sessions.push({
       id,
       version: state.version,
-      updatedAt: state.updatedAt,
-      forwardStart: state.forwardStart,
+      updatedAt: asIso(state.updatedAt),
+      forwardStart: asIso(state.forwardStart),
       universe: Array.isArray(state.universe)
         ? state.universe.length
         : state.universe,
@@ -119,8 +154,8 @@ async function momentumRecord(dataDir: string) {
       live: state.live,
       gate: state.gate,
       decision: state.decision && {
-        decidedAt: state.decision.decidedAt,
-        fillAt: state.decision.fillAt,
+        decidedAt: asIso(state.decision.decidedAt),
+        fillAt: asIso(state.decision.fillAt),
         positions: ranked.length,
         largestLongs: ranked.filter((p) => p.weight > 0).slice(0, 5),
         largestShorts: ranked.filter((p) => p.weight < 0).slice(0, 5),
@@ -144,9 +179,9 @@ async function residualRecord(dataDir: string) {
       configHash: shortHash(health.configHash),
       market: health.market,
       instrument: health.instrument,
-      at: health.at,
-      lastStepTs: health.lastStepTs,
-      open: health.open ?? [],
+      at: asIso(health.at),
+      lastStepTs: asIso(health.lastStepTs),
+      open: (health.open ?? []).map(isoDates),
       funnel: health.funnel,
       rejections: health.rejections,
       sessionTrades: health.sessionTrades,
@@ -180,9 +215,9 @@ export function createLiveDataTools(paths: RuntimePaths) {
         return {
           collector: health && {
             connected: health.connected,
-            startedAt: health.startedAt,
-            lastMessageAt: health.lastMessageAt,
-            ts: health.ts,
+            startedAt: asIso(health.startedAt),
+            lastMessageAt: asIso(health.lastMessageAt),
+            ts: asIso(health.ts),
             symbols: health.symbols,
             latenessMs: health.latenessMs,
             rejected: health.rejected,
@@ -194,13 +229,13 @@ export function createLiveDataTools(paths: RuntimePaths) {
           },
           paperLedger: {
             counts: evidence.counts,
-            recent: evidence.events,
+            recent: evidence.events.map(isoDates),
           },
           snapshotAvailability: {
             status: evidence.context.status,
-            retrievedAt: evidence.context.snapshot?.retrievedAt ?? null,
-            availableAt: evidence.context.snapshot?.availableAt ?? null,
-            expiresAt: evidence.context.snapshot?.expiresAt ?? null,
+            retrievedAt: asIso(evidence.context.snapshot?.retrievedAt),
+            availableAt: asIso(evidence.context.snapshot?.availableAt),
+            expiresAt: asIso(evidence.context.snapshot?.expiresAt),
           },
           researchStatus: evidence.researchStatus,
           executionEnabled: evidence.executionEnabled,
@@ -295,16 +330,19 @@ export function createLiveDataTools(paths: RuntimePaths) {
           status: context.status,
           receipt: {
             provider: context.snapshot.provider,
-            retrievedAt: context.snapshot.retrievedAt,
-            availableAt: context.snapshot.availableAt,
-            expiresAt: context.snapshot.expiresAt,
+            retrievedAt: asIso(context.snapshot.retrievedAt),
+            availableAt: asIso(context.snapshot.availableAt),
+            expiresAt: asIso(context.snapshot.expiresAt),
             payloadHash: shortHash(context.snapshot.payloadHash),
           },
-          facts: factSheet(
-            coinFacts(context.snapshot.payload),
-            engines,
-            context.snapshot.retrievedAt,
-          ),
+          facts: {
+            ...factSheet(
+              coinFacts(context.snapshot.payload),
+              engines,
+              context.snapshot.retrievedAt,
+            ),
+            at: asIso(context.snapshot.retrievedAt),
+          },
         };
       },
     }),
@@ -381,7 +419,7 @@ export function createLiveDataTools(paths: RuntimePaths) {
               .reverse()
               .map((row) => ({
                 id: row.id,
-                at: row.at,
+                at: asIso(row.at),
                 text: String(row.text ?? '').slice(0, 1200),
               }));
         return {
