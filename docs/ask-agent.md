@@ -45,38 +45,50 @@ projected signals.
   results from backtests and from out-of-sample tests, and says so when the record
   does not cover a question.
 - The route answers 401 without `RESEARCH_API_TOKEN`; verified through the public
-  funnel on the deployed (older) box, where the token check precedes route dispatch.
+  funnel.
+- Every turn must call a tool before it answers, and a turn that read nothing is
+  withheld rather than served. Two production bugs were found by asking the live
+  site questions, not by reading code:
+  - the tools handed the model raw epoch milliseconds, and it converted them wrongly
+    (v005 "live since 2026-05-02" instead of 2026-10-01). Time fields are now ISO
+    strings, so there is nothing for the model to compute.
+  - one turn in roughly five answered "the collector is healthy" without reading
+    anything (`steps=1 tools=none`). `prepareStep` now forces a tool call on the
+    first step, and an ungrounded turn returns a plain refusal instead of a claim.
 
 ## Verified
 
 - OpenCode Go inference and tool calling work after the subscription was renewed.
   Go's free models are part of the subscription; Zen's free tier refuses
   non-OpenCode clients outright.
-- Offline suite: 16 new tests in `tests/ask-agent.test.ts`; 312 across the repo.
+- Offline suite: 21 tests in `tests/ask-agent.test.ts`; 317 across the repo.
 - Local end to end through a real browser (`/ask` -> proxy -> agent -> tools -> free
-  model): a question about v005 returned its live open position, its one closed
-  trade and the frozen backtest confidence interval, and cited `read: strategy record`.
-  Zero console errors. Mobile at 390 px collapses to one column with no overflow.
-- Live answers match the box byte for byte (NEAR 5.896 -> 5.063, -1442.8 bps; ATOM
-  exit 1.703, -1787 bps; collector memory 199 MB, lateness 7 s).
+  model), with zero console errors, and mobile at 390 px collapsing to one column
+  with no overflow.
+- Deployed: box at `48c821c`, landing Production on Vercel with both variables set.
+  A question through `https://project-crosswake.vercel.app/api/ask` returns 200 in
+  16-28 s, cites the tools it read, and matches the box (v005 forward start
+  2026-10-01, NEAR entry 2026-10-12 at 5.896, ATOM exit 2026-10-18 at 1.703,
+  collector 7 s late, three pairs).
+- After the forced-tool fix, four consecutive live turns all read the record.
+- The box restart is clean: `crosswake@api` stops in under a second since
+  `closeIdleConnections()`, where a Funnel keep-alive socket previously stalled it
+  for 60 s and got it SIGKILLed. The collector was never restarted and its
+  `NRestarts` stayed 0 across all three deploys.
 - Landing build emits `/ask`, `/docs/ask`, `/api/ask`; nav, sitemap, `llms.txt`,
   changelog and the OG card all resolve.
 
-## Still to do
-
-1. Commit and deploy the box. Only `crosswake@api` changes; no collector restart.
-2. Add `RESEARCH_API_BASE` and `RESEARCH_API_TOKEN` to the **landing** Vercel project
-   and redeploy, or `/api/ask` answers 503 `ask_not_configured`.
-3. Vercel function duration: a free-model turn can run 30-120 s, so the route sets
-   `maxDuration = 160`. Confirm the plan allows it, then ask a real question through
-   the deployed site to be sure it returns 200 rather than a platform timeout.
-
 ## Known limits
 
-- Free-model latency is highly variable (measured 14 s to over 60 s for the same
+- Free-model latency is highly variable (measured 11 s to 87 s for the same
   question), so the cap is generous and the UI says so after 20 s.
 - `researchEvidence` is thin on the box by design: the walk-forward, study,
   cost-summary and backtest report directories live on the workstation, not in
   production. The agent reports them as absent instead of guessing.
 - No conversation memory between visits: each turn carries a bounded history sent
   from the browser only.
+- `next dev` rewrites `apps/landing/next-env.d.ts` differently from `next build`, so
+  that generated file shows as modified after a local dev run. Revert it; it is not
+  part of any change.
+- The landing project's `RESEARCH_API_TOKEN` is production-only. Preview deployments
+  need the variable added per-branch (`vercel env add ... preview <branch> --yes`).
