@@ -1,0 +1,318 @@
+created_at: '2026-10-10T11:42:02.803067+00:00'
+spec_sha: 1f4a0abe0d159b19
+batch: batch_002
+h2_start: '2025-10-01T00:00:00+00:00'
+data_start: '2020-01-01'
+data_end: '2025-09-30T23:00:00+00:00'
+universe:
+  pit_top_n: engine.universe.pit_universe_mask(perp, top_n=15, monthly, min_history
+    60d, ADV 30d); cross-sectional ranks use ONLY members at t (model.pit_mask), predictions
+    dropped for non-members; benchmark = equal-weight members
+  majors:
+  - BTC
+  - ETH
+  top_n: 15
+regime_labeler: engine.regimes.api.labels(ds, statistical=False)['trend']
+costs: config/experiment.yaml costs -> CostModel.from_config (unchanged); 2x stress
+  by runner
+execution: decision at close t, fill at open t+1; perp funding charged on positions
+  held; equal weight across assets predicted at t
+run_config:
+  n_splits: 5
+  embargo_hours: 168
+  position_mode: sign
+  seed: 0
+  bootstrap_n: 500
+  pbo_min_distinct: 5
+  causality_checks: 3
+alpha_bh: 0.05
+promotion_rules: config/promotion_rules_v2.yaml (pre-registered 2026-10-10 after batch_001
+  invalidation)
+dsr_trials: all registry trials (batch_001 included, crashes included) + neighbours
+  + 1
+experiments:
+- hypothesis: H-0001
+  model_id: tsmom
+  universe: majors
+  params:
+    lookbacks_days:
+    - 7
+    - 30
+    - 90
+    horizon_hours: 24
+  param_grid:
+    lookbacks_days:
+    - - 3
+      - 14
+      - 60
+    - - 7
+      - 30
+      - 90
+    - - 14
+      - 60
+      - 120
+    horizon_hours:
+    - 24
+    - 72
+    - 168
+  model_family: TS_MOMENTUM
+  cross_sectional: false
+  n_variants: 5
+- hypothesis: H-0001
+  model_id: donchian
+  universe: majors
+  params:
+    lookbacks_days:
+    - 20
+    - 55
+    horizon_hours: 24
+  param_grid:
+    lookbacks_days:
+    - - 10
+      - 20
+    - - 20
+      - 55
+    - - 55
+      - 100
+    horizon_hours:
+    - 24
+    - 72
+    - 168
+  model_family: DONCHIAN_BREAKOUT
+  cross_sectional: false
+  n_variants: 5
+- hypothesis: H-0002
+  model_id: xs_mom
+  universe: pit_top_n
+  params:
+    formation_days: 30
+    skip_days: 1
+    horizon_hours: 168
+  param_grid:
+    formation_days:
+    - 7
+    - 14
+    - 30
+    - 60
+    skip_days:
+    - 0
+    - 1
+  model_family: XS_MOMENTUM
+  cross_sectional: true
+  n_variants: 5
+- hypothesis: H-0002
+  model_id: residual_mom
+  universe: pit_top_n
+  params:
+    formation_days: 30
+    beta_days: 60
+    btc_symbol: BTC
+    horizon_hours: 168
+  param_grid:
+    formation_days:
+    - 14
+    - 30
+    - 60
+    beta_days:
+    - 30
+    - 60
+    - 90
+  model_family: RESIDUAL_MOMENTUM
+  cross_sectional: true
+  n_variants: 5
+- hypothesis: H-0008
+  model_id: funding_reversion
+  universe: pit_top_n
+  params:
+    apr_hours: 72
+    z_days: 30
+    threshold: 1.5
+  param_grid:
+    apr_hours:
+    - 24
+    - 72
+    - 168
+    threshold:
+    - 1.0
+    - 1.5
+    - 2.0
+  model_family: FUNDING_EXTREME_REVERSION
+  cross_sectional: false
+  n_variants: 5
+- hypothesis: H-0010
+  model_id: basis_reversion
+  universe: pit_top_n
+  params:
+    z_hours: 168
+    max_abs_basis: 0.02
+  param_grid:
+    z_hours:
+    - 24
+    - 72
+    - 168
+    - 336
+    - 720
+  model_family: BASIS_REVERSION
+  cross_sectional: false
+  n_variants: 5
+- hypothesis: H-0011
+  model_id: st_reversal
+  universe: pit_top_n
+  params:
+    horizon_hours: 4
+    lookback_hours: 4
+  param_grid:
+    lookback_hours:
+    - 1
+    - 4
+    - 12
+    - 24
+    horizon_hours:
+    - 4
+    - 8
+  model_family: SHORT_TERM_REVERSAL
+  cross_sectional: true
+  n_variants: 5
+- hypothesis: H-0011
+  model_id: zscore_reversal
+  universe: majors
+  params:
+    window_hours: 72
+    horizon_hours: 4
+  param_grid:
+    window_hours:
+    - 24
+    - 48
+    - 72
+    - 168
+    - 336
+  model_family: ZSCORE_REVERSAL
+  cross_sectional: false
+  n_variants: 5
+- hypothesis: H-0011
+  model_id: ar
+  universe: majors
+  params:
+    order: 3
+    ridge: 0.0
+    use_funding: false
+    use_basis: false
+    lags_hours:
+    - 1
+    horizon_hours: 4
+  param_grid:
+    order:
+    - 1
+    - 2
+    - 3
+    - 5
+    - 8
+  model_family: STAT_AR
+  cross_sectional: false
+  n_variants: 5
+- hypothesis: H-0013
+  model_id: voladj_reversal
+  universe: pit_top_n
+  params:
+    lookback_hours: 24
+    short_vol_hours: 72
+  param_grid:
+    lookback_hours:
+    - 12
+    - 24
+    - 48
+    short_vol_hours:
+    - 48
+    - 72
+    - 168
+  model_family: VOL_ADJUSTED_REVERSAL
+  cross_sectional: false
+  n_variants: 5
+- hypothesis: H-0020
+  model_id: ridge
+  universe: pit_top_n
+  params:
+    lags_hours: &id001
+    - 1
+    - 4
+    - 24
+    - 72
+    - 168
+    use_funding: true
+    use_basis: true
+    ridge: 10.0
+    cross_sectional: true
+    horizon_hours: 24
+  param_grid:
+    ridge:
+    - 1.0
+    - 10.0
+    - 100.0
+    - 1000.0
+    horizon_hours:
+    - 24
+    - 72
+  model_family: STAT_RIDGE
+  cross_sectional: true
+  n_variants: 5
+- hypothesis: H-0020
+  model_id: logit_sign
+  universe: pit_top_n
+  params:
+    lags_hours: *id001
+    use_funding: true
+    use_basis: true
+    ridge: 1.0
+    max_iter: 50
+    cross_sectional: true
+    horizon_hours: 24
+  param_grid:
+    ridge:
+    - 0.1
+    - 1.0
+    - 10.0
+    - 100.0
+    horizon_hours:
+    - 24
+    - 72
+  model_family: STAT_LOGISTIC
+  cross_sectional: true
+  n_variants: 5
+unmapped:
+  H-0003: no conditional panic-state scaling model in engine.models
+  H-0004: vol_managed_tsmom only rescales |score|; in the pre-registered sign mode
+    the scale is discarded, so the runner cannot test exposure scaling (batch_001
+    EXP-000005 measured trend sign only)
+  H-0005: volatility-forecast QLIKE comparison, not a trading signal (runner measures
+    PnL)
+  H-0006: same model as H-0004 (HAR sizing); not testable in sign mode for the same
+    reason
+  H-0007: delta-neutral carry needs spot+perp legs; runner is single-leg
+  H-0009: no cross-sectional funding-carry SignalModel in engine.models (funding PnL
+    now exists)
+  H-0012: conditional abnormal-move model not implemented
+  H-0015: regime-conditional lead-lag model not implemented
+  H-0016: 'perp->spot lead-lag model not implemented (lead-lag engine verdict: no
+    edge)'
+  H-0017: transfer-entropy model not implemented
+  H-0018: HMM-conditioned trend model not implemented
+  H-0019: BOCPD exposure overlay not implemented
+  H-0021: intraday time-of-day model not implemented
+  H-0022: long-horizon reversal model not implemented; history too short for 1y lookbacks
+  H-0023: 'meta-hypothesis: answered by this batch''s DSR/PBO/BH outputs, not a separate
+    model'
+  H-0030: funding sign-flip event model not implemented
+leadlag_trial:
+  hypothesis: H-0014
+  pair: BTC->ADA
+  family: leadlag
+  method: 're-run engine.leadlag.engine.walk_forward (unchanged code/params) for all
+    pairs, then re-price every pair with ONE EXTRA BAR of execution delay (position
+    decided at t earns y[t+2], review 01 #11); BH + Holm over the pairs'' delayed
+    OOS net HAC p-values; DSR of BTC->ADA vs all registry trials + pairs; PBO over
+    the fixed-lag variants (>= 5 distinct); leakage = truncation re-run must reproduce
+    the overlapping folds'
+caveats:
+- square-root impact not applied (runner)
+- position_mode=sign for every model (model-side scaling not used)
+- dataset columns = union of PIT members ever; ranks and predictions are PIT at t

@@ -1,0 +1,31 @@
+# Model health rules for engine.monitor.health. Models are NEVER deleted: worst case is RESEARCH.
+# States: ACTIVE > WARNING > REDUCED > QUARANTINED > RESEARCH
+min_samples: 30              # fewer resolved predictions -> no state change (insufficient evidence)
+window: 200                  # score uses the most recent N resolved predictions per model
+score:                       # health score in [0,100] = weighted sum of component scores in [0,1]
+  weights:
+    hit_rate: 0.25           # hit_rate mapped linearly from hit_floor (0) to hit_target (1)
+    expectancy: 0.30         # net expectancy mapped from exp_floor (0) to exp_target (1)
+    sharpe: 0.25             # live Sharpe mapped from sharpe_floor (0) to sharpe_target (1)
+    calibration: 0.20        # 1 - ece / ece_cap (clipped)
+  hit_floor: 0.45
+  hit_target: 0.55
+  exp_floor: -0.002
+  exp_target: 0.002
+  sharpe_floor: -0.5
+  sharpe_target: 1.5
+  ece_cap: 0.20
+  drift_penalty: 15          # points subtracted when an unresolved drift event exists for the model
+thresholds:                  # score >= value -> state (checked top-down)
+  ACTIVE: 60
+  WARNING: 45
+  REDUCED: 30
+  # below REDUCED -> QUARANTINED
+recovery_margin: 5           # upgrades require score >= threshold + margin, and move one step at a time
+quarantine_to_research: 3    # consecutive QUARANTINED evaluations before the model goes to RESEARCH
+size_multiplier:             # suggested position scaling per state (consumed by risk / ensemble)
+  ACTIVE: 1.0
+  WARNING: 0.75
+  REDUCED: 0.4
+  QUARANTINED: 0.0
+  RESEARCH: 0.0

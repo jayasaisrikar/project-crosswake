@@ -1,0 +1,24 @@
+# Universe. Includes coins that later crashed/delisted (LUNA, FTT) to limit survivorship bias.
+# A symbol is tradable at time t only if it has a valid bar at t (see engine.data.load).
+quote: USDT
+interval: 1h
+start: "2020-01"          # first month to download (YYYY-MM)
+end: null                 # null = last complete month
+symbols:
+  - BTC
+  - ETH
+  - BNB
+  - SOL
+  - XRP
+  - DOGE
+  - ADA
+  - AVAX
+  - LINK
+  - LTC
+  - DOT
+  - TRX
+  - BCH
+  - EOS
+  - LUNA
+  - FTT
+markets: [spot, perp]     # perp = Binance USDT-M perpetual futures

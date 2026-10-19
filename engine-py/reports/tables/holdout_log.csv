@@ -1,0 +1,5 @@
+#,timestamp,reason,holdout_start
+1,2026-10-09T15:00:08.322871+00:00,first final evaluation after portfolio-vol bugfix; params frozen as in config,2024-07-01T00:00:00+00:00
+2,2026-10-09T15:03:00.337231+00:00,re-run after data-integrity bugfix (carry basis guard for FTT spot/perp mismatch); no parameter tuning,2024-07-01T00:00:00+00:00
+3,2026-10-09T15:32:53.616823+00:00,re-run: period-labelled reporting fix (no parameter changes),2024-07-01T00:00:00+00:00
+4,2026-10-09T15:51:31.749855+00:00,"final run after review fixes: funding timing, interval-aware APR, stale-bar vol/fills, trend NaN fix, measured spreads. Carry v2 + new strategies were developed AFTER holdout views (not OOS).",2024-07-01T00:00:00+00:00

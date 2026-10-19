@@ -1,0 +1,19 @@
+,value
+period,full
+label,FULL PERIOD (descriptive only)
+start,2020-01-01 00:00:00+00:00
+end,2026-09-30 23:00:00+00:00
+combined_hac_tstat,2.934244808486718
+combined_bootstrap_sharpe_ci,"[0.37615074717596886, 1.8717856896782987]"
+combined_psr,0.9984881503485781
+trend_hac_tstat,2.751547292002854
+trend_bootstrap_sharpe_ci,"[0.29619657719771614, 1.790614518199518]"
+trend_psr,0.9970786915806858
+carry_hac_tstat,6.668596250766867
+carry_bootstrap_sharpe_ci,"[3.5461668321673656, 8.344022512416386]"
+carry_psr,1.0
+dsr_trend,0.9779475784223409
+pbo_trend,0.37272727272727274
+spa_vs_btc,"{'pvalue': 0.902, 'pvalue_consistent': 0.902, 'pvalue_lower': 0.551, 'pvalue_upper': 0.902}"
+n_trials,9
+n_days,2465

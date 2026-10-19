@@ -1,0 +1,10 @@
+item,check,verdict,numbers
+1 LUNA,no fills on stale/frozen/post-delisting bars; forced exit at last real close,PASS,"294 LUNA trades, 0 flagged, 1 forced exits; max held 2,911 USDT"
+2 FTT,"stale/frozen handling, basis guard, fills",FAIL,96 dev FTT trades (13 flagged); 13 frozen-bar fills in full report; guard-pass-while-frozen hours 622; perp frozen from 2022-11-14 05:00:00+00:00
+3 Forced exits,2x cost multiplier applied; priced at last real close,PASS,1 dev forced exits (full report: 2); cost check ok=True; priced off a stale/filled close: 0
+4 Funding ledger,independent recompute == engine; sign convention; interval changes,PASS,"max |total diff| 3.64e-12, max per-bar gap 2.13e-14; carry received 22,063, trend net paid 12,742; sign ok=True; 3 non-8h stretches"
+5 Fees/spread/impact,"validation.reconcile on trend, carry, combined",PASS,"36 checks, 0 failing; reproduces dev report: True"
+6 Trend attribution,long/short split sums to ledger gross; net == equity change,PASS,max |price-split - ledger| 1.80e-11; max |net% - equity%| 5.94e-15; 2022 L -22.2% S +38.7% net +8.9%
+7a Implausible bars,|bar return|>50% on real bars,WARN,"19 bars, 8 with a position held into them"
+7b Equity identity,cash + positions == equity from flows only,PASS,"trend 7.71e-10, carry 2.91e-10, combined 6.98e-10"
+7c Dev/holdout leakage,prefix-causal weights at boundary; full-run dev slice == locked run; contiguous split,PASS,max weight/trade diff 7.28e-12; trade-count mismatches 0; boundary contiguous True

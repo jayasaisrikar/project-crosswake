@@ -1,0 +1,97 @@
+initial_capital: 100000.0
+
+costs:
+  # Binance VIP0 TAKER (we cross the spread), no BNB discount assumed. Accessed 2026-10-09:
+  #   spot VIP0 maker 0.100% / taker 0.100% (0.075% with 25% BNB discount)
+  #     https://www.binance.com/en/fee/trading
+  #   USDT-M futures Regular maker 0.020% / taker 0.050% (10% off if fees paid in BNB held in the
+  #     futures wallet)  https://www.binance.com/en/support/faq/360033544231 (updated 2026-05-01)
+  fee_bps: {spot: 10.0, perp: 5.0}
+  # Half-spreads: measured per (market, symbol) in data/cleaned/spreads.json
+  # (`uv run python -m engine.data.spreads`; perp = bookTicker sample, spot = Abdi-Ranaldo 2017).
+  spreads_file: data/cleaned/spreads.json
+  spread_stat: p75                      # conservative: 75th pct of the time-weighted distribution
+  half_spread_override_bps: {}          # e.g. {perp: {BTC: 1.0}} forces a value over the file
+  half_spread_bps: {BTC: 0.5, ETH: 0.5, default: 2.0}   # fallback when not in spreads.json
+  impact_y: 0.7                         # sqrt law (Almgren et al. 2005; Toth et al. 2011), daily units
+  stress_multiplier: 1.0                # reports also re-run at 1.5x and 2.0x
+
+# Chronological split. Holdout is locked: only `engine backtest --unlock-holdout` reads it.
+split:
+  dev_end: "2024-06-30"                 # walk-forward happens inside [start, dev_end]
+  holdout_start: "2024-07-01"
+
+walk_forward:
+  train_months: 24
+  test_months: 3
+  embargo_bars: 168                     # 1 week of 1h bars
+
+strategies:
+  trend:
+    enabled: true
+    market: perp
+    lookbacks_days: [20, 60, 120]       # ensemble of TSMOM horizons
+    vol_target_annual: 0.20
+    vol_lookback_days: 30
+    rebalance_hours: 24
+    max_gross_leverage: 2.0
+    max_weight_per_asset: 0.25
+    allow_short: true
+  carry:
+    enabled: true
+    entry_funding_annual: 0.10          # enter when trailing funding APR > 10%
+    exit_funding_annual: 0.02
+    funding_lookback_hours: 72
+    max_weight_per_asset: 0.20
+    max_gross: 1.0
+    max_basis: 0.02                     # skip if |spot/perp-1| > 2% (legs not the same asset)
+    rebalance_hours: 24                 # decide once a day (8h re-equalising caused churn)
+    max_positions: 5                    # fixed weight w = min(max_weight, max_gross/2/max_positions)
+    no_trade_band: 0.25                 # only change a held weight if |new-old| > 0.25 * w
+    min_hold_days: 14                   # cost-aware entry: APR*14/365 > margin * round-trip cost
+    entry_cost_margin: 2.0
+    entry_fee_bps: {spot: 10.0, perp: 5.0}          # = costs.fee_bps (taker)
+    entry_half_spread_bps: {spot: 2.0, perp: 2.0}   # = costs.half_spread_bps default (conservative)
+  breakout:                             # Donchian ensemble (Zarattini et al.; turtle). Candidate, off.
+    enabled: false
+    market: perp
+    lookbacks_days: [20, 55, 100]       # exit at channel midline
+    vol_target_annual: 0.20
+    vol_lookback_days: 30
+    rebalance_hours: 24
+    max_gross_leverage: 2.0
+    max_weight_per_asset: 0.25
+    allow_short: true
+  xsmom:                                # cross-sectional momentum (Liu-Tsyvinski-Wu). Candidate, off.
+    enabled: false
+    market: perp
+    formation_days: 30
+    skip_days: 1
+    rebalance_hours: 168                # weekly
+    vol_target_annual: 0.20
+    vol_lookback_days: 30
+    max_gross_leverage: 2.0
+    max_weight_per_asset: 0.25
+  leadlag:                              # BTC impulse -> altcoin continuation. Research candidate, OFF.
+    enabled: false                      # kept off: no net-of-cost edge on hourly bars (see FINAL_REPORT)
+    market: perp
+    leader: BTC
+    k: 2.0                              # impulse: |r_btc| > k * trailing vol
+    vol_lookback_bars: 720              # 30d trailing vol, causal
+    hold_hours: 1                       # enter next bar open, hold 1 bar, then flat
+    gross: 1.0
+    max_weight_per_asset: 0.25
+    allow_short: true
+  trend_regime:                         # trend x Moreira-Muir vol-managed scale, clip [0, 1.5]. Off.
+    enabled: false
+    market: perp
+    lookbacks_days: [20, 60, 120]
+    vol_target_annual: 0.20
+    vol_lookback_days: 30
+    rebalance_hours: 24
+    max_gross_leverage: 2.0
+    max_weight_per_asset: 0.25
+    allow_short: true
+  allocation:                            # capital split between sleeves
+    trend: 0.5
+    carry: 0.5

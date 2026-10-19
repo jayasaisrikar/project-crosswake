@@ -1,0 +1,94 @@
+# v002 - FROZEN 2026-10-09T17:43:00.631919+00:00. Do not edit: the loader rejects any change (params_hash).
+# Change a rule => `engine version freeze` a NEW version.
+id: v002
+name: Trend + carry, wider 37-coin universe
+hypothesis: Exactly the v001 rules on a wider coin list (newer listings incl. HYPE,
+  SUI, ENA, TAO) give more, better-diversified trades. Most of these coins lack backtest
+  history, so v002 is judged on live paper only.
+frozen_at: '2026-10-09T17:43:00.631919+00:00'
+live_start: '2026-10-09T17:00:00+00:00'
+status: live
+paper_dir: data/paper/v002
+symbols:
+- BTC
+- ETH
+- BNB
+- SOL
+- XRP
+- DOGE
+- ADA
+- AVAX
+- LINK
+- LTC
+- DOT
+- TRX
+- BCH
+- HYPE
+- SUI
+- ENA
+- TAO
+- WLD
+- SEI
+- APT
+- ARB
+- OP
+- NEAR
+- TON
+- 1000PEPE
+- AAVE
+- UNI
+- FIL
+- INJ
+- TIA
+- ATOM
+- ICP
+- ETC
+- XLM
+- HBAR
+- 1000SHIB
+- 1000BONK
+strategies:
+  trend:
+    enabled: true
+    market: perp
+    lookbacks_days:
+    - 20
+    - 60
+    - 120
+    vol_target_annual: 0.2
+    vol_lookback_days: 30
+    rebalance_hours: 24
+    max_gross_leverage: 2.0
+    max_weight_per_asset: 0.25
+    allow_short: true
+  carry:
+    enabled: true
+    entry_funding_annual: 0.1
+    exit_funding_annual: 0.02
+    funding_lookback_hours: 72
+    max_weight_per_asset: 0.2
+    max_gross: 1.0
+    max_basis: 0.02
+    rebalance_hours: 24
+    max_positions: 5
+    no_trade_band: 0.25
+    min_hold_days: 14
+    entry_cost_margin: 2.0
+    entry_fee_bps:
+      spot: 10.0
+      perp: 5.0
+    entry_half_spread_bps:
+      spot: 2.0
+      perp: 2.0
+  allocation:
+    trend: 0.5
+    carry: 0.5
+gate:
+  min_days: 90
+  min_closed_trades: 30
+  min_profit_factor: 1.2
+  require_ci_above_zero: true
+  max_drawdown: 0.25
+notes: 'Dead coins (EOS, LUNA, FTT) dropped: no longer listed, can''t trade live.
+  History for coins not on disk is fetched from Binance each step (200 days).'
+params_hash: 11d04bac2870a8b2

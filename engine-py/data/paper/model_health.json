@@ -1,0 +1,18 @@
+{
+ "sleeve.trend": {
+  "n": 52.0,
+  "note": "",
+  "quarantine_streak": 0,
+  "score": 70.64,
+  "size_multiplier": 1.0,
+  "state": "ACTIVE",
+  "updated": "2026-10-10T13:09:08.274313+00:00"
+ },
+ "v001/sleeve.trend": {
+  "n": 26.0,
+  "note": "insufficient samples",
+  "quarantine_streak": 0,
+  "score": null,
+  "state": "ACTIVE"
+ }
+}

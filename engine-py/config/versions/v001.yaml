@@ -1,0 +1,74 @@
+# v001 - FROZEN 2026-10-09T17:42:47.735250+00:00. Do not edit: the loader rejects any change (params_hash).
+# Change a rule => `engine version freeze` a NEW version.
+id: v001
+name: Trend + carry, core 16 coins
+hypothesis: The dev-period trend (20/60/120d TSMOM, long/short, 20% vol target) +
+  funding carry blend keeps a positive risk-adjusted return on live data after all
+  costs.
+frozen_at: '2026-10-09T17:42:47.735250+00:00'
+live_start: '2026-10-09T16:00:00+00:00'
+status: live
+paper_dir: data/paper
+symbols:
+- BTC
+- ETH
+- BNB
+- SOL
+- XRP
+- DOGE
+- ADA
+- AVAX
+- LINK
+- LTC
+- DOT
+- TRX
+- BCH
+- EOS
+- LUNA
+- FTT
+strategies:
+  trend:
+    enabled: true
+    market: perp
+    lookbacks_days:
+    - 20
+    - 60
+    - 120
+    vol_target_annual: 0.2
+    vol_lookback_days: 30
+    rebalance_hours: 24
+    max_gross_leverage: 2.0
+    max_weight_per_asset: 0.25
+    allow_short: true
+  carry:
+    enabled: true
+    entry_funding_annual: 0.1
+    exit_funding_annual: 0.02
+    funding_lookback_hours: 72
+    max_weight_per_asset: 0.2
+    max_gross: 1.0
+    max_basis: 0.02
+    rebalance_hours: 24
+    max_positions: 5
+    no_trade_band: 0.25
+    min_hold_days: 14
+    entry_cost_margin: 2.0
+    entry_fee_bps:
+      spot: 10.0
+      perp: 5.0
+    entry_half_spread_bps:
+      spot: 2.0
+      perp: 2.0
+  allocation:
+    trend: 0.5
+    carry: 0.5
+gate:
+  min_days: 90
+  min_closed_trades: 30
+  min_profit_factor: 1.2
+  require_ci_above_zero: true
+  max_drawdown: 0.25
+notes: Rules identical to the config live-paper-traded since the ledger was created;
+  existing ledger kept as its track record. Holdout 2024-07+ was viewed 5 times before
+  freezing, so ONLY live paper counts as evidence.
+params_hash: 188752ef61577910

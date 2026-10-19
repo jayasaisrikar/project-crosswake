@@ -1,0 +1,44 @@
+ M README.md
+ M config/experiment.yaml
+ M experiments/registry.jsonl
+ M logs/live.log
+ M src/engine/cli.py
+ M src/engine/data/clean.py
+ M src/engine/live/feed.py
+ M src/engine/live/telegram.py
+ M src/engine/pipeline.py
+ M src/engine/signals/registry.py
+ M src/engine/validation/walkforward.py
+ M tests/test_backtest.py
+ M tests/test_data.py
+?? config/versions/
+?? docs/ALGORITHM_COMPARISON.md
+?? docs/ARCHITECTURE.md
+?? docs/CURRENT_ENGINE_AUDIT.md
+?? docs/DATA_AND_EXECUTION_MODEL.md
+?? docs/FINAL_REPORT.md
+?? docs/INSTALLATION_AND_USAGE.md
+?? docs/LEAD_LAG_RESEARCH_REVIEW.md
+?? docs/OPERATIONS_AND_RISK.md
+?? docs/STRATEGY_SPECIFICATION.md
+?? docs/VALIDATION_METHODOLOGY.md
+?? reports/baseline_v0/
+?? reports/dashboard.html
+?? reports/data_integrity.json
+?? reports/leadlag/predictive_granger.csv
+?? reports/leadlag/predictive_oos.csv
+?? reports/leadlag/rolling_lag.csv
+?? reports/leadlag/scorecard.csv
+?? reports/leadlag/strategy_comparison.csv
+?? src/engine/data/integrity.py
+?? src/engine/leadlag/backtest_leadlag.py
+?? src/engine/leadlag/predictive.py
+?? src/engine/leadlag/research_predictive.py
+?? src/engine/leadlag/scorecard.py
+?? src/engine/signals/leadlag.py
+?? src/engine/track/
+?? tests/test_data_integrity.py
+?? tests/test_leadlag_predictive.py
+?? tests/test_leadlag_scorecard.py
+?? tests/test_leadlag_signal.py
+?? tests/test_track.py

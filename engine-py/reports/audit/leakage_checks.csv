@@ -1,0 +1,9 @@
+check,max_abs_diff,n_full,n_locked,start,end
+prefix_weights_trend_spot,,,,,
+prefix_weights_trend_perp,0.0,,,,
+prefix_weights_carry_spot,0.0,,,,
+prefix_weights_carry_perp,0.0,,,,
+full_report_dev_slice_vs_locked_rerun_trend,7.275957614183426e-12,16011.0,16011.0,,
+full_report_dev_slice_vs_locked_rerun_carry,9.094947017729282e-13,6385.0,6385.0,,
+period_dev,,,,2020-01-01 00:00:00+00:00,2024-06-30 23:00:00+00:00
+period_holdout,,,,2024-07-01 00:00:00+00:00,2026-09-30 23:00:00+00:00

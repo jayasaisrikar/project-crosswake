@@ -1,0 +1,19 @@
+,value
+period,holdout
+label,HOLDOUT ONLY
+start,2024-07-01 00:00:00+00:00
+end,2026-09-30 23:00:00+00:00
+combined_hac_tstat,1.4336363581971823
+combined_bootstrap_sharpe_ci,"[-0.33920934241000156, 2.2639967145190942]"
+combined_psr,0.9169081729707249
+trend_hac_tstat,1.4436813763772247
+trend_bootstrap_sharpe_ci,"[-0.34138452714599227, 2.280286735395637]"
+trend_psr,0.9189589931696638
+carry_hac_tstat,1.773785956285652
+carry_bootstrap_sharpe_ci,"[-0.5080322914902, 4.099757041756485]"
+carry_psr,0.9987208382357857
+dsr_trend,0.6302402149042889
+pbo_trend,0.5581196581196581
+spa_vs_btc,"{'pvalue': 0.53, 'pvalue_consistent': 0.53, 'pvalue_lower': 0.469, 'pvalue_upper': 0.53}"
+n_trials,9
+n_days,822

@@ -1,0 +1,2 @@
+ts,symbol,market,side,qty_notional,price,fee,spread,impact,sleeve,stale_bar,frozen_bar,after_last_real_bar,price_mismatch,last_real_close,exp_fee,exp_spread,fee_ok,spread_ok,total_cost,cost_bps
+2022-05-13 07:00:00+00:00,LUNA,perp,forced_exit,0.3439972239644781,0.008,0.0003439972239644781,0.0009014432170991417,4.268743288835208e-06,trend,False,False,False,False,0.008,0.0003439972239644781,0.0009014432170991417,True,True,0.0012497091843524548,36.329048529807395
