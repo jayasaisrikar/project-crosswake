@@ -9,7 +9,6 @@ import {
 } from 'lucide-react';
 import { SiteHeader, SiteFooter } from '@/components/crosswake/site-shell';
 import { ScrollEffects } from '@/components/crosswake/scroll-effects';
-import { AskConsole } from '@/components/crosswake/ask-console';
 import { MarketScene } from '@/components/crosswake/market-scene';
 import { TelegramFeed } from '@/components/crosswake/telegram-feed';
 import { HyperliquidBanner } from '@/components/crosswake/hyperliquid-banner';
@@ -145,9 +144,6 @@ export default function Page() {
           </div>
         </div>
         <HowItWorks />
-        <section className="cw-section cw-ask-home" aria-label="Ask the record">
-          <AskConsole variant="section" />
-        </section>
         <TelegramFeed />
         <div id="product-preview">
           <ProductEntrance />

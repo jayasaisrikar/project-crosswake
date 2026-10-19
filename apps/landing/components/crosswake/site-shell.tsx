@@ -121,8 +121,7 @@ export function SiteHeader() {
         })}
         <Link
           className="cw-nav-link"
-          href="/ask"
-          aria-current={path.startsWith('/ask') ? 'page' : undefined}
+          href="#ask"
           onClick={close}
         >
           <b>Ask</b>

@@ -35,11 +35,11 @@ const body = `
 - Paid evidence never changes signal confidence on its own, and it is recorded separately from Crosswake's own measurements.
 
 ## Live record agent
-- A page at ${siteUrl}/ask lets anyone question the live record: collector health, every live strategy state, published signals, the market snapshot, the frozen protocol hashes and what Crosswake has posted publicly.
+- An assistant on every page (and at ${siteUrl}/ask) answers questions about the live record: collector health, every live strategy state, published signals, the market snapshot, the frozen protocol hashes and what Crosswake has posted publicly.
 - It is strictly read-only. It cannot place orders, change a strategy, write a file, spend money or run a command, and it gives no trade advice or predictions.
-- It answers only from what it read, states the units and the as-of time, and says so when the record does not cover a question. A hosted language model only rephrases the facts; it never supplies a number.
-- It is free, rate limited (4 questions per minute per visitor, capped daily in total), and stores nothing you ask.
-- Everything it reports is paper trading research, not financial advice.
+- Questions about the record are answered from a live read, with units and as-of times, and every such answer lists what it read. It never invents a Crosswake figure, date, position or result. Questions unrelated to the record are answered from general knowledge and are not presented as record data.
+- It is free, rate limited, and stores nothing you ask.
+- Everything it reports about the record is paper trading research, not financial advice.
 
 ## Research record
 - Eight strategy versions so far; five failed or were retired (v001–v004, v007). All remain public.

@@ -21,15 +21,15 @@ page visitors can question.
 
 ## Decisions
 
-| Decision             | Choice                                                                                                                                                      | Why                                                                                                                |
-| -------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
-| Where the agent runs | On the OCI box, inside the evidence API process                                                                                                             | The live record is local files; in-process loaders mean no new public data surface and no second unit to supervise |
-| Data access          | A whitelist of seven typed, read-only loaders                                                                                                               | No shell, no SQL, no model-supplied paths, no writes, no money                                                     |
-| Model                | `opencode/<id>` on the OpenCode Go gateway, default `opencode/longcat-2.5-preview-free` via `RESEARCH_MODEL`                                                | Free tier on Go, and it calls tools correctly                                                                      |
-| Transport            | `POST /research/chat` behind the existing bearer token and Tailscale Funnel on 443                                                                          | Same door as every other route; no new port, no firewall change                                                    |
-| Chat surface         | On the landing page (`/`, between How it works and the Telegram section), the header nav as a flat "Ask" link, a hero action, and the dedicated `/ask` page | The first attempt put it only on `/ask` behind a nav dropdown and the user could not find it                       |
-| Env                  | `RESEARCH_API_BASE` + `RESEARCH_API_TOKEN` on the **landing** Vercel project (Production), server-side only                                                 | The token never reaches the browser                                                                                |
-| State                | Stateless; the client sends at most six prior turns                                                                                                         | Nothing to persist, nothing to leak                                                                                |
+| Decision             | Choice                                                                                                      | Why                                                                                                                                                                                                                             |
+| -------------------- | ----------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Where the agent runs | On the OCI box, inside the evidence API process                                                             | The live record is local files; in-process loaders mean no new public data surface and no second unit to supervise                                                                                                              |
+| Data access          | A whitelist of seven typed, read-only loaders                                                               | No shell, no SQL, no model-supplied paths, no writes, no money                                                                                                                                                                  |
+| Model                | `ASK_MODEL` (falls back to `RESEARCH_MODEL`); set to `opencode/deepseek-v4.1-flash`                         | Chosen for general-question quality at 1-4 s a turn, against 11-87 s for the free LongCat. `resolveModel` now routes each family to the endpoint it is served on: DeepSeek/GLM/Kimi/MiMo/LongCat on chat, GPT/Grok on responses |
+| Transport            | `POST /research/chat` behind the existing bearer token and Tailscale Funnel on 443                          | Same door as every other route; no new port, no firewall change                                                                                                                                                                 |
+| Chat surface         | A floating launcher pinned bottom-right on every page, plus the dedicated `/ask` page                       | The launcher follows the `#ask` hash, so nav and hero links open it; the first attempt hid the whole thing behind a nav dropdown                                                                                                |
+| Env                  | `RESEARCH_API_BASE` + `RESEARCH_API_TOKEN` on the **landing** Vercel project (Production), server-side only | The token never reaches the browser                                                                                                                                                                                             |
+| State                | Stateless; the client sends at most six prior turns                                                         | Nothing to persist, nothing to leak                                                                                                                                                                                             |
 
 Tools: `liveStatus`, `strategyRecord`, `recentSignals`, `marketContext`,
 `preRegistered`, `researchEvidence`, `publicRecord`. Tool payloads are bounded: the
@@ -42,14 +42,18 @@ projected signals.
   model chooses. Payment execution is not in this tool set at all.
 - Four bounds on the endpoint: request size (8 KB), per-caller rate (4/min, 20/h,
   60/day), a total daily budget (400), concurrency (2), and a 120 s wall-clock cap.
-- The model may only phrase what the tools returned, must separate live paper
-  results from backtests and from out-of-sample tests, and says so when the record
-  does not cover a question.
+- The model answers any question, but never invents our data. A question about the record is forced
+  to read first (`asksAboutRecord` picks the topic); a general question may be answered from
+  knowledge; an answer that claims record facts without a read gets one grounded retry and is then
+  withheld. It must separate live paper results from backtests and from out-of-sample tests, and it
+  never gives advice.
+- Answers are rendered as light markdown (bold, dash bullets, paragraphs) by an in-house renderer,
+  so no markdown dependency and no HTML injection surface.
 - The route answers 401 without `RESEARCH_API_TOKEN`; verified through the public
   funnel.
-- Every turn must call a tool before it answers, and a turn that read nothing is
-  withheld rather than served. Two production bugs were found by asking the live
-  site questions, not by reading code:
+- A turn that claims our data without reading it is withheld rather than served.
+  Two production bugs were found by asking the live site questions, not by reading
+  code:
   - the tools handed the model raw epoch milliseconds, and it converted them wrongly
     (v005 "live since 2026-05-02" instead of 2026-10-01). Time fields are now ISO
     strings, so there is nothing for the model to compute.

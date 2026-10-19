@@ -4,6 +4,18 @@ import { randomUUID } from 'node:crypto';
 
 export const OPENCODE_GATEWAY_URL = 'https://opencode.ai/zen/go/v1';
 
+/**
+ * The Go gateway serves its families on different endpoints, and the model id is the only signal we
+ * have: DeepSeek, GLM, Kimi, MiMo, LongCat and the stealth ids answer on `/chat/completions`, while
+ * GPT, Grok and Muse answer on `/responses`. Anthropic-protocol ids (Claude, MiniMax, Qwen) need
+ * `/messages` and are deliberately not selectable here.
+ */
+const CHAT_PROTOCOL =
+  /^(?:glm-|kimi-|deepseek-|mimo-|longcat-|hy3|hy4-|space-bunny|step-|big-pickle)/;
+
+export const usesChatProtocol = (name: string) =>
+  name.endsWith('-free') || CHAT_PROTOCOL.test(name);
+
 export function resolveModel(modelId: string): string | MastraModelConfig {
   const match = /^opencode\/(.+)$/.exec(modelId);
   const name = match?.[1];
@@ -16,7 +28,7 @@ export function resolveModel(modelId: string): string | MastraModelConfig {
     apiKey,
     headers: { 'x-opencode-session': randomUUID() },
   });
-  return name.endsWith('-free')
+  return usesChatProtocol(name)
     ? provider.chat(name)
     : provider.responses(name);
 }

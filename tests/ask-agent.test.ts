@@ -10,10 +10,12 @@ import {
 } from '../packages/research-runtime/src/agent-tools.js';
 import {
   askAgentInstructions,
+  asksAboutRecord,
   runAskTurn,
   stripNarration,
   UNGROUNDED_ANSWER,
 } from '../packages/research-runtime/src/agent.js';
+import { usesChatProtocol } from '../packages/research-runtime/src/model.js';
 import type { Agent } from '@mastra/core/agent';
 import { createAskRouter } from '../packages/research-runtime/src/ask-api.js';
 import { payloadHash } from '../packages/context/src/index.js';
@@ -339,7 +341,37 @@ describe('one agent turn', () => {
       },
     }) as unknown as Agent;
 
-  it('requires a tool call on the first step, then lets the model write', async () => {
+  it('routes each OpenCode family to the endpoint it is actually served on', () => {
+    for (const id of [
+      'longcat-2.5-preview-free',
+      'beam-free',
+      'deepseek-v4.1-flash',
+      'glm-5.3-flash',
+      'kimi-k2.6',
+      'mimo-v2.6-flash',
+      'space-bunny',
+    ])
+      expect(usesChatProtocol(id), id).toBe(true);
+    for (const id of ['gpt-5.6-luna', 'grok-4.7', 'muse-spark-1.3-contributor'])
+      expect(usesChatProtocol(id), id).toBe(false);
+  });
+
+  it('knows which questions must be answered from the record', () => {
+    for (const q of [
+      'Is the collector healthy right now?',
+      'What is v005 holding?',
+      'How has the trend strategy done?',
+      'Has any strategy proven an edge?',
+    ])
+      expect(asksAboutRecord(q), q).toBe(true);
+    for (const q of [
+      'What does hedge mean in finance?',
+      'Who writes the best books on habit formation?',
+    ])
+      expect(asksAboutRecord(q), q).toBe(false);
+  });
+
+  it('forces a read on the first step for a record question', async () => {
     const calls: Call[] = [],
       agent = fakeAgent(
         {
@@ -349,23 +381,58 @@ describe('one agent turn', () => {
         },
         calls,
       ),
-      turn = await runAskTurn(agent, { question: 'is it healthy?' });
+      turn = await runAskTurn(agent, { question: 'Is the collector healthy?' });
     expect(turn.answer).toBe('Grounded answer.');
     expect(turn.sources).toEqual(['liveStatus']);
-    expect(turn.steps).toBe(1);
-    expect(calls[0]!.options.maxSteps).toBe(6);
     const prepare = calls[0]!.options.prepareStep;
     expect(prepare({ stepNumber: 0 })).toEqual({ toolChoice: 'required' });
     expect(prepare({ stepNumber: 1 })).toEqual({});
+    expect(calls).toHaveLength(1);
   });
 
-  it('withholds an answer that read nothing rather than serving a claim', async () => {
+  it('lets a general question answer from knowledge without forcing a read', async () => {
+    const calls: Call[] = [],
+      agent = fakeAgent(
+        { text: 'A hedge offsets risk.', steps: [{ toolCalls: [] }] },
+        calls,
+      ),
+      turn = await runAskTurn(agent, {
+        question: 'What does hedge mean in finance?',
+      });
+    expect(calls[0]!.options.prepareStep({ stepNumber: 0 })).toEqual({});
+    expect(turn.answer).toBe('A hedge offsets risk.');
+    expect(turn.sources).toEqual([]);
+    expect(calls).toHaveLength(1);
+  });
+
+  it('retries once, with a read, when a general answer drifts into our figures', async () => {
+    let call = 0;
+    const agent = {
+      generate: async () =>
+        ++call === 1
+          ? { text: 'The collector is healthy.', steps: [{ toolCalls: [] }] }
+          : {
+              text: 'It is connected.',
+              steps: [{ toolCalls: [{ toolName: 'liveStatus' }] }],
+            },
+    } as unknown as Agent;
+    const turn = await runAskTurn(agent, {
+      question: 'What does hedge mean in finance?',
+    });
+    expect(call).toBe(2);
+    expect(turn.sources).toEqual(['liveStatus']);
+    expect(turn.answer).toBe('It is connected.');
+  });
+
+  it('withholds an answer about the record that read nothing', async () => {
     const agent = fakeAgent({
       text: 'The collector is healthy.',
       usage: {},
       steps: [{ toolCalls: [] }],
     });
-    const turn = await runAskTurn(agent, { question: 'is it healthy?' });
+    const turn = await runAskTurn(agent, {
+      question: 'Is the collector healthy right now?',
+    });
     expect(turn.answer).toBe(UNGROUNDED_ANSWER);
     expect(turn.sources).toEqual([]);
   });

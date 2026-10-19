@@ -264,8 +264,8 @@ export const docs: {
         id: 'what',
         title: 'Ask our own record a question',
         paragraphs: [
-          'Every figure Crosswake publishes comes from files our own software writes while it runs. The record page lets you question those files directly instead of reading a page we wrote earlier: is the collector healthy, what is a strategy holding, how has it done since it went live, what did the last market update say.',
-          'The agent reads the collector health, every live strategy state, the signal log, the four-hour market snapshot, the strategy protocols that were frozen before testing, and the text we have published publicly. It reports the record as it stands at the moment you ask.',
+          'Every figure Crosswake publishes comes from files our own software writes while it runs. The assistant, available on every page and on its own page at /ask, lets you question those files directly instead of reading a page we wrote earlier: is the collector healthy, what is a strategy holding, how has it done since it went live, what did the last market update say.',
+          'The agent reads the collector health, every live strategy state, the signal log, the four-hour market snapshot, the strategy protocols that were frozen before testing, and the text we have published publicly. It reports the record as it stands at the moment you ask. Questions with nothing to do with our data are answered too, from general knowledge.',
         ],
       },
       {
@@ -273,8 +273,8 @@ export const docs: {
         title: 'What it can and cannot do',
         paragraphs: [
           'The agent is read-only. It has no tool that can place an order, change a strategy, write a file, spend money or run a command, so no question and no text inside the data can talk it into one. It never gives trade advice, price targets or predictions.',
-          'It answers only from what it read. Every number it gives comes from the record, with the units and the as-of time, and it separates live paper results from backtests and from out-of-sample tests. If a question is not covered by the record, it says the record does not contain the answer rather than filling the gap.',
-          'A hosted language model turns the facts it read into readable prose. It never supplies a number of its own; it only phrases what the tools returned.',
+          'When the question is about our data, it answers from what it read, with the units and the as-of time, and it separates live paper results from backtests and from out-of-sample tests. It never invents a Crosswake figure, date, position or result. Anything else, a term, a concept, general market context, it answers from general knowledge and does not dress that up as something the record shows.',
+          'A hosted language model turns the facts it read into readable prose and answers general questions itself. It never supplies a Crosswake number of its own.',
         ],
       },
       {
@@ -289,8 +289,8 @@ export const docs: {
         id: 'reading',
         title: 'Reading an answer',
         paragraphs: [
-          'Each answer lists which parts of the record it read, so you can check the claim where it came from: the strategy record, the signal log, the market snapshot, the frozen rules, or the posts we published.',
-          'Everything the agent reports is paper trading research. Crosswake places no real orders, and nothing it says is financial advice.',
+          'Each answer that came from our data lists which parts of the record it read, so you can check the claim where it came from: the strategy record, the signal log, the market snapshot, the frozen rules, or the posts we published. An answer that needed no data lists nothing.',
+          'Everything the agent reports about our record is paper trading research. Crosswake places no real orders, and nothing it says is financial advice.',
         ],
       },
     ],

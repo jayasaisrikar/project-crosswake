@@ -226,10 +226,49 @@
   border-radius: 1.1rem;
   font-size: 0.92rem;
   line-height: 1.68;
-  white-space: pre-wrap;
   overflow-wrap: anywhere;
   color: var(--ink);
   background: color-mix(in srgb, var(--ink) 5%, transparent);
+}
+
+.ask-answer > p {
+  margin: 0 0 0.6rem;
+}
+
+.ask-answer > p:last-child {
+  margin-bottom: 0;
+}
+
+.ask-answer strong {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.ask-list {
+  margin: 0.5rem 0 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 0.45rem;
+}
+
+.ask-list li {
+  position: relative;
+  padding-left: 1.05rem;
+}
+
+.ask-list li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.62em;
+  width: 0.45rem;
+  height: 1px;
+  background: var(--signal);
+}
+
+.ask-answer > p + .ask-list {
+  margin-top: 0.15rem;
 }
 
 .ask-turn.is-user .ask-text {
@@ -449,6 +488,158 @@
 
   .ask-suggest button:hover:not(:disabled),
   .ask-send:hover:not(:disabled) .ask-send-icon {
+    transform: none;
+  }
+}
+
+/* ---------- the floating launcher and its panel ---------- */
+
+.ask-blob {
+  position: fixed;
+  right: clamp(1rem, 2.5vw, 1.75rem);
+  bottom: clamp(1rem, 2.5vw, 1.75rem);
+  z-index: 45;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.62rem 0.7rem 0.62rem 1.15rem;
+  border: none;
+  border-radius: 999px;
+  background: var(--signal);
+  color: #0b0d0c;
+  font-family: var(--font-display);
+  font-size: 0.94rem;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 20px 45px -20px rgb(0 0 0 / 0.7);
+  transition:
+    transform 0.5s cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.ask-blob:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 26px 55px -22px rgb(0 0 0 / 0.75);
+}
+
+.ask-blob:active {
+  transform: scale(0.97);
+}
+
+.ask-blob-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.8rem;
+  height: 1.8rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, #0b0d0c 14%, transparent);
+}
+
+.ask-panel {
+  position: fixed;
+  right: clamp(1rem, 2.5vw, 1.75rem);
+  bottom: calc(clamp(1rem, 2.5vw, 1.75rem) + 4.05rem);
+  z-index: 45;
+  display: flex;
+  flex-direction: column;
+  width: min(26rem, calc(100vw - 2rem));
+  max-height: calc(100dvh - 7.5rem);
+  padding: 0.45rem;
+  border: 1px solid color-mix(in srgb, var(--ink) 8%, transparent);
+  border-radius: 1.7rem;
+  background: color-mix(in srgb, var(--ink) 4%, transparent);
+  box-shadow: 0 45px 95px -55px var(--color-shadow);
+  animation: ask-panel-in 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes ask-panel-in {
+  from {
+    opacity: 0;
+    transform: translateY(16px) scale(0.98);
+  }
+}
+
+.ask-panel-core {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+  border-radius: calc(1.7rem - 0.34rem);
+  background: var(--surface);
+  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--ink) 7%, transparent);
+  overflow: hidden;
+}
+
+.ask-panel .ask-head {
+  padding: 0.9rem 1.1rem;
+}
+
+.ask-panel-close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.6rem;
+  height: 1.6rem;
+  margin-left: auto;
+  border: none;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--ink) 7%, transparent);
+  color: var(--ink-secondary);
+  cursor: pointer;
+  transition: color 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.ask-panel-close:hover {
+  color: var(--ink);
+}
+
+.ask-panel .ask-feed {
+  flex: 1 1 auto;
+  min-height: 6rem;
+  height: auto;
+  padding: 1.1rem;
+}
+
+.ask-panel .ask-suggest {
+  margin: 0;
+  padding: 0 1.1rem 0.9rem;
+  gap: 0.4rem;
+}
+
+.ask-panel .ask-suggest button {
+  padding: 0.45rem 0.8rem;
+  font-size: 0.76rem;
+}
+
+.ask-panel .ask-form {
+  padding: 0.9rem 1.1rem;
+}
+
+.ask-panel .ask-foot {
+  padding: 0 1.1rem 1rem;
+}
+
+@media (max-width: 720px) {
+  .ask-panel {
+    right: 0.6rem;
+    left: 0.6rem;
+    bottom: calc(0.6rem + 4rem);
+    width: auto;
+  }
+
+  .ask-panel .ask-feed {
+    height: min(44vh, 19rem);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ask-panel {
+    animation: none;
+  }
+
+  .ask-blob:hover,
+  .ask-blob:active {
     transform: none;
   }
 }

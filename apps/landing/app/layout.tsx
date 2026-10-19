@@ -6,6 +6,7 @@ import '../tokens.css';
 import './redesign.css';
 import './kinetic.css';
 import './ask.css';
+import { AskWidget } from '@/components/crosswake/ask-widget';
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
@@ -50,7 +51,10 @@ const mono = Geist_Mono({ subsets: ['latin'], variable: '--font-geist-mono' });
 export default function Layout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className={`${sans.variable} ${mono.variable}`}>
-      <body>{children}</body>
+      <body>
+        {children}
+        <AskWidget />
+      </body>
     </html>
   );
 }

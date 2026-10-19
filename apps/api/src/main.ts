@@ -31,7 +31,8 @@ const commerce = await createCommerceServices({
   );
   return null;
 });
-const model = process.env.RESEARCH_MODEL?.trim();
+const model =
+  process.env.ASK_MODEL?.trim() ?? process.env.RESEARCH_MODEL?.trim();
 const paths = {
   dataDir,
   protocolDir: resolve('research/frozen'),
