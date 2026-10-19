@@ -11,7 +11,7 @@ export const changelog: {
     date: '2026-10-19',
     kind: 'product',
     title: 'Ask the record: an assistant over the live data',
-    body: 'A floating assistant on every page, and a page of its own at /ask, lets anyone question the live record in plain language. It reads the same files the dashboard and the signal log are built from, as they are at the moment you ask: collector health, every live strategy state, published signals, the market snapshot, the rule hashes frozen before testing, and what we have posted publicly. It has no write path at all, so it cannot trade, edit a file or change a strategy. When a question is about our data it answers from what it read and lists it; it never invents a Crosswake figure, date or position. Anything else it answers from general knowledge, without pretending the record shows it. It is free and rate limited, and it reports paper results as paper.',
+    body: 'A floating assistant on every page, and a page of its own at /ask, lets anyone question the live record in plain language. It reads the same files the dashboard and the signal log are built from, as they are at the moment you ask: collector health, every live strategy state, published signals, the market snapshot, the rule hashes frozen before testing, and what we have posted publicly. It has no write path at all, so it cannot trade, edit a file or change a strategy. When a question is about our data it answers from what it read and lists it; it never invents a Crosswake figure, date or position. Anything else it answers from general knowledge, without pretending the record shows it. It is rate limited, and it reports paper results as paper.',
   },
   {
     date: '2026-10-17',

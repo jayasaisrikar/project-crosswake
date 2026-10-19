@@ -643,3 +643,35 @@
     transform: none;
   }
 }
+
+/* Launcher: quiet dark glass pill so it sits with the page instead of shouting */
+.ask-blob {
+  gap: 0.6rem;
+  padding: 0.45rem 1.05rem 0.45rem 0.45rem;
+  border: 1px solid rgb(122 199 79 / 0.32);
+  background: rgb(14 17 15 / 0.78);
+  backdrop-filter: blur(14px) saturate(1.2);
+  -webkit-backdrop-filter: blur(14px) saturate(1.2);
+  color: var(--ink);
+  font-size: 0.88rem;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  box-shadow:
+    0 0 0 1px rgb(0 0 0 / 0.4),
+    0 18px 40px -18px rgb(0 0 0 / 0.8),
+    0 0 28px -8px rgb(122 199 79 / 0.35);
+  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+.ask-blob:hover {
+  border-color: rgb(122 199 79 / 0.6);
+  box-shadow:
+    0 0 0 1px rgb(0 0 0 / 0.4),
+    0 22px 46px -18px rgb(0 0 0 / 0.85),
+    0 0 36px -6px rgb(122 199 79 / 0.5);
+}
+.ask-blob-icon {
+  width: 2rem;
+  height: 2rem;
+  background: var(--signal);
+  color: #0b1206;
+}

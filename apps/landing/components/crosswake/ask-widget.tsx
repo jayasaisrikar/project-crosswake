@@ -1,7 +1,7 @@
 'use client';
 import { useCallback, useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
-import { MessageCircle, X } from 'lucide-react';
+import { Sparkles, X } from 'lucide-react';
 import { Composer, Suggestions, Transcript, useAskChat } from './ask-chat';
 
 export function AskWidget() {
@@ -100,7 +100,7 @@ export function AskWidget() {
         aria-label={open ? 'Close the assistant' : 'Ask Crosswake'}
       >
         <span className="ask-blob-icon" aria-hidden="true">
-          {open ? <X size={18} /> : <MessageCircle size={18} />}
+          {open ? <X size={16} /> : <Sparkles size={16} />}
         </span>
         <span className="ask-blob-label">{open ? 'Close' : 'Ask'}</span>
       </button>

@@ -35,7 +35,8 @@ export function MarketScene() {
     const ink = getComputedStyle(element).getPropertyValue('--ink').trim();
     const draw = () => {
       ctx.clearRect(0, 0, width, height);
-      const size = Math.min(width, height) * 0.35;
+      // outer radius reaches ~1.6 × size after perspective, so 0.29 keeps the ring inside the canvas
+      const size = Math.min(width, height) * 0.29;
       for (let band = 0; band < 40; band++) {
         const v = (band / 40) * Math.PI * 2;
         for (let dot = 0; dot < 112; dot++) {

@@ -33,7 +33,7 @@ export function AskConsole() {
         <Suggestions chat={chat} />
         <p className="ask-fine">
           Answers about the record are paper-trading research, not financial
-          advice. Free to use, rate limited.
+          advice. Rate limited, and nothing you ask is stored.
         </p>
       </div>
 
