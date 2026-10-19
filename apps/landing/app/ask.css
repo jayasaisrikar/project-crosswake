@@ -17,6 +17,11 @@
 /* ---------- left: the editorial column ---------- */
 
 .ask-intro {
+  position: relative;
+}
+
+/* The page owns the sticky column; as a homepage section the section rhythm does. */
+.ask.is-page .ask-intro {
   position: sticky;
   top: clamp(6rem, 12vh, 9rem);
 }
@@ -34,8 +39,11 @@
   color: var(--ink-secondary);
 }
 
-.ask-intro h1 {
-  margin: 1.5rem 0 1.25rem;
+.ask-title {
+  margin: 1.4rem 0 1.1rem;
+}
+
+.ask.is-page .ask-title {
   font-family: var(--font-display);
   font-size: clamp(2.6rem, 5.6vw, 4.6rem);
   line-height: 0.95;
@@ -43,7 +51,7 @@
   color: var(--ink);
 }
 
-.ask-stop {
+.ask .ask-stop {
   color: var(--signal);
 }
 

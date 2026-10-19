@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import { SiteHeader, SiteFooter } from '@/components/crosswake/site-shell';
 import { ScrollEffects } from '@/components/crosswake/scroll-effects';
+import { AskConsole } from '@/components/crosswake/ask-console';
 import { MarketScene } from '@/components/crosswake/market-scene';
 import { TelegramFeed } from '@/components/crosswake/telegram-feed';
 import { HyperliquidBanner } from '@/components/crosswake/hyperliquid-banner';
@@ -85,8 +86,8 @@ export default function Page() {
             <div className="kinetic-hero-copy">
               <HyperliquidBanner className="hero-rise" />
               <div className="hero-edition hero-rise">
-                <span className="cw-status-dot" /> ALTCOIN TREND SIGNALS · FREE ON
-                TELEGRAM
+                <span className="cw-status-dot" /> ALTCOIN TREND SIGNALS · FREE
+                ON TELEGRAM
               </div>
               <h1 className="hero-rise">
                 Signals you
@@ -108,6 +109,9 @@ export default function Page() {
                 </Link>
                 <Link className="cw-text-button" href="#how">
                   How it works <ArrowRight size={16} />
+                </Link>
+                <Link className="cw-text-button" href="#ask">
+                  Ask the record <ArrowRight size={16} />
                 </Link>
               </div>
               <ul className="hero-facts hero-rise" aria-label="At a glance">
@@ -141,6 +145,9 @@ export default function Page() {
           </div>
         </div>
         <HowItWorks />
+        <section className="cw-section cw-ask-home" aria-label="Ask the record">
+          <AskConsole variant="section" />
+        </section>
         <TelegramFeed />
         <div id="product-preview">
           <ProductEntrance />
@@ -197,9 +204,17 @@ export default function Page() {
                   className="cw-chart-grid"
                   d="M0 60H620M0 120H620M0 180H620M0 240H620M80 0V265M200 0V265M320 0V265M440 0V265M560 0V265"
                 />
-                <rect className="rule-hold" x="210" y="0" width="365" height="265" />
+                <rect
+                  className="rule-hold"
+                  x="210"
+                  y="0"
+                  width="365"
+                  height="265"
+                />
                 <path className="cw-chart-threshold" d="M0 170H620" />
-                <text className="rule-label" x="8" y="162">20-day high</text>
+                <text className="rule-label" x="8" y="162">
+                  20-day high
+                </text>
                 <path
                   className="rule-area"
                   d="M210 146L235 157L260 119L282 131L305 88L331 107L355 70L380 80L404 44L429 62L452 36L477 67L500 52L525 91L551 82L575 123V265H210Z"
@@ -212,12 +227,21 @@ export default function Page() {
                 <g className="rule-marker rule-entry">
                   <circle cx="210" cy="146" r="14" className="rule-pulse" />
                   <circle cx="210" cy="146" r="6" className="cw-chart-point" />
-                  <text x="210" y="126" textAnchor="middle">BUY</text>
+                  <text x="210" y="126" textAnchor="middle">
+                    BUY
+                  </text>
                 </g>
                 <g className="rule-marker rule-exit">
                   <circle cx="575" cy="123" r="14" className="rule-pulse" />
-                  <circle cx="575" cy="123" r="6" className="cw-chart-point is-exit" />
-                  <text x="575" y="103" textAnchor="middle">SELL</text>
+                  <circle
+                    cx="575"
+                    cy="123"
+                    r="6"
+                    className="cw-chart-point is-exit"
+                  />
+                  <text x="575" y="103" textAnchor="middle">
+                    SELL
+                  </text>
                 </g>
               </svg>
               <div className="cw-chart-caption">
@@ -284,13 +308,17 @@ export default function Page() {
               </div>
               <div>
                 <strong>
-                  <span data-count="33.7">33.7</span><span>%</span>
+                  <span data-count="33.7">33.7</span>
+                  <span>%</span>
                 </strong>
                 <span>Win rate</span>
               </div>
               <div>
                 <strong>
-                  <span data-count="1.5" data-prefix="+">+1.5</span><span>%</span>
+                  <span data-count="1.5" data-prefix="+">
+                    +1.5
+                  </span>
+                  <span>%</span>
                 </strong>
                 <span>Average net return / trade</span>
               </div>

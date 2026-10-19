@@ -14,7 +14,6 @@ const groups = [
       { href: '/#how', section: 'how', title: 'How it works', note: 'From market scan to signal' },
       { href: '/#signals', section: 'signals', title: 'Telegram signals', note: 'What lands in the channel' },
       { href: '/#approach', section: 'approach', title: 'Strategy', note: 'The idea behind the rules' },
-      { href: '/ask', title: 'Ask the record', note: 'Question the live data' },
     ],
   },
   {
@@ -120,6 +119,16 @@ export function SiteHeader() {
             </div>
           );
         })}
+        <Link
+          className="cw-nav-link"
+          href="/ask"
+          aria-current={path.startsWith('/ask') ? 'page' : undefined}
+          onClick={close}
+        >
+          <b>Ask</b>
+          <small>Question the live record</small>
+          <ArrowUpRight size={18} aria-hidden="true" />
+        </Link>
         <Link
           className="cw-nav-link"
           href="/docs"

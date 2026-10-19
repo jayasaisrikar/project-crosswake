@@ -48,7 +48,12 @@ const reading = [
   'Checking what was frozen before testing…',
 ];
 
-export function AskConsole() {
+export function AskConsole({
+  variant = 'page',
+}: {
+  variant?: 'page' | 'section';
+}) {
+  const Heading = variant === 'page' ? 'h1' : 'h2';
   const [turns, setTurns] = useState<Turn[]>([]);
   const [input, setInput] = useState('');
   const [busy, setBusy] = useState(false);
@@ -121,13 +126,13 @@ export function AskConsole() {
   }
 
   return (
-    <section className="ask" id="ask">
+    <section className={variant === 'page' ? 'ask is-page' : 'ask'} id="ask">
       <div className="ask-intro" data-reveal>
         <span className="ask-eyebrow">Live record</span>
-        <h1>
+        <Heading className="ask-title">
           Ask the record
           <span className="ask-stop">.</span>
-        </h1>
+        </Heading>
         <p className="ask-lead">
           An agent that reads our own running record and answers in plain
           language. Every answer is drawn from the same files the dashboard and
