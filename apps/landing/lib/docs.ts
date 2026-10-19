@@ -254,6 +254,48 @@ export const docs: {
     ],
   },
   {
+    slug: 'ask',
+    nav: 'Ask the record',
+    title: 'Questioning the live data.',
+    description:
+      'A read-only agent that answers questions about what Crosswake is running right now, and the limits built into it.',
+    sections: [
+      {
+        id: 'what',
+        title: 'Ask our own record a question',
+        paragraphs: [
+          'Every figure Crosswake publishes comes from files our own software writes while it runs. The record page lets you question those files directly instead of reading a page we wrote earlier: is the collector healthy, what is a strategy holding, how has it done since it went live, what did the last market update say.',
+          'The agent reads the collector health, every live strategy state, the signal log, the four-hour market snapshot, the strategy protocols that were frozen before testing, and the text we have published publicly. It reports the record as it stands at the moment you ask.',
+        ],
+      },
+      {
+        id: 'limits',
+        title: 'What it can and cannot do',
+        paragraphs: [
+          'The agent is read-only. It has no tool that can place an order, change a strategy, write a file, spend money or run a command, so no question and no text inside the data can talk it into one. It never gives trade advice, price targets or predictions.',
+          'It answers only from what it read. Every number it gives comes from the record, with the units and the as-of time, and it separates live paper results from backtests and from out-of-sample tests. If a question is not covered by the record, it says the record does not contain the answer rather than filling the gap.',
+          'A hosted language model turns the facts it read into readable prose. It never supplies a number of its own; it only phrases what the tools returned.',
+        ],
+      },
+      {
+        id: 'how',
+        title: 'How it is wired',
+        paragraphs: [
+          'The agent runs on the same server as the data, inside the same read-only service the dashboard uses, so its answers come from local files rather than a copy. It is reachable only through the access token our own front end holds, and no visitor ever sees that token.',
+          'It is rate limited per visitor and in total, capped in how many steps it may take and how long it may run, and it never holds a conversation open between visits. Nothing you ask is stored, and there is no account to create.',
+        ],
+      },
+      {
+        id: 'reading',
+        title: 'Reading an answer',
+        paragraphs: [
+          'Each answer lists which parts of the record it read, so you can check the claim where it came from: the strategy record, the signal log, the market snapshot, the frozen rules, or the posts we published.',
+          'Everything the agent reports is paper trading research. Crosswake places no real orders, and nothing it says is financial advice.',
+        ],
+      },
+    ],
+  },
+  {
     slug: 'research-agent',
     nav: 'Research agent',
     title: 'Buying evidence, not opinions.',

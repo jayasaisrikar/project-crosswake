@@ -3,6 +3,7 @@ if (existsSync('.env.local')) process.loadEnvFile('.env.local');
 import { resolve } from 'node:path';
 import { z } from 'zod';
 import { createEvidenceServer } from '../../../packages/research-runtime/src/evidence-api.js';
+import { createAskRouter } from '../../../packages/research-runtime/src/ask-api.js';
 import { createCommerceRouter } from '../../../packages/commerce/src/api.js';
 import { createCommerceServices } from '../../../packages/commerce/src/services.js';
 import { crosswakeEvidenceSource } from '../../../packages/commerce/src/crosswake-source.js';
@@ -30,18 +31,18 @@ const commerce = await createCommerceServices({
   );
   return null;
 });
-const server = createEvidenceServer(
-  {
-    dataDir,
-    protocolDir: resolve('research/frozen'),
-  },
-  {
-    token,
-    ...(commerce
-      ? { commerce: createCommerceRouter({ services: commerce, token }) }
-      : {}),
-  },
-);
+const model = process.env.RESEARCH_MODEL?.trim();
+const paths = {
+  dataDir,
+  protocolDir: resolve('research/frozen'),
+};
+const server = createEvidenceServer(paths, {
+  token,
+  ask: createAskRouter({ paths, model, token }),
+  ...(commerce
+    ? { commerce: createCommerceRouter({ services: commerce, token }) }
+    : {}),
+});
 if (!token)
   console.warn(
     'RESEARCH_API_TOKEN is unset: this server is unauthenticated. That is fine on loopback; set it before exposing the port. Commerce mutations refuse to run without it.',
@@ -50,6 +51,11 @@ if (commerce)
   console.log(
     `Commerce: mode=${commerce.env.mode} mainnetEnabled=${commerce.env.mainnetEnabled} caps=${commerce.policy.maxPerPaymentUsdc}/${commerce.policy.maxPerResearchRunUsdc}/${commerce.policy.maxDailyUsdc} USDC`,
   );
+console.log(
+  model
+    ? `Record agent: POST /research/chat using ${model}`
+    : 'Record agent disabled: RESEARCH_MODEL is unset, so POST /research/chat answers 503.',
+);
 
 const host = process.env.RESEARCH_API_HOST ?? '127.0.0.1';
 if (!token && host !== '127.0.0.1' && host !== '::1')

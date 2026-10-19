@@ -43,7 +43,11 @@ export type MountedRouter = (
 ) => Promise<boolean>;
 export function createEvidenceServer(
   paths: RuntimePaths,
-  options: { token?: string; commerce?: MountedRouter } = {},
+  options: {
+    token?: string;
+    commerce?: MountedRouter;
+    ask?: MountedRouter;
+  } = {},
 ): Server {
   const cache = new Map<string, { at: number; value: unknown }>();
   const cached = async <T>(key: string, load: () => Promise<T>) => {
@@ -88,6 +92,17 @@ export function createEvidenceServer(
       mountedSegments[1] === 'commerce'
     ) {
       await options.commerce(request, response, mountedSegments);
+      return;
+    }
+    // The record agent is mounted outside the read-only route table because it reads a request
+    // body and answers in prose; its tools are still read-only, and the bearer token above
+    // already gates it.
+    if (
+      options.ask &&
+      mountedSegments[0] === 'research' &&
+      mountedSegments[1] === 'chat'
+    ) {
+      await options.ask(request, response, mountedSegments);
       return;
     }
     // Loopback API. Its mutations: a user's own reported fill for a published paper signal,

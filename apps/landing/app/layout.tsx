@@ -5,6 +5,7 @@ import './globals.css';
 import '../tokens.css';
 import './redesign.css';
 import './kinetic.css';
+import './ask.css';
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
@@ -38,7 +39,10 @@ export const metadata: Metadata = {
   },
   robots: { index: true, follow: true },
 };
-export const viewport: Viewport = { themeColor: '#0b0d0c', colorScheme: 'dark' };
+export const viewport: Viewport = {
+  themeColor: '#0b0d0c',
+  colorScheme: 'dark',
+};
 
 const sans = Geist({ subsets: ['latin'], variable: '--font-geist' });
 const mono = Geist_Mono({ subsets: ['latin'], variable: '--font-geist-mono' });
