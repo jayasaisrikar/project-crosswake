@@ -74,6 +74,9 @@ const LEADING_NARRATION =
 export const stripNarration = (text: string) =>
   text.replace(LEADING_NARRATION, '').trim();
 
+export const UNGROUNDED_ANSWER =
+  'The agent did not read the record for that question, so it has not answered. Ask it again.';
+
 export async function runAskTurn(
   agent: Agent,
   input: AskTurnInput,
@@ -87,20 +90,34 @@ export async function runAskTurn(
     ),
     { role: 'user', content: input.question },
   ];
-  const result = (await agent.generate(messages, { maxSteps })) as unknown as {
+  const result = (await agent.generate(messages, {
+    maxSteps,
+    // A small model will sometimes assert "the collector is healthy" without reading anything.
+    // Forcing the first step to be a tool call means every answer is written from the record.
+    prepareStep: ({ stepNumber }: { stepNumber: number }) =>
+      stepNumber === 0 ? { toolChoice: 'required' as const } : {},
+  })) as unknown as {
     text?: string;
     usage?: Record<string, unknown>;
     steps?: unknown;
   };
-  const steps = Array.isArray(result.steps) ? result.steps : [];
-  return {
-    answer: stripNarration(String(result.text ?? '').trim()),
-    sources: [...new Set(steps.flatMap(toolNames))],
-    usage: {
+  const steps = Array.isArray(result.steps) ? result.steps : [],
+    sources = [...new Set(steps.flatMap(toolNames))],
+    usage = {
       inputTokens: numberOrNull(result.usage?.inputTokens),
       outputTokens: numberOrNull(result.usage?.outputTokens),
       totalTokens: numberOrNull(result.usage?.totalTokens),
-    },
+    };
+  if (!sources.length) {
+    console.warn(
+      'chat turn finished without a tool call; withholding its answer',
+    );
+    return { answer: UNGROUNDED_ANSWER, sources, usage, steps: steps.length };
+  }
+  return {
+    answer: stripNarration(String(result.text ?? '').trim()),
+    sources,
+    usage,
     steps: steps.length,
   };
 }

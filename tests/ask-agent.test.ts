@@ -10,8 +10,11 @@ import {
 } from '../packages/research-runtime/src/agent-tools.js';
 import {
   askAgentInstructions,
+  runAskTurn,
   stripNarration,
+  UNGROUNDED_ANSWER,
 } from '../packages/research-runtime/src/agent.js';
+import type { Agent } from '@mastra/core/agent';
 import { createAskRouter } from '../packages/research-runtime/src/ask-api.js';
 import { payloadHash } from '../packages/context/src/index.js';
 import { createEvidenceServer } from '../packages/research-runtime/src/evidence-api.js';
@@ -323,6 +326,72 @@ describe('record agent tool surface', () => {
     expect(evidence.recordedRuns).toEqual([]);
     expect((await call<Dict>(bare.preRegistered)).protocols).toEqual([]);
     expect((await call<Dict>(bare.strategyRecord)).trend).toEqual([]);
+  });
+});
+
+describe('one agent turn', () => {
+  type Call = { messages: unknown; options: any };
+  const fakeAgent = (result: unknown, calls: Call[] = []) =>
+    ({
+      generate: async (messages: unknown, options: any) => {
+        calls.push({ messages, options });
+        return result;
+      },
+    }) as unknown as Agent;
+
+  it('requires a tool call on the first step, then lets the model write', async () => {
+    const calls: Call[] = [],
+      agent = fakeAgent(
+        {
+          text: 'Grounded answer.',
+          usage: { totalTokens: 7 },
+          steps: [{ toolCalls: [{ toolName: 'liveStatus' }] }],
+        },
+        calls,
+      ),
+      turn = await runAskTurn(agent, { question: 'is it healthy?' });
+    expect(turn.answer).toBe('Grounded answer.');
+    expect(turn.sources).toEqual(['liveStatus']);
+    expect(turn.steps).toBe(1);
+    expect(calls[0]!.options.maxSteps).toBe(6);
+    const prepare = calls[0]!.options.prepareStep;
+    expect(prepare({ stepNumber: 0 })).toEqual({ toolChoice: 'required' });
+    expect(prepare({ stepNumber: 1 })).toEqual({});
+  });
+
+  it('withholds an answer that read nothing rather than serving a claim', async () => {
+    const agent = fakeAgent({
+      text: 'The collector is healthy.',
+      usage: {},
+      steps: [{ toolCalls: [] }],
+    });
+    const turn = await runAskTurn(agent, { question: 'is it healthy?' });
+    expect(turn.answer).toBe(UNGROUNDED_ANSWER);
+    expect(turn.sources).toEqual([]);
+  });
+
+  it('carries bounded history through in order', async () => {
+    const calls: Call[] = [],
+      agent = fakeAgent(
+        {
+          text: 'ok',
+          steps: [{ toolCalls: [{ payload: { toolName: 'publicRecord' } }] }],
+        },
+        calls,
+      );
+    const turn = await runAskTurn(agent, {
+      question: 'and now?',
+      history: [
+        { role: 'user', content: 'hi' },
+        { role: 'assistant', content: 'hello' },
+      ],
+    });
+    expect(turn.sources).toEqual(['publicRecord']);
+    expect(calls[0]!.messages).toEqual([
+      { role: 'user', content: 'hi' },
+      { role: 'assistant', content: 'hello' },
+      { role: 'user', content: 'and now?' },
+    ]);
   });
 });
 
