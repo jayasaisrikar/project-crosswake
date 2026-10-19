@@ -73,8 +73,12 @@ server.on('error', (error) => {
 // A deploy sends SIGTERM and systemd escalates to SIGKILL if the process is still up when its stop
 // timeout expires. `close()` alone waits for every open socket, and the Funnel keeps keep-alive
 // connections to this port, so a restart stalled for a minute and left the API refusing requests.
+// Idle sockets go at once; a turn still in flight gets a grace period; anything left is destroyed,
+// and the process stops waiting on handles it cannot close.
 for (const signal of ['SIGINT', 'SIGTERM'] as const)
   process.on(signal, () => {
     server.close();
     server.closeIdleConnections();
+    setTimeout(() => server.closeAllConnections(), 15_000).unref();
+    setTimeout(() => process.exit(0), 20_000).unref();
   });

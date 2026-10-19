@@ -2828,3 +2828,50 @@
 .cw-landing main h2 > span {
   --ink-secondary: var(--signal);
 }
+
+/* How it works: keep the guide scene behind the steps only, so it no longer
+   collides with the heading copy or bleeds into the gap before the phone. */
+.cw-landing .cw-how {
+  padding-bottom: clamp(48px, 6vw, 80px);
+}
+.cw-landing .cw-how::before {
+  inset: 0 0 0 30%;
+  background-position: right 20%;
+  opacity: 0.18;
+  mask-image: linear-gradient(90deg, transparent, #000 45%), linear-gradient(transparent, #000 20%, #000 70%, transparent);
+}
+.cw-landing .cw-how .cw-section-heading > p {
+  position: relative;
+  padding: 14px 18px;
+  border-radius: 10px;
+  background: rgb(11 13 12 / 0.6);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+.cw-landing .cw-tg {
+  padding-top: clamp(48px, 6vw, 80px);
+}
+
+/* Ask: status row replaces the speaker label on assistant turns */
+.ask-status {
+  margin-bottom: 0.25rem;
+  font-size: 13px;
+}
+
+/* Section scenes bleed to the viewport edges instead of stopping at the
+   1240px content box, which left a hard cut and an empty strip on the right. */
+html {
+  overflow-x: clip;
+}
+.cw-landing .kinetic-hero::before,
+.cw-landing .kinetic-hero::after,
+.cw-landing .cw-how::before,
+.cw-landing .cw-tg::before,
+.cw-landing .cw-research::before {
+  left: calc(50% - 50vw);
+  right: calc(50% - 50vw);
+}
+.cw-landing .cw-how::before {
+  background-position: right 20%;
+  mask-image: linear-gradient(90deg, transparent 35%, #000 70%), linear-gradient(transparent, #000 20%, #000 70%, transparent);
+}

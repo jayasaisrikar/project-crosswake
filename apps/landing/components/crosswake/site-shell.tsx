@@ -121,15 +121,6 @@ export function SiteHeader() {
         })}
         <Link
           className="cw-nav-link"
-          href="#ask"
-          onClick={close}
-        >
-          <b>Ask</b>
-          <small>Question the live record</small>
-          <ArrowUpRight size={18} aria-hidden="true" />
-        </Link>
-        <Link
-          className="cw-nav-link"
           href="/docs"
           aria-current={path.startsWith('/docs') ? 'page' : undefined}
           onClick={close}

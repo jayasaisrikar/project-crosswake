@@ -341,6 +341,45 @@ describe('one agent turn', () => {
       },
     }) as unknown as Agent;
 
+  it('retries a failed model call once, then gives up', async () => {
+    const calls: Call[] = [];
+    let n = 0;
+    const agent = {
+      generate: async (messages: unknown, options: any) => {
+        calls.push({ messages, options });
+        if (++n === 1) throw new Error('socket hang up');
+        return {
+          text: 'A bird is a feathered animal.',
+          steps: [{ toolCalls: [] }],
+        };
+      },
+    } as unknown as Agent;
+    const turn = await runAskTurn(agent, { question: 'What is a bird?' }, 3);
+    expect(calls).toHaveLength(2);
+    expect(turn.answer).toContain('feathered');
+
+    const failing = {
+      generate: async () => {
+        throw new Error('socket hang up');
+      },
+    } as unknown as Agent;
+    await expect(
+      runAskTurn(failing, { question: 'What is a bird?' }, 3),
+    ).rejects.toThrow('socket hang up');
+  });
+
+  it('bounds every model call so a stall cannot hold the turn open', async () => {
+    const calls: Call[] = [];
+    await runAskTurn(
+      fakeAgent({ text: 'Yes.', steps: [{ toolCalls: [] }] }, calls),
+      { question: 'In one sentence, what is a bird?' },
+      3,
+    );
+    const signal = calls[0]!.options.abortSignal as AbortSignal;
+    expect(signal).toBeInstanceOf(AbortSignal);
+    expect(signal.aborted).toBe(false);
+  });
+
   it('routes each OpenCode family to the endpoint it is actually served on', () => {
     for (const id of [
       'longcat-2.5-preview-free',
@@ -371,7 +410,7 @@ describe('one agent turn', () => {
       expect(asksAboutRecord(q), q).toBe(false);
   });
 
-  it('forces a read on the first step for a record question', async () => {
+  it('never forces a tool call, because the gateway rejects that in thinking mode', async () => {
     const calls: Call[] = [],
       agent = fakeAgent(
         {
@@ -384,13 +423,35 @@ describe('one agent turn', () => {
       turn = await runAskTurn(agent, { question: 'Is the collector healthy?' });
     expect(turn.answer).toBe('Grounded answer.');
     expect(turn.sources).toEqual(['liveStatus']);
-    const prepare = calls[0]!.options.prepareStep;
-    expect(prepare({ stepNumber: 0 })).toEqual({ toolChoice: 'required' });
-    expect(prepare({ stepNumber: 1 })).toEqual({});
+    expect(calls[0]!.options.prepareStep({ stepNumber: 0 })).toEqual({});
+    expect(calls[0]!.options.toolChoice).toBeUndefined();
     expect(calls).toHaveLength(1);
   });
 
-  it('lets a general question answer from knowledge without forcing a read', async () => {
+  it('re-asks for a read, in words, when a record question read nothing', async () => {
+    let call = 0;
+    const calls: Call[] = [];
+    const agent = {
+      generate: async (messages: unknown, options: any) => {
+        calls.push({ messages, options });
+        return ++call === 1
+          ? { text: 'The collector is healthy.', steps: [{ toolCalls: [] }] }
+          : {
+              text: 'Grounded answer.',
+              steps: [{ toolCalls: [{ toolName: 'liveStatus' }] }],
+            };
+      },
+    } as unknown as Agent;
+    const turn = await runAskTurn(agent, {
+      question: 'Is the collector healthy?',
+    });
+    expect(calls).toHaveLength(2);
+    expect(JSON.stringify(calls[1]!.messages)).toContain('Call a tool now');
+    expect(turn.sources).toEqual(['liveStatus']);
+    expect(turn.answer).toBe('Grounded answer.');
+  });
+
+  it('answers a general question from knowledge without a second call', async () => {
     const calls: Call[] = [],
       agent = fakeAgent(
         { text: 'A hedge offsets risk.', steps: [{ toolCalls: [] }] },
@@ -399,7 +460,6 @@ describe('one agent turn', () => {
       turn = await runAskTurn(agent, {
         question: 'What does hedge mean in finance?',
       });
-    expect(calls[0]!.options.prepareStep({ stepNumber: 0 })).toEqual({});
     expect(turn.answer).toBe('A hedge offsets risk.');
     expect(turn.sources).toEqual([]);
     expect(calls).toHaveLength(1);

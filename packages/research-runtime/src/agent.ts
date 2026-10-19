@@ -86,6 +86,17 @@ export const stripNarration = (text: string) =>
 export const UNGROUNDED_ANSWER =
   'That answer did not come from the record, so it is being withheld. Ask again and it will read the data first.';
 
+/** No single model call may hold a turn open longer than this. */
+const MODEL_CALL_TIMEOUT_MS = 45_000;
+
+/**
+ * Appended as a second user turn when a question about the record was answered without a read.
+ * The gateway refuses `toolChoice: 'required'` while a model is in thinking mode, so the read is
+ * requested in words a second time instead of being forced by the API.
+ */
+export const READ_NUDGE =
+  'You did not read the record. Call a tool now and answer only from what it returns.';
+
 /** Questions that concern our own data must be answered from a read, never from memory. */
 const RECORD_TOPIC =
   /\b(crosswake|record|live|status|collector|engine|strateg(?:y|ies)|signal|position|holding|open|closed|trade|paper|telegram|dashboard|backtest|performance|benchmark|drawdown|win rate|expectancy|bps|basis points|p&l|universe|altfins|snapshot|momentum|residual|trend|digest|scorecard|validat|edge|proof|audit|ledger|fill|coin|altcoin|btc|bitcoin|eth|sol|market|price|crypto)\b/i;
@@ -111,26 +122,46 @@ export async function runAskTurn(
     { role: 'user', content: input.question },
   ];
   const needsRecord = asksAboutRecord(input.question);
-  const generate = (forceRead: boolean) =>
-    agent.generate(messages, {
-      maxSteps,
-      // Without this the model sometimes asserts "the collector is healthy" having read nothing.
-      // A general question is allowed to answer from knowledge, so only our own topics are forced.
-      prepareStep: ({ stepNumber }: { stepNumber: number }) =>
-        stepNumber === 0 && forceRead
-          ? { toolChoice: 'required' as const }
-          : {},
-    }) as unknown as Promise<TurnOutput>;
+  const turnStarted = Date.now();
+  const call = async (nudge?: string) => {
+    const payload = nudge
+      ? [...messages, { role: 'user' as const, content: nudge }]
+      : messages;
+    const started = Date.now();
+    try {
+      const result = (await agent.generate(payload, {
+        maxSteps,
+        // A stalled call must not eat the whole turn, so each one is bounded.
+        abortSignal: AbortSignal.timeout(MODEL_CALL_TIMEOUT_MS),
+        prepareStep: ({ stepNumber }: { stepNumber: number }) => {
+          if (stepNumber)
+            console.log(
+              `chat step ${stepNumber} at ${Date.now() - turnStarted}ms`,
+            );
+          return {};
+        },
+      })) as unknown as TurnOutput;
+      console.log(`chat call ok in ${Date.now() - started}ms`);
+      return result;
+    } catch (error) {
+      // A gateway hiccup should not cost the visitor their answer; nothing here writes anything.
+      console.warn(
+        `chat call failed after ${Date.now() - started}ms (${String((error as Error).message).slice(0, 80)}), retrying once`,
+      );
+      return (await agent.generate(payload, {
+        maxSteps,
+        abortSignal: AbortSignal.timeout(MODEL_CALL_TIMEOUT_MS),
+      })) as unknown as TurnOutput;
+    }
+  };
 
-  let result = await generate(needsRecord);
-  let sources = summarise(result).sources;
-  // A general question that starts claiming facts about our record gets one grounded retry.
-  if (!sources.length && !needsRecord && RECORD_CLAIM.test(text(result)))
-    result = await generate(true);
+  let turn = summarise(await call());
+  const mustBeGrounded = needsRecord || RECORD_CLAIM.test(turn.answer);
+  // An answer about our data that read nothing is asked for again, in words, then withheld.
+  if (!turn.sources.length && mustBeGrounded)
+    turn = summarise(await call(READ_NUDGE));
 
-  const turn = summarise(result);
-  sources = turn.sources;
-  if (!sources.length && (needsRecord || RECORD_CLAIM.test(turn.answer))) {
+  if (!turn.sources.length && mustBeGrounded) {
     console.warn(
       'chat turn finished without a tool call; withholding its answer',
     );

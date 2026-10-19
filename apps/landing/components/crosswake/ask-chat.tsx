@@ -1,12 +1,14 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
-import { ArrowUp, ShieldAlert } from 'lucide-react';
+import { ArrowUp } from 'lucide-react';
+import { AiStatus, type AiStatusState } from '@/components/ui/ai-status';
 
 export type Turn = {
   role: 'user' | 'record';
   text: string;
   sources?: string[];
   failed?: boolean;
+  seconds?: number;
 };
 
 export const SOURCE_LABELS: Record<string, string> = {
@@ -41,11 +43,11 @@ export const SUGGESTIONS = [
   'Explain basis points like I am new to this',
 ];
 
-const READING = [
-  'Reading the live record…',
-  'Checking the strategy states…',
-  'Counting the signals so far…',
-  'Checking what was frozen before testing…',
+const READING: { state: AiStatusState; detail: string }[] = [
+  { state: 'thinking', detail: 'the question' },
+  { state: 'researching', detail: 'the live record' },
+  { state: 'analyzing', detail: 'strategy states and signals' },
+  { state: 'writing', detail: 'the answer' },
 ];
 
 export function useAskChat() {
@@ -59,7 +61,7 @@ export function useAskChat() {
     if (!busy) return;
     setStep(0);
     const timer = setInterval(
-      () => setStep((s) => (s + 1) % READING.length),
+      () => setStep((s) => Math.min(s + 1, READING.length - 1)),
       4500,
     );
     return () => clearInterval(timer);
@@ -87,6 +89,8 @@ export function useAskChat() {
     setTurns((prev) => [...prev, { role: 'user', text: asked }]);
     setInput('');
     setBusy(true);
+    const started = Date.now();
+    const seconds = () => Math.round((Date.now() - started) / 1000);
     try {
       const response = await fetch('/api/ask', {
         method: 'POST',
@@ -97,7 +101,12 @@ export function useAskChat() {
       if (response.ok && typeof body.answer === 'string')
         setTurns((prev) => [
           ...prev,
-          { role: 'record', text: body.answer, sources: body.sources ?? [] },
+          {
+            role: 'record',
+            text: body.answer,
+            sources: body.sources ?? [],
+            seconds: seconds(),
+          },
         ]);
       else
         setTurns((prev) => [
@@ -105,6 +114,7 @@ export function useAskChat() {
           {
             role: 'record',
             failed: true,
+            seconds: seconds(),
             text:
               FAILURES[body.error as string] ??
               'That did not come back. Try asking again.',
@@ -113,7 +123,12 @@ export function useAskChat() {
     } catch {
       setTurns((prev) => [
         ...prev,
-        { role: 'record', failed: true, text: FAILURES.record_unreachable! },
+        {
+          role: 'record',
+          failed: true,
+          seconds: seconds(),
+          text: FAILURES.record_unreachable!,
+        },
       ]);
     } finally {
       setBusy(false);
@@ -124,6 +139,7 @@ export function useAskChat() {
 }
 
 const BOLD = /(\*\*[^*\n]+\*\*)/g;
+const EM = /(\*[^*\n]+\*)/g;
 
 function Inline({ text }: { text: string }) {
   return (
@@ -132,7 +148,15 @@ function Inline({ text }: { text: string }) {
         part.startsWith('**') && part.endsWith('**') && part.length > 4 ? (
           <strong key={i}>{part.slice(2, -2)}</strong>
         ) : (
-          <span key={i}>{part}</span>
+          <span key={i} data-part={i}>
+            {part.split(EM).map((sub, j) =>
+              sub.startsWith('*') && sub.endsWith('*') && sub.length > 2 ? (
+                <em key={j}>{sub.slice(1, -1)}</em>
+              ) : (
+                sub
+              ),
+            )}
+          </span>
         ),
       )}
     </>
@@ -194,14 +218,17 @@ export function Transcript({
       {turns.length === 0 && <p className="ask-empty">{empty}</p>}
       {turns.map((turn, i) => (
         <article key={i} className={`ask-turn is-${turn.role}`}>
-          <span className="ask-who">
-            {turn.role === 'user' ? 'You' : 'Crosswake'}
-          </span>
+          {turn.role === 'user' ? (
+            <span className="ask-who">You</span>
+          ) : (
+            <AiStatus
+              className="ask-status"
+              state={turn.failed ? 'error' : 'done'}
+              elapsed={turn.seconds}
+            />
+          )}
           {turn.failed ? (
-            <p className="ask-text is-failed">
-              <ShieldAlert size={14} aria-hidden="true" />
-              {turn.text}
-            </p>
+            <p className="ask-text is-failed">{turn.text}</p>
           ) : (
             <div className="ask-text">
               <Answer text={turn.text} />
@@ -217,18 +244,16 @@ export function Transcript({
       ))}
       {busy && (
         <article className="ask-turn is-record">
-          <span className="ask-who">Crosswake</span>
-          <p className="ask-text is-pending">
-            <span className="ask-typing" aria-hidden="true">
-              <i />
-              <i />
-              <i />
-            </span>
-            {reading[step]}
-            {slow && (
-              <span className="ask-slow"> Still reading. This can take a bit.</span>
-            )}
-          </p>
+          <AiStatus
+            className="ask-status"
+            state={reading[step]!.state}
+            detail={reading[step]!.detail}
+          />
+          {slow && (
+            <p className="ask-text is-pending">
+              <span className="ask-slow">Still reading. This can take a bit.</span>
+            </p>
+          )}
         </article>
       )}
     </div>
