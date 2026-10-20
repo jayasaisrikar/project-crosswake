@@ -18,7 +18,9 @@ import {
   factSheet,
   factsHash,
   liveLines,
+  needsRewrite,
   numbersIn,
+  TEMPLATE_RETRIES,
   planSchema,
   templateBody,
   type Topic,
@@ -157,6 +159,59 @@ describe('the draft gate', () => {
   });
 });
 
+describe('whether a topic still needs writing', () => {
+  const done = (
+    over: Partial<{ factsHash: string; model: string; gate: string }> = {},
+  ) => ({
+    generator: {
+      factsHash: 'aaa',
+      model: 'free-model',
+      gate: 'model',
+      ...over,
+    } as {
+      factsHash: string;
+      model: string;
+      gate: 'model' | 'template';
+    },
+  });
+
+  it('skips a model-written article whose facts and model are unchanged', () => {
+    expect(needsRewrite(done(), 'aaa', 'free-model')).toBe(false);
+  });
+
+  it('retries a templated article rather than treating it as finished', () => {
+    expect(needsRewrite(done({ gate: 'template' }), 'aaa', 'free-model')).toBe(
+      true,
+    );
+  });
+
+  it('does not retry a template when no model is configured at all', () => {
+    const templated = {
+      generator: {
+        factsHash: 'aaa',
+        model: 'template',
+        gate: 'template' as const,
+      },
+    };
+    expect(needsRewrite(templated, 'aaa', '')).toBe(false);
+  });
+
+  it('rewrites when the facts or the configured model changed', () => {
+    expect(needsRewrite(done(), 'bbb', 'free-model')).toBe(true);
+    expect(needsRewrite(done(), 'aaa', 'another-model')).toBe(true);
+    expect(needsRewrite(null, 'aaa', 'free-model')).toBe(true);
+  });
+
+  it('gives up on a topic the model keeps failing, so it stops costing calls', () => {
+    const stubborn = (modelAttempts: number) =>
+      done({ gate: 'template', modelAttempts } as never);
+    expect(needsRewrite(stubborn(1), 'aaa', 'free-model')).toBe(true);
+    expect(needsRewrite(stubborn(TEMPLATE_RETRIES), 'aaa', 'free-model')).toBe(
+      false,
+    );
+  });
+});
+
 describe('fact sheet hashing', () => {
   it('is stable and changes when the facts change', () => {
     const topic = corpus.topics[0]!,
@@ -274,6 +329,7 @@ describe('the article store', () => {
       model: 'test',
       factsHash: 'abcdef0123456789',
       gate: 'template',
+      modelAttempts: 0,
     },
   };
 

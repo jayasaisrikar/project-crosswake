@@ -41,6 +41,7 @@ export const articleSchema = z.object({
     model: z.string().min(1).max(120),
     factsHash: z.string().min(8).max(64),
     gate: z.enum(['model', 'template']),
+    modelAttempts: z.number().int().min(0).max(50).default(0),
   }),
 });
 

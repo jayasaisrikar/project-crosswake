@@ -162,6 +162,37 @@ export function templateBody(topic: Topic, live: string[]) {
 export const factsHash = (sheet: string) =>
   createHash('sha256').update(sheet).digest('hex').slice(0, 16);
 
+export const TEMPLATE_RETRIES = Number(
+  process.env.RESEARCH_WRITER_TEMPLATE_RETRIES ?? 3,
+);
+
+/**
+ * Whether a topic still needs writing. Facts or the configured model changing always forces a
+ * rewrite. A body the gate rejected falls back to the template, and that template is written with
+ * the model id still recorded, so the gate decides whether a topic is finished rather than the
+ * model: with a model configured a templated article is retried, but only up to a bounded number of
+ * passes, or one topic the model cannot satisfy would spend the whole per-pass budget forever.
+ */
+export function needsRewrite(
+  existing: {
+    generator: {
+      factsHash: string;
+      model: string;
+      gate: 'model' | 'template';
+      modelAttempts?: number;
+    };
+  } | null,
+  hash: string,
+  model: string,
+): boolean {
+  if (!existing) return true;
+  if (existing.generator.factsHash !== hash) return true;
+  if (existing.generator.model !== (model || 'template')) return true;
+  if (!model) return false;
+  if (existing.generator.gate === 'model') return false;
+  return (existing.generator.modelAttempts ?? 0) < TEMPLATE_RETRIES;
+}
+
 export function checkArticle(
   body: string,
   sheet: string,

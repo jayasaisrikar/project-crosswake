@@ -94,6 +94,7 @@ documented default, and the model is never defaulted to anything:
 | `RESEARCH_WRITER_COOLDOWN_MS`                               | 1 h             | Cool-down after a throttle, auth or quota error.                          |
 | `RESEARCH_WRITER_TIMEOUT_MS`                                | 90 s            | Per-call abort.                                                           |
 | `RESEARCH_WRITER_ATTEMPTS`                                  | 2               | Model calls per topic, at most.                                           |
+| `RESEARCH_WRITER_TEMPLATE_RETRIES`                          | 3               | Passes that may retry a topic the gate keeps rejecting.                   |
 | `RESEARCH_WRITER_MIN_BODY` / `_MAX_BODY` / `_SECTION_FLOOR` | 900 / 14000 / 3 | Draft gate.                                                               |
 | `RESEARCH_TOPICS`, `CROSSWAKE_DATA`                         | repo defaults   | Topic file and data root.                                                 |
 
@@ -107,11 +108,16 @@ Four mechanisms keep model calls down, in order of how often they fire:
    steady state makes no calls at all. Running marks are deliberately excluded from the live facts:
    they drift with the market, so quoting them would both date the prose and force a call on every
    pass for no new information.
-2. **The pass interval and cool-down**, read from `data/public/writer-state.json`. A restart, a crash
+2. **The gate, not the model, marks a topic finished.** A rejected draft is published as the
+   template, and that article still records the model id, so a naive "model matches" check would call
+   it done and the topic would stay templated forever. A templated article is therefore retried, but
+   only for `RESEARCH_WRITER_TEMPLATE_RETRIES` passes: without that bound, one topic the model cannot
+   satisfy would spend the whole per-pass budget on every pass, forever.
+3. **The pass interval and cool-down**, read from `data/public/writer-state.json`. A restart, a crash
    loop or a manual `--once` inside the interval skips the pass instead of paying for it again.
-3. **The per-pass call cap.** Topics are visited in file order and the pass stops at the cap, so a
+4. **The per-pass call cap.** Topics are visited in file order and the pass stops at the cap, so a
    cold start with every topic changed spreads across passes rather than firing all of them at once.
-4. **Throttle detection.** A 429, quota, auth or payment error aborts the whole pass and parks the
+5. **Throttle detection.** A 429, quota, auth or payment error aborts the whole pass and parks the
    unit for the cool-down window, instead of marching through the remaining topics collecting more
    failures. The error is stored so `pass_skipped` says why.
 

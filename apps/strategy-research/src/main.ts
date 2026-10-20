@@ -9,6 +9,7 @@ import {
   factsHash,
   instruction,
   liveLines,
+  needsRewrite,
   planSchema,
   retryInstruction,
   templateBody,
@@ -181,12 +182,7 @@ async function buildTopic(
     sheet = factSheet(topic, live),
     hash = factsHash(sheet),
     existing = await readArticle(dataDir, topic.slug);
-  if (
-    !force &&
-    existing &&
-    existing.generator.factsHash === hash &&
-    existing.generator.model === (model || 'template')
-  ) {
+  if (!force && !needsRewrite(existing, hash, model)) {
     console.log({ slug: topic.slug, action: 'unchanged' });
     return;
   }
@@ -210,6 +206,10 @@ async function buildTopic(
       model: model || 'template',
       factsHash: hash,
       gate: draft.gate,
+      modelAttempts:
+        model && draft.gate === 'template'
+          ? (existing?.generator.modelAttempts ?? 0) + 1
+          : 0,
     },
   };
   if (dryRun) {
