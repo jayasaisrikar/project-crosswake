@@ -1,0 +1,29 @@
+{
+  "id": "residual-kalman-perp-v010",
+  "engine": "kalman",
+  "baseConfig": "residual-kalman-perp-v010.json",
+  "grid": {
+    "entryZ": [2.0, 2.5],
+    "zWindowBars": [48, 96]
+  },
+  "dataStart": "2025-01-01T00:00:00Z",
+  "firstTestStart": "2025-05-01T00:00:00Z",
+  "walkForwardEnd": "2026-06-01T00:00:00Z",
+  "selectionMs": 5184000000,
+  "testMs": 2592000000,
+  "minSelectionTrades": 30,
+  "holdout": {
+    "start": "2026-06-01T00:00:00Z",
+    "end": "2026-10-01T00:00:00Z"
+  },
+  "acceptance": {
+    "policy": "net-expectancy",
+    "minClosedTrades": 500,
+    "minWinRate": 0.3,
+    "minProfitFactor": 1.3,
+    "minEvents": 200,
+    "minAssets": 5,
+    "maxDrawdownBps": 3000,
+    "maxAssetPnlShare": 0.3
+  }
+}
