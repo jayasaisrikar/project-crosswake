@@ -6,7 +6,7 @@ import { ArrowUpRight, ChevronDown, Menu, X } from 'lucide-react';
 import { Brand } from './brand';
 import { telegramUrl } from '@/lib/site';
 
-// Grouped navigation: the bar stays at three items however many pages are added.
+// Grouped navigation: two menus plus the Research and Docs links, however many pages are added.
 const groups = [
   {
     label: 'Product',
@@ -120,6 +120,16 @@ export function SiteHeader() {
             </div>
           );
         })}
+        <Link
+          className="cw-nav-link"
+          href="/research"
+          aria-current={path.startsWith('/research') ? 'page' : undefined}
+          onClick={close}
+        >
+          <b>Research</b>
+          <small>What failed, what is live, and why</small>
+          <ArrowUpRight size={18} aria-hidden="true" />
+        </Link>
         <Link
           className="cw-nav-link"
           href="/docs"
