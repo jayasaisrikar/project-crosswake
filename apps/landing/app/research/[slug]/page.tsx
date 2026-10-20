@@ -209,9 +209,7 @@ export default async function Page({
           <p>
             It is generated from a fixed fact sheet built from the frozen test
             outputs and the live paper record, then checked so that every figure
-            in the text appears in that sheet. Draft{' '}
-            <code>{article.generator.gate}</code> · model{' '}
-            <code>{article.generator.model}</code> · fact sheet{' '}
+            in the text appears in that sheet. Fact sheet{' '}
             <code>{article.generator.factsHash}</code>.
           </p>
           <p>
