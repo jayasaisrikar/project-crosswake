@@ -2,6 +2,7 @@ import { z } from 'zod';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { evidenceGate } from './evidence.js';
+import { pairEvidenceGate } from './pair-evidence.js';
 import { metrics } from './index.js';
 import { hash } from './research-plan.js';
 import {
@@ -56,6 +57,8 @@ export const residualPlanSchema = z
     testMs: z.number().int().positive().multipleOf(86400000),
     minSelectionTrades: z.number().int().positive(),
     holdout: z.object({ start: clock, end: clock }),
+    /** Absent means the trade-level evidenceGate (kept so existing plan hashes are unchanged). */
+    gate: z.enum(['trades', 'pairs']).optional(),
     acceptance: z.object({
       policy: z.literal('net-expectancy'),
       minClosedTrades: z.number().int().min(1),
@@ -65,6 +68,9 @@ export const residualPlanSchema = z
       minAssets: z.number().int().positive(),
       maxDrawdownBps: z.number().positive(),
       maxAssetPnlShare: z.number().positive().max(1),
+      /** pairs gate only: symbols whose own net is positive, and the share of absolute PnL one BTC event may carry. */
+      minProfitPairs: z.number().int().positive().optional(),
+      maxEventPnlShare: z.number().positive().max(1).optional(),
     }),
   })
   .strict()
@@ -232,7 +238,10 @@ export function residualWalkForward(
       end,
       plan.minSelectionTrades,
     ),
-    gate = evidenceGate(oos, plan.acceptance);
+    gate =
+      plan.gate === 'pairs'
+        ? pairEvidenceGate(oos, plan.acceptance)
+        : evidenceGate(oos, plan.acceptance);
   return {
     planId: plan.id,
     planHash: planHash(plan, base),
