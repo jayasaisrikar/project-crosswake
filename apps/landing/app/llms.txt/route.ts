@@ -42,8 +42,8 @@ const body = `
 - Everything it reports about the record is paper trading research, not financial advice.
 
 ## Research record
-- Eight strategy versions so far; five failed or were retired (v001–v004, v007). All remain public.
-- Only v005 and v006 send signals. v003, v004 and v007 run on paper for observation and send nothing.
+- Ten strategy versions so far; seven failed or were retired (v001–v004, v007, v009, v010). All remain public.
+- Only v005 and v006 send signals. v003, v004, v007, v009 and v010 run on paper for observation and send nothing.
 - v008 (frozen 17 October 2026): half trend-following, half long/short cross-sectional momentum on 37 Binance futures. Its rules already saw all past data, so it is judged on live paper only from 18 October 2026, against criteria fixed in advance. It sends no signals.
 - v004 posted 10 short alerts to the channel between 8 and 10 October 2026 while listed as failed; this was disclosed in the changelog and its delivery was turned off.
 

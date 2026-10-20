@@ -8,6 +8,12 @@ export const changelog: {
   body: string;
 }[] = [
   {
+    date: '2026-10-20',
+    kind: 'failed',
+    title: 'v009 and v010: the Kalman pairs research, published as it ended',
+    body: 'v009 hedged altcoin-perp positions against Bitcoin with a Kalman-filtered hedge ratio. Its hedge tracked so tightly that the spread it trades never deviated enough to enter: zero trades across 168,000 model fits, and the walk-forward failed its pre-registered gate. The follow-up changed the one parameter the v009 verdict named: with a slower hedge, v010 did trade, and lost −0.51% per trade across 118 unseen trades (33% win rate), with only 1 of 14 pairs profitable on its own. Both count as failed under the record\'s rules and stay public. Nothing was retuned to look better, and no holdout period was spent.',
+  },
+  {
     date: '2026-10-19',
     kind: 'product',
     title: 'Ask the record: an assistant over the live data',

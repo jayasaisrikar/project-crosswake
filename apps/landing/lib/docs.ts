@@ -126,6 +126,7 @@ export const docs: {
           'v003: hour-scale altcoin catch-up. Variants lost money or produced insufficient trades. Failed; paper observation only.',
           'v004: shorting altcoins that held up while Bitcoin fell. −0.46% per trade across 349 trades. Failed; paper observation only. Its first 8 live paper trades averaged −0.84%.',
           'v007: 15-minute RSI rebounds in a four-hour trend on BTC, ETH, and SOL futures. The unseen test had 32 trades, −0.15R per trade, and a 0.79 profit factor. Failed; paper observation only.',
+          'v009: Kalman-hedged altcoin-vs-Bitcoin pairs on futures. The hedge tracked so closely that the spread it trades never deviated enough to enter: no trades in 168,000 model fits. The follow-up (v010) fixed the tracking, and the strategy then lost 0.51% per trade across 118 unseen trades, with only 1 of 14 pairs profitable on its own. Failed; paper observation only.',
         ],
       },
     ],
