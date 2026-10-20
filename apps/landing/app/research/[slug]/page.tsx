@@ -160,7 +160,7 @@ export default async function Page({
                 </ol>
               </nav>
             )}
-            <ArticleBody body={article.body} />
+            <ArticleBody body={article.body} lede={article.description} />
           </article>
 
           <aside className="rs-aside">

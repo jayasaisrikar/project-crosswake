@@ -473,6 +473,14 @@
 }
 
 /* ---------- index: hero, proof strip, featured note, CTA ---------- */
+/* Whole-card links: undo the global `a { white-space: nowrap }` so their text wraps. */
+.rs-card > a,
+.rs-featured,
+.rs-related a,
+.rs-sources a {
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
 .rs-eyebrow i {
   display: inline-block;
   width: 7px;

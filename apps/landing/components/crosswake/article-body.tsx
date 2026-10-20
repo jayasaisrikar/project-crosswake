@@ -22,46 +22,55 @@ const inline = (text: string, key: string): ReactNode[] =>
       return part;
     });
 
+// A short leading "Label:" in a list item reads as a term, so it is set in bold.
+const labelled = (item: string) =>
+  item.replace(/^([A-Z][^:*`]{0,40}):\s+/, '**$1:** ');
+
+// Line-based: a heading or list may sit directly under the previous line, with no blank line between.
 export function parseBlocks(body: string): Block[] {
   const blocks: Block[] = [];
-  for (const raw of body.split(/\n{2,}/)) {
-    const chunk = raw.trim();
-    if (!chunk) continue;
-    const heading = /^(#{2,4})\s+(.*)$/.exec(chunk.split('\n')[0]!);
-    if (heading && chunk.split('\n').length === 1) {
+  let para: string[] = [];
+  const flush = () => {
+    const text = para.join(' ').trim();
+    if (text) blocks.push({ kind: 'p', text });
+    para = [];
+  };
+  const pushItem = (kind: 'ul' | 'ol', item: string) => {
+    const last = blocks[blocks.length - 1];
+    if (last?.kind === kind) last.items.push(item);
+    else blocks.push({ kind, items: [item] });
+  };
+  for (const raw of body.split('\n')) {
+    const line = raw.trim();
+    if (!line) {
+      flush();
+      continue;
+    }
+    const heading = /^(#{2,4})\s+(.*)$/.exec(line);
+    if (heading) {
+      flush();
       blocks.push({
         kind: heading[1]!.length === 2 ? 'h2' : 'h3',
         text: heading[2]!.trim(),
       });
       continue;
     }
-    const lines = chunk
-      .split('\n')
-      .map((line) => line.trim())
-      .filter(Boolean);
-    if (lines.every((line) => /^[-*]\s+/.test(line)) && lines.length) {
-      blocks.push({
-        kind: 'ul',
-        items: lines.map((line) => line.replace(/^[-*]\s+/, '')),
-      });
+    const bullet = /^[-*]\s+(.*)$/.exec(line);
+    if (bullet) {
+      flush();
+      pushItem('ul', bullet[1]!);
       continue;
     }
-    if (lines.every((line) => /^\d+[.)]\s+/.test(line)) && lines.length) {
-      blocks.push({
-        kind: 'ol',
-        items: lines.map((line) => line.replace(/^\d+[.)]\s+/, '')),
-      });
+    const numbered = /^\d+[.)]\s+(.*)$/.exec(line);
+    if (numbered) {
+      flush();
+      pushItem('ol', numbered[1]!);
       continue;
     }
-    blocks.push({
-      kind: 'p',
-      text: lines
-        .map((line) => line.replace(/^>\s?/, ''))
-        .join(' ')
-        .trim(),
-    });
+    para.push(line.replace(/^>\s?/, ''));
   }
-  return blocks.filter((block) => block.kind !== 'p' || block.text.length > 0);
+  flush();
+  return blocks;
 }
 
 export function headings(body: string) {
@@ -76,8 +85,16 @@ export const slugifyHeading = (text: string) =>
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-|-$/g, '');
 
-export function ArticleBody({ body }: { body: string }) {
-  const blocks = parseBlocks(body);
+const plain = (text: string) => text.replace(/\s+/g, ' ').trim().toLowerCase();
+
+// `lede` is the description already shown under the title; an opening paragraph that repeats it is dropped.
+export function ArticleBody({ body, lede }: { body: string; lede?: string }) {
+  const parsed = parseBlocks(body);
+  const first = parsed[0];
+  const blocks =
+    lede && first?.kind === 'p' && plain(first.text) === plain(lede)
+      ? parsed.slice(1)
+      : parsed;
   return (
     <div className="rs-article-body">
       {blocks.map((block, index) => {
@@ -93,7 +110,7 @@ export function ArticleBody({ body }: { body: string }) {
           return (
             <ul key={index}>
               {block.items.map((item, i) => (
-                <li key={i}>{inline(item, `u${index}-${i}`)}</li>
+                <li key={i}>{inline(labelled(item), `u${index}-${i}`)}</li>
               ))}
             </ul>
           );
