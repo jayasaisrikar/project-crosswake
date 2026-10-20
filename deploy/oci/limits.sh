@@ -23,6 +23,7 @@ UNITS=(
   "signals-momentum-v008:256M:384M"
   "digest:256M:384M"
   "status:192M:256M"
+  "research-writer:256M:384M"
   "retention:256M:384M"
   "costs:384M:512M"
   "context:384M:512M"
