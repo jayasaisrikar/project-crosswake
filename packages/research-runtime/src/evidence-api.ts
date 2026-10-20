@@ -24,6 +24,8 @@ import {
   type RuntimePaths,
 } from './experiments.js';
 import { backtestRuns, datasetInventory } from './dataset-evidence.js';
+import { readArticle, readArticleIndex } from './articles.js';
+import { publicSnapshot } from './public-snapshot.js';
 import { hyperliquidEvidence } from './hyperliquid-evidence.js';
 import { listSandboxRuns, runSandbox, sandboxSymbols } from './sandbox.js';
 import { launchExperiment, listJobs } from './experiment-jobs.js';
@@ -200,7 +202,21 @@ export function createEvidenceServer(
         send(200, await residualResearch(paths.dataDir));
       else if (segments.length === 1 && segments[0] === 'context')
         send(200, await latestContext(paths.dataDir));
-      else if (segments.length === 1 && segments[0] === 'data')
+      else if (segments.length === 1 && segments[0] === 'public')
+        send(200, await cached('public', () => publicSnapshot(paths.dataDir)));
+      else if (segments.length === 1 && segments[0] === 'articles')
+        send(200, {
+          articles: await cached('articles', () =>
+            readArticleIndex(paths.dataDir),
+          ),
+        });
+      else if (segments.length === 2 && segments[0] === 'articles') {
+        const article = await cached(`article:${segments[1]}`, () =>
+          readArticle(paths.dataDir, segments[1]!),
+        );
+        if (article) send(200, article);
+        else send(404, { error: 'not_found' });
+      } else if (segments.length === 1 && segments[0] === 'data')
         send(200, await cached('data', () => datasetInventory(paths.dataDir)));
       else if (segments.length === 1 && segments[0] === 'backtests')
         send(200, await cached('backtests', () => backtestRuns(paths.dataDir)));

@@ -23,6 +23,10 @@ case "$1" in
   signals-momentum-v008) exec node --import tsx apps/momentum/src/main.ts live ;;
   digest) exec node --import tsx apps/digest/src/main.ts ;;
   status) exec node --import tsx apps/status/src/main.ts ;;
+  # Reads the engines' small state files and writes public research articles. It holds no
+  # market data connection and makes at most one model call per topic per pass. The topic file is
+  # named here so a change to it restarts this unit: the app reads it once at startup.
+  research-writer) RESEARCH_TOPICS=configs/research-topics.json exec nice -n 10 node --import tsx apps/strategy-research/src/main.ts ;;
   costs)        exec node --import tsx apps/costs/src/main.ts sample --interval-seconds 300 ;;
   context)      exec node --import tsx apps/context/src/main.ts --watch ;;
   *) echo "unknown service $1" >&2; exit 2 ;;

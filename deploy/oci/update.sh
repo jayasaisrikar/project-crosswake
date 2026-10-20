@@ -44,6 +44,7 @@ units_for_app() {
     momentum) echo signals-momentum-v008 ;;
     digest) echo digest ;;
     status) echo status ;;
+    strategy-research) echo research-writer ;;
     costs) echo costs ;;
     context) echo context ;;
     retention) echo retention ;;

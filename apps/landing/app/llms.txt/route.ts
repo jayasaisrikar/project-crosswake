@@ -42,6 +42,7 @@ const body = `
 - Everything it reports about the record is paper trading research, not financial advice.
 
 ## Research record
+- Explanatory notes on each strategy, including the failures, are at ${siteUrl}/research. Every figure in them is checked against the frozen test outputs and the live paper record.
 - Ten strategy versions so far; seven failed or were retired (v001–v004, v007, v009, v010). All remain public.
 - Only v005 and v006 send signals. v003, v004, v007, v009 and v010 run on paper for observation and send nothing.
 - v008 (frozen 17 October 2026): half trend-following, half long/short cross-sectional momentum on 37 Binance futures. Its rules already saw all past data, so it is judged on live paper only from 18 October 2026, against criteria fixed in advance. It sends no signals.
@@ -52,6 +53,7 @@ const body = `
 - [Performance](${siteUrl}/performance): equity curve, drawdown, benchmarks, execution-delay test
 - [All v005 test trades (CSV)](${siteUrl}/data/trend-daily-v005-test-trades.csv)
 - [Signal log](${siteUrl}/log): every live signal in a hash-chained, verifiable log
+- [Research notes](${siteUrl}/research): why each strategy worked or failed, including the retired ones
 - [Ask the record](${siteUrl}/ask): question the live record in plain language
 - [Commitments](${siteUrl}/commitments): promises and how to check them
 - [Changelog](${siteUrl}/changelog): every version and result, dated

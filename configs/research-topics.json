@@ -1,0 +1,373 @@
+{
+  "version": 1,
+  "defaults": {
+    "sources": [
+      { "label": "Changelog", "href": "/changelog" },
+      { "label": "Strategy catalog", "href": "/docs/strategies" },
+      { "label": "Performance", "href": "/performance" },
+      { "label": "Signal log", "href": "/log" }
+    ]
+  },
+  "topics": [
+    {
+      "slug": "why-the-kalman-pairs-research-failed",
+      "title": "Why the Kalman pairs research failed",
+      "description": "Two frozen versions hedged altcoin futures against Bitcoin and lost after costs. The mechanism, the numbers, and the honest conclusion.",
+      "status": "failed",
+      "tags": ["v009", "v010", "pairs", "futures"],
+      "angle": "Explain the mechanism rather than the outcome. The first version hedged so tightly that the spread it trades never left its entry band, so the cleanest possible finding was zero trades. The follow-up changed the single parameter that finding named; the spread then moved enough to trade and the strategy still lost money on unseen data. End on the distinction the record makes: the hedge improved, the edge did not, so the premise is dead at this cost level on this universe and window, and the holdout period was deliberately left unspent.",
+      "facts": [
+        {
+          "label": "Premise",
+          "value": "Two altcoin futures are hedged against each other with Bitcoin removed, and the leftover spread is expected to revert."
+        },
+        {
+          "label": "Hedge",
+          "value": "A Kalman filter re-estimates the hedge ratio between each altcoin future and Bitcoin on every 15-minute bar."
+        },
+        {
+          "label": "First result",
+          "value": "0 trades from 168,000 model fits, because the hedged spread stayed inside its entry band."
+        },
+        {
+          "label": "First dispersion",
+          "value": "The median deviation of the spread was 0.129 of the level needed to enter."
+        },
+        {
+          "label": "The one change",
+          "value": "The hedge's process-noise delta moved from 1e-5 to 1e-9, so the hedge tracked more slowly. Nothing else changed."
+        },
+        {
+          "label": "Second dispersion",
+          "value": "The median deviation rose to 0.474, and the trading band was finally reached."
+        },
+        {
+          "label": "Test design",
+          "value": "13 folds from May 2025 to June 2026, on 14 altcoin futures against Bitcoin, with a static-OLS control on the same data."
+        },
+        {
+          "label": "Second result",
+          "value": "118 unseen trades, 33.1% win rate, −50.8 bps net per trade, profit factor 0.32."
+        },
+        {
+          "label": "Control",
+          "value": "The static-OLS control made 125 trades at a 30.4% win rate, −55.8 bps net per trade, profit factor 0.33."
+        },
+        {
+          "label": "Breadth",
+          "value": "1 of 14 pairs was profitable on its own."
+        },
+        {
+          "label": "Every variant",
+          "value": "In-sample variants ranged from −43.9 to −57.3 bps per trade, with profit factor at most 0.39."
+        },
+        {
+          "label": "Costs",
+          "value": "The accounting charges 16 bps per round trip."
+        },
+        {
+          "label": "Loss shape",
+          "value": "The largest single Bitcoin impulse carried 4.96% of the absolute loss, so the losses were spread across events rather than caused by one accident."
+        },
+        {
+          "label": "Holdout",
+          "value": "The holdout window was never spent, so a successor strategy can still use it once."
+        },
+        {
+          "label": "Conclusion",
+          "value": "The hedge was better than the control by about 5 bps per trade, and that was still not enough: a tighter hedge is not an edge."
+        }
+      ]
+    },
+    {
+      "slug": "why-shorting-the-strongest-coins-failed",
+      "title": "Why shorting the strongest coins failed",
+      "description": "v004 shorted altcoins that held up while Bitcoin fell, betting they would catch down. Across 349 unseen trades it lost 0.46% each.",
+      "status": "failed",
+      "tags": ["v004", "shorts", "futures"],
+      "angle": "Describe the trade as a bet on lagging coins. Then show the three separate ways it failed: the direction was already priced, the smaller targets were not cheaper, and hedging the Bitcoin exposure cost more than the exposure did. Use the stop-clustering and forecast-quality findings as the diagnosis, and close by saying what a successor actually needs, which is a stationarity gate and an exit that matches the holding period, not a parameter tweak.",
+      "facts": [
+        {
+          "label": "Premise",
+          "value": "When Bitcoin falls and an altcoin holds up, that coin is lagging and should catch down."
+        },
+        {
+          "label": "Unseen test",
+          "value": "349 trades at −0.46% net per trade after costs."
+        },
+        { "label": "Costs", "value": "16 bps per round trip on futures." },
+        {
+          "label": "Live paper",
+          "value": "The first 8 live paper trades averaged −0.84%."
+        },
+        {
+          "label": "Direction problem",
+          "value": "The correlation between Bitcoin's move and the trade's gross return was −0.72. The signals were generated exactly when Bitcoin fell, which is when the trade looked best on paper."
+        },
+        {
+          "label": "Replay baseline",
+          "value": "A 37-day replay produced 127 trades at +0.8 bps per trade, with a 95% confidence interval of −42 to +43 bps. The interval includes zero."
+        },
+        {
+          "label": "Two-sided replay",
+          "value": "Allowing both directions produced 244 trades at +1.5 bps per trade, profit factor 1.02."
+        },
+        {
+          "label": "Smaller targets",
+          "value": "Halving the target made it worse: 144 short-only trades at −3.1 bps, and 291 two-sided trades at −7.3 bps."
+        },
+        {
+          "label": "Hedging",
+          "value": "Hedging the Bitcoin exposure cost more than it saved: −24.8 bps per trade."
+        },
+        {
+          "label": "Stop clustering",
+          "value": "Two stop-outs carried by one Bitcoin impulse cost 1069 bps inside a run that lost 295 bps in total."
+        },
+        {
+          "label": "Forecast quality",
+          "value": "The engine's own expected edge was negatively correlated with realised net at −0.32, so the trades it liked most were not the better trades."
+        },
+        {
+          "label": "Verdict",
+          "value": "Every variant fails the 16 bps cost hurdle. A successor needs a stationarity gate and an exit that matches the lag horizon, not a retune."
+        }
+      ]
+    },
+    {
+      "slug": "why-intraday-rsi-rebounds-failed",
+      "title": "Why intraday RSI rebounds failed",
+      "description": "v007 bought 15-minute RSI extremes inside a four-hour trend on BTC, ETH and SOL futures. The unseen test was negative, and the live paper record agrees.",
+      "status": "failed",
+      "tags": ["v007", "futures", "intraday"],
+      "angle": "This is the smallest and most instructive failure in the record: only three symbols, a short holding period, and futures costs. Explain that a 15-minute signal on three coins cannot produce enough independent observations to support a conclusion, and that the live paper book then repeated the test's result in miniature. Note that the engine still runs on paper so its forward behaviour can be compared with the test.",
+      "facts": [
+        {
+          "label": "Rules",
+          "value": "Buy or sell a 15-minute RSI extreme when the four-hour trend agrees, on BTC, ETH and SOL futures, with a 1-day worth of 15-minute bars as warmup."
+        },
+        {
+          "label": "Stop",
+          "value": "The stop sits 1.2 times the 15-minute ATR from entry."
+        },
+        {
+          "label": "Universe",
+          "value": "Only 3 symbols, so the test had very little breadth to work with."
+        },
+        {
+          "label": "Unseen test",
+          "value": "32 trades at −0.15R net per trade, profit factor 0.79."
+        },
+        {
+          "label": "Costs",
+          "value": "The test already charges fees and slippage on futures, so those results are net."
+        },
+        {
+          "label": "Live paper",
+          "value": "The live engine entered BTC and ETH shorts at 02:30 UTC on 19 October 2026 and both were stopped out within 30 minutes."
+        },
+        {
+          "label": "Live result",
+          "value": "BTC −1.35R and ETH −1.22R on those two trades."
+        },
+        {
+          "label": "Status",
+          "value": "Failed its unseen test and is kept on paper for observation only. It sends no signals."
+        }
+      ]
+    },
+    {
+      "slug": "what-243-trades-can-and-cannot-prove",
+      "title": "What 243 trades can and cannot prove",
+      "description": "The main trend strategy was positive on average in its unseen test and is still inconclusive. Here is why the confidence interval matters more than the average.",
+      "status": "method",
+      "tags": ["v005", "v006", "validation"],
+      "angle": "Walk the reader through a positive-looking result that does not qualify as an edge, without dismissing the strategy. The point is not that the test was bad; it is that 243 trades cluster into a small number of independent market events, so the sample is much thinner than the count suggests. Explain the cost assumption, the fill assumption, and the two honest caveats about where the rules came from. Finish on the standard the record uses: inconclusive is a permitted and published outcome.",
+      "facts": [
+        {
+          "label": "Rules",
+          "value": "Long only, on completed daily candles, one position per coin at a time."
+        },
+        {
+          "label": "Market filter",
+          "value": "Bitcoin's daily close must be above its 100-day average before any entry is allowed."
+        },
+        {
+          "label": "Entry",
+          "value": "A coin closes above the highest close of its prior 20 days."
+        },
+        {
+          "label": "Exit",
+          "value": "The daily close falls below its prior 10-day low, or the market filter turns off."
+        },
+        {
+          "label": "Fill assumption",
+          "value": "The next day's open after the 00:00 UTC daily close, never the price shown at the close."
+        },
+        { "label": "Costs", "value": "30 bps, or 0.30%, per round trip." },
+        {
+          "label": "Sample",
+          "value": "243 trades from January 2025 to September 2026."
+        },
+        { "label": "Win rate", "value": "33.7% of the trades won." },
+        { "label": "Average", "value": "+1.5% net per trade after costs." },
+        { "label": "Profit factor", "value": "1.32." },
+        {
+          "label": "Winners and losers",
+          "value": "The average winner was about +19% and the average loser about −7.3%, which is the shape trend following is supposed to have."
+        },
+        {
+          "label": "Uncertainty",
+          "value": "The 95% confidence interval for the average return was −2.9% to +6.3%. It includes zero."
+        },
+        {
+          "label": "Independence",
+          "value": "There were only 33 independent entry-weeks, so the trades are far from independent samples."
+        },
+        {
+          "label": "Development bias",
+          "value": "Development leaned heavily on the 2020–2021 bull market, and Bitcoin was in an uptrend for most of the test window."
+        },
+        {
+          "label": "Portfolio view",
+          "value": "As a portfolio the same trades made +12.8% with a −16.9% maximum drawdown. Holding the same coins made +40.5% with a −54.2% drawdown."
+        },
+        {
+          "label": "Concentration",
+          "value": "Without ZEC the portfolio was about flat, so one coin carried the result."
+        },
+        {
+          "label": "Execution sensitivity",
+          "value": "Repricing every trade at fills 1 and 4 hours late barely moved the result."
+        },
+        {
+          "label": "Conclusion",
+          "value": "The honest label is inconclusive, not proven. Live paper tracking from 1 October 2026 is what adds evidence now."
+        }
+      ]
+    },
+    {
+      "slug": "how-the-momentum-book-is-being-judged",
+      "title": "How the momentum book is being judged",
+      "description": "v008 runs two halves on 37 futures and cannot be fairly backtested, because its rules were developed on data that had already seen every past period. So it is judged live.",
+      "status": "live",
+      "tags": ["v008", "momentum", "futures"],
+      "angle": "Explain why a strategy can be reasonable and still unprovable from history, and what the record does instead. Describe both halves plainly, the risk limits, and the exact bar it must clear after 90 days. Be explicit that this one is running without a historical test at all, that funding costs are not charged, and that it sends no signals.",
+      "facts": [
+        {
+          "label": "Book",
+          "value": "Two halves on 37 Binance futures, each aiming at 20% annual volatility."
+        },
+        {
+          "label": "Trend half",
+          "value": "The sign of each coin's 20-, 60- and 120-day return, sized by inverse volatility, rebalanced daily."
+        },
+        {
+          "label": "Momentum half",
+          "value": "Each week, long the strongest third of the last 30 days and short the weakest third in equal amounts, which makes it roughly market neutral."
+        },
+        {
+          "label": "Limits",
+          "value": "At most 25% of the book in one coin and 2x gross exposure, with 7 bps of cost per side."
+        },
+        {
+          "label": "Declared gap",
+          "value": "Funding is not charged in the record, which flatters a book that carries short exposure."
+        },
+        {
+          "label": "Why no backtest",
+          "value": "The rules were studied in a lab that had already seen every past period, so any historical test of them is contaminated by construction."
+        },
+        {
+          "label": "Reference replay",
+          "value": "A 2021–2026 replay, which is not a fair test, made about 10% a year with a 21% worst drawdown, and was down about 7% in 2026."
+        },
+        {
+          "label": "Start",
+          "value": "The live paper record starts on 18 October 2026."
+        },
+        {
+          "label": "The bar",
+          "value": "After 90 days it passes only if Sharpe is above 0.5, both halves are positive, the drawdown stays under 25%, and it beats holding the same coins on a risk-adjusted basis. Otherwise it is marked failed, not retuned."
+        },
+        {
+          "label": "Signals",
+          "value": "It sends no signals. It is a book, tracked on paper."
+        }
+      ]
+    },
+    {
+      "slug": "why-the-first-two-ideas-were-retired",
+      "title": "Why the first two ideas were retired",
+      "description": "The research started with Bitcoin lead–lag at second scale, then with cost-aware delayed entries. Both were retired, and both set the standard the later work had to meet.",
+      "status": "failed",
+      "tags": ["v001", "v002", "retired"],
+      "angle": "Treat these as the origin story that established the record's standard. The first idea died because the market moves faster than a person can act. The second died because counting costs honestly removed every signal it produced. The lesson to draw is that a strategy which only works before costs has not worked, and that both were retired rather than quietly retuned.",
+      "facts": [
+        {
+          "label": "v001 idea",
+          "value": "Altcoins were expected to follow Bitcoin after a short delay, at second scale."
+        },
+        {
+          "label": "v001 finding",
+          "value": "Altcoins react to Bitcoin within seconds, which is far too fast for a person to act on."
+        },
+        {
+          "label": "v002 idea",
+          "value": "Wait for a move, then enter only if the forecast still cleared trading costs."
+        },
+        {
+          "label": "v002 finding",
+          "value": "Once real costs were counted, no tradable signals remained at all."
+        },
+        {
+          "label": "Lesson",
+          "value": "A strategy that only works before costs has not worked."
+        },
+        {
+          "label": "Record",
+          "value": "Both were retired rather than retuned, and the research moved to slower timeframes. Their frozen protocols are still in the repository."
+        }
+      ]
+    },
+    {
+      "slug": "what-the-live-record-shows",
+      "title": "What the live paper record shows",
+      "description": "The engines' own state, read from the running record: what is open, what closed, and what the market filter is doing right now.",
+      "status": "live",
+      "tags": ["live", "paper", "v005", "v006"],
+      "angle": "Report the live record as it stands, in plain language, with no projection. State the framing first: every position here is paper, and one trade says nothing about a strategy. Then walk through the open positions, the most recent closed trades, and what the market filter is allowing. Close by saying that the record updates continuously and that the same numbers appear on the performance page and the signal log.",
+      "engines": ["trend-daily-v005", "trend-daily-v006", "htf-rsi-v007"],
+      "facts": [
+        {
+          "label": "Framing",
+          "value": "Paper signals only. No real orders are placed anywhere in this record."
+        },
+        {
+          "label": "Live starts",
+          "value": "v005 counts its live record from 1 October 2026 and v006 from 9 October 2026."
+        },
+        {
+          "label": "First live signal",
+          "value": "An ATOM entry at 2.066 after the 10 October 2026 daily close."
+        },
+        {
+          "label": "ATOM result",
+          "value": "ATOM exited below its 10-day low at the 18 October 2026 close, at 1.703, which is −17.9% after the 30 bps round trip."
+        },
+        {
+          "label": "NEAR",
+          "value": "A NEAR entry at 5.896 on 12 October 2026 has been open since."
+        },
+        {
+          "label": "Expectation",
+          "value": "In testing about two trades in three lost and the average winner was roughly +19%, so a losing start is the expected case rather than a surprise."
+        },
+        {
+          "label": "Where to check",
+          "value": "The same numbers appear on the performance page, in the signal log, and in the status posted to the channel."
+        }
+      ]
+    }
+  ]
+}

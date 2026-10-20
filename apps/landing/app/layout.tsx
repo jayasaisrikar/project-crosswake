@@ -6,6 +6,7 @@ import '../tokens.css';
 import './redesign.css';
 import './kinetic.css';
 import './ask.css';
+import './research.css';
 import { AskWidget } from '@/components/crosswake/ask-widget';
 
 export const metadata: Metadata = {
