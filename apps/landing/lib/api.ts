@@ -11,7 +11,12 @@ export function apiBase() {
   return null;
 }
 
-const TIMEOUT_MS = 8000;
+/**
+ * The record is served through a best-effort public tunnel whose handshake has been measured
+ * anywhere from 0.06s to 90s. Pages that read it are revalidated in the background, so a slow
+ * read costs a regeneration, not a visitor; the timeout is set to outlast the slow handshake.
+ */
+const TIMEOUT_MS = 25_000;
 const ATTEMPTS = 2;
 
 /**
