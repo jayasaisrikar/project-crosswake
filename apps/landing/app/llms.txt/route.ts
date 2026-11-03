@@ -21,7 +21,8 @@ const body = `
 - One coin (ZEC, up 24.7x) drives much of the result; without it v005 was roughly flat while holding the other coins lost about 46%.
 - Re-pricing every trade 1 or 4 hours after the daily open barely changes the result.
 - Live paper tracking started 1 October 2026 (v005), 9 October 2026 (v006, 36 coins) and 18 October 2026 (v008).
-- First live signal: ATOM entry at 2.066 on 10 October 2026, open and about 6.7% below entry that day.
+- Live paper record to 3 November 2026: v005 has closed five trades, all of them losses (−13.7% on average, worst −20.8%); v006 holds one position (HYPE). The first was an ATOM entry at 2.066 on 10 October 2026, closed at 1.703 on 18 October when it broke its 10-day low.
+- The performance page marks the live paper record at every daily close, so its chart runs to the latest completed close rather than to a published snapshot.
 
 ## Hyperliquid data
 - Crosswake reads Hyperliquid's public API (no key, no payment) for perp prices, funding, open interest and order-book depth.

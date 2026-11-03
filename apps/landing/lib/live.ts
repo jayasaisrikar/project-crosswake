@@ -1,3 +1,5 @@
+import { readJson } from './api';
+
 export const LIVE_REVALIDATE = 300;
 
 export type SnapshotPosition = {
@@ -59,19 +61,6 @@ export type PublicSnapshot = {
   digestLastPostAt: string | null;
 };
 
-export function apiBase() {
-  const explicit = process.env.RESEARCH_API_BASE;
-  if (!explicit) return null;
-  try {
-    const url = new URL(explicit);
-    if (url.protocol === 'http:' || url.protocol === 'https:')
-      return url.origin;
-  } catch {
-    return null;
-  }
-  return null;
-}
-
 function isSnapshot(value: unknown): value is PublicSnapshot {
   const v = value as PublicSnapshot | null;
   return (
@@ -85,21 +74,7 @@ function isSnapshot(value: unknown): value is PublicSnapshot {
 
 /** The engines' live state, cached for a few minutes. Null when the record is unreachable. */
 export async function readSnapshot(): Promise<PublicSnapshot | null> {
-  const base = apiBase(),
-    token = process.env.RESEARCH_API_TOKEN;
-  if (!base || !token) return null;
-  try {
-    const response = await fetch(`${base}/public`, {
-      headers: { authorization: `Bearer ${token}` },
-      next: { revalidate: LIVE_REVALIDATE },
-      signal: AbortSignal.timeout(8000),
-    });
-    if (!response.ok) return null;
-    const payload = await response.json();
-    return isSnapshot(payload) ? payload : null;
-  } catch {
-    return null;
-  }
+  return readJson<PublicSnapshot>('/public', LIVE_REVALIDATE, isSnapshot);
 }
 
 export const pct = (bps: number | null, digits = 1) =>

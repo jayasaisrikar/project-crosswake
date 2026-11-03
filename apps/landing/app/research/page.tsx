@@ -31,10 +31,11 @@ const groupNote: Record<ArticleIndexEntry['status'], string> = {
 };
 
 export default async function Page() {
-  const [articles, snapshot] = await Promise.all([
+  const [index, snapshot] = await Promise.all([
     readArticleIndex(),
     readSnapshot(),
   ]);
+  const articles = index ?? [];
   const grouped = order
     .map((status) => ({
       status,
@@ -115,7 +116,10 @@ export default async function Page() {
             survives this page, you can see exactly how hard it was tried.
           </p>
           <div className="rs-hero-actions">
-            <a className="rs-btn is-primary" href={failed ? '#failed' : '#notes'}>
+            <a
+              className="rs-btn is-primary"
+              href={failed ? '#failed' : '#notes'}
+            >
               Read the failures <ArrowDown size={16} aria-hidden="true" />
             </a>
             <Link className="rs-btn" href={cta}>
@@ -126,7 +130,7 @@ export default async function Page() {
           <dl className="rs-stats">
             <div>
               <dt>Notes published</dt>
-              <dd>{articles.length}</dd>
+              <dd>{index === null ? '—' : articles.length}</dd>
             </div>
             <div>
               <dt>Ideas retired</dt>
@@ -171,7 +175,11 @@ export default async function Page() {
           </Link>
         )}
 
-        <section className="rs-why" aria-label="Why we publish this" data-reveal>
+        <section
+          className="rs-why"
+          aria-label="Why we publish this"
+          data-reveal
+        >
           <article>
             <b>01</b>
             <h3>Failures first</h3>
@@ -216,7 +224,18 @@ export default async function Page() {
           )}
         </div>
 
-        {grouped.length === 0 ? (
+        {index === null ? (
+          <section className="rs-empty" data-reveal>
+            <h2>The notes could not be read just now</h2>
+            <p>
+              This page reads the published record live. The record did not
+              answer, so nothing is listed rather than a number being guessed.
+              The <Link href="/changelog">changelog</Link> and the{' '}
+              <Link href="/docs/strategies">strategy catalog</Link> still hold
+              every version, and the notes return on the next read.
+            </p>
+          </section>
+        ) : grouped.length === 0 ? (
           <section className="rs-empty" data-reveal>
             <h2>Notes are being written</h2>
             <p>
@@ -302,10 +321,10 @@ export default async function Page() {
           <p>
             These notes explain research. They are not signals, advice or
             forecasts. Crosswake publishes paper signals only: no order is ever
-            placed. A positive test result is not a promise, and the record&apos;s
-            own standard says so — the main strategy&apos;s unseen-data
-            confidence interval includes zero. Every version is in the{' '}
-            <Link href="/changelog">changelog</Link>.
+            placed. A positive test result is not a promise, and the
+            record&apos;s own standard says so — the main strategy&apos;s
+            unseen-data confidence interval includes zero. Every version is in
+            the <Link href="/changelog">changelog</Link>.
           </p>
         </section>
       </main>

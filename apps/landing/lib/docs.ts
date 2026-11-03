@@ -109,8 +109,8 @@ export const docs: {
         id: 'live-record',
         title: 'The live record so far',
         paragraphs: [
-          'Only v005 and v006 send signals. As of 10 October 2026 they have sent one: an ATOM entry at 2.066 after that day’s close, marked about 6.7% below entry later the same day. It stays open until the exit rule closes it.',
-          'One open trade says nothing about the strategy. In testing about two trades in three lost and the average winner was roughly +19%, so a losing start is the expected case, not a surprise. Every live signal is added to the record, win or lose.',
+          'Only v005 and v006 send trend signals. As of 3 November 2026 v005 has closed five live paper trades and holds none, and every one of them lost: −13.7% on average, the worst −20.8%. The first was an ATOM entry at 2.066 at the 10 October open, closed at 1.703 on 18 October when it broke its 10-day low. v006 holds one position, HYPE. The other engines run on paper for observation and send nothing.',
+          'An early losing run says little about the strategy either way. In testing about two trades in three lost and the average winner was roughly +19%, so a start like this is the expected case, not a surprise. Every live signal is added to the record, win or lose, and the performance page marks the live paper record at every daily close.',
         ],
       },
       {

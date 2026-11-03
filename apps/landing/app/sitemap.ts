@@ -18,7 +18,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     changeFrequency,
     priority,
   });
-  const articles = await readArticleIndex();
+  const articles = (await readArticleIndex()) ?? [];
   return [
     page('', 1, 'weekly'),
     page('/performance', 0.9, 'weekly'),

@@ -8,10 +8,16 @@ export const changelog: {
   body: string;
 }[] = [
   {
+    date: '2026-11-03',
+    kind: 'product',
+    title: 'The performance chart carries on into the live record',
+    body: 'The unseen-data chart used to stop where the last published snapshot stopped, so it kept naming a date that had already passed. It now runs to the latest completed daily close: exits realised from the hash-chained signal log, open positions marked at each close, and both benchmarks chained from their own published values, joined to the frozen test without a jump. The page is rendered from the record instead of fetching after load, so the numbers and both charts are in the first response. When the record cannot be read the page keeps the last published snapshot and names its date, and the research notes page says the record did not answer rather than reporting that no notes exist. The notes themselves are written by the research writer agent from a fact sheet of the record, and a draft that introduces a number the fact sheet does not contain is rejected.',
+  },
+  {
     date: '2026-10-20',
     kind: 'failed',
     title: 'v009 and v010: the Kalman pairs research, published as it ended',
-    body: 'v009 hedged altcoin-perp positions against Bitcoin with a Kalman-filtered hedge ratio. Its hedge tracked so tightly that the spread it trades never deviated enough to enter: zero trades across 168,000 model fits, and the walk-forward failed its pre-registered gate. The follow-up changed the one parameter the v009 verdict named: with a slower hedge, v010 did trade, and lost −0.51% per trade across 118 unseen trades (33% win rate), with only 1 of 14 pairs profitable on its own. Both count as failed under the record\'s rules and stay public. Nothing was retuned to look better, and no holdout period was spent.',
+    body: "v009 hedged altcoin-perp positions against Bitcoin with a Kalman-filtered hedge ratio. Its hedge tracked so tightly that the spread it trades never deviated enough to enter: zero trades across 168,000 model fits, and the walk-forward failed its pre-registered gate. The follow-up changed the one parameter the v009 verdict named: with a slower hedge, v010 did trade, and lost −0.51% per trade across 118 unseen trades (33% win rate), with only 1 of 14 pairs profitable on its own. Both count as failed under the record's rules and stay public. Nothing was retuned to look better, and no holdout period was spent.",
   },
   {
     date: '2026-10-19',

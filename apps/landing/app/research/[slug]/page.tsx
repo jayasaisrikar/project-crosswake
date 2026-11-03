@@ -53,7 +53,7 @@ export default async function Page({
     article.status === 'live' ? readSnapshot() : Promise.resolve(null),
     readArticleIndex(),
   ]);
-  const related = index
+  const related = (index ?? [])
     .filter((entry) => entry.slug !== article.slug)
     .slice(0, 3);
   const contents = headings(article.body);

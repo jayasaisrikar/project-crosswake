@@ -1,33 +1,12 @@
 'use client';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Download, Info } from 'lucide-react';
 import { SiteFooter, SiteHeader } from './site-shell';
-
-type Point = { t: number; strategy: number; btc: number; basket: number; exposure: number; drawdown: number };
-type Summary = {
-  version: string;
-  period: [string, string];
-  model: { slots: number; sizing: string; marking: string; costBpsRoundTrip: number };
-  trades: number;
-  winRate: number;
-  avgNetBps: number;
-  bestBps: number;
-  worstBps: number;
-  longestLosingStreak: number;
-  avgExposure: number;
-  maxExposure: number;
-  totalReturn: Record<'strategy' | 'btc' | 'basket', number>;
-  maxDrawdown: Record<'strategy' | 'btc' | 'basket', number>;
-  worstDrawdown: { from: number; to: number };
-  basketCoins: number;
-  live?: { from: number; through: number; closedTrades: number; openTrades: number; return: number } | null;
-  excludingTop?: { symbol: string; multiple: number; strategy: number; basket: number };
-  fillDelay?: {
-    skipped: number;
-    rows: { delayHours: number; trades: number; avgNetBps: number; winRate: number; totalReturn: number }[];
-  };
-};
-type Data = { summary: Summary; points: Point[] };
+import type {
+  PerformancePayload,
+  PerformancePoint as Point,
+  PerformanceSummary as Summary,
+} from '@/lib/performance';
 
 const VERSION = 'trend-daily-v005';
 // Validated (dark, all pairs, CVD-safe) against the page surface; text never uses these.
@@ -37,6 +16,10 @@ const SERIES = [
   { key: 'basket', label: 'Hold the altcoins', short: 'Altcoins', color: '#d8679b' },
 ] as const;
 const DD_COLOR = '#e87461';
+const SUMMARY_ROWS = [
+  ['Total return', 'totalReturn'],
+  ['Maximum drawdown', 'maxDrawdown'],
+] as const;
 
 const pct = (x: number, digits = 1) => `${x >= 0 ? '+' : '−'}${Math.abs(x * 100).toFixed(digits)}%`;
 const plain = (x: number, digits = 1) => `${(x * 100).toFixed(digits)}%`;
@@ -216,26 +199,8 @@ function DrawdownChart({ points, liveFrom }: { points: Point[]; liveFrom?: numbe
   );
 }
 
-export function PerformanceView() {
-  const [data, setData] = useState<Data | null>(null);
-  const [error, setError] = useState(false);
-  useEffect(() => {
-    fetch(`/data/${VERSION}-performance.json`)
-      .then((r) => (r.ok ? r.json() : Promise.reject()))
-      .then(setData)
-      .catch(() => setError(true));
-  }, []);
-  const s = data?.summary;
-  const rows = useMemo(
-    () =>
-      s
-        ? ([
-            ['Total return', 'totalReturn'],
-            ['Maximum drawdown', 'maxDrawdown'],
-          ] as const)
-        : [],
-    [s],
-  );
+export function PerformanceView({ data }: { data: PerformancePayload }) {
+  const s = data.summary;
   return (
     <div className="cw-site cw-docs-site">
       <a className="skip-link" href="#main">Skip to content</a>
@@ -247,10 +212,7 @@ export function PerformanceView() {
           What v005 would have done as a portfolio on data it never saw during development, next to simply holding Bitcoin or the
           same coins. Every trade behind these numbers is downloadable.
         </p>
-        {error && <p className="sl-quiet">Performance data is not available right now.</p>}
-        {!s && !error && <p className="sl-quiet">Loading…</p>}
-        {s && data && (
-          <>
+        <>
             <dl className="pf-stats">
               <div><dt>Total return</dt><dd>{pct(s.totalReturn.strategy)}</dd></div>
               <div><dt>Maximum drawdown</dt><dd>{pct(s.maxDrawdown.strategy)}</dd></div>
@@ -273,9 +235,10 @@ export function PerformanceView() {
               </header>
               {s.live && (
                 <p className="sl-quiet">
-                  The test ends on {s.period[1]}. After the dashed line is the live paper record since {day(s.live.from)}, updated
-                  through {day(s.live.through)}: {s.live.closedTrades} closed and {s.live.openTrades} open trades, {pct(s.live.return)}{' '}
-                  so far. The figures above and the table below cover the test only.
+                  The test ends on {s.period[1]}. After the dashed line is the live paper record, marked at every daily close
+                  since {day(s.live.from)} and read through {day(s.live.through)}: {s.live.closedTrades} closed and{' '}
+                  {s.live.openTrades} open trades, {pct(s.live.return)} so far. The figures above and the table below cover the
+                  test only.
                 </p>
               )}
               <EquityChart points={data.points} liveFrom={s.live?.from} />
@@ -297,7 +260,7 @@ export function PerformanceView() {
                     <tr><th /><th className="num">Crosswake v005</th><th className="num">Hold BTC</th><th className="num">Hold the {s.basketCoins} coins</th></tr>
                   </thead>
                   <tbody>
-                    {rows.map(([label, key]) => (
+                    {SUMMARY_ROWS.map(([label, key]) => (
                       <tr key={key}>
                         <td>{label}</td>
                         <td className="num">{pct(s[key].strategy)}</td>
@@ -390,7 +353,6 @@ export function PerformanceView() {
               </a>
             </section>
           </>
-        )}
       </main>
       <SiteFooter />
     </div>

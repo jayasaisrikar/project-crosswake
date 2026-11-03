@@ -109,9 +109,6 @@ export default function Page() {
                 <Link className="cw-text-button" href="#how">
                   How it works <ArrowRight size={16} />
                 </Link>
-                <Link className="cw-text-button" href="#ask">
-                  Ask the record <ArrowRight size={16} />
-                </Link>
               </div>
               <ul className="hero-facts hero-rise" aria-label="At a glance">
                 <li>

@@ -1,4 +1,4 @@
-import { apiBase } from './live';
+import { readJson } from './api';
 
 export const ARTICLE_REVALIDATE = 600;
 
@@ -22,38 +22,22 @@ export type Article = ArticleIndexEntry & {
   generator: { model: string; factsHash: string; gate: 'model' | 'template' };
 };
 
-async function read<T>(path: string, shape: (value: unknown) => boolean) {
-  const base = apiBase(),
-    token = process.env.RESEARCH_API_TOKEN;
-  if (!base || !token) return null;
-  try {
-    const response = await fetch(`${base}${path}`, {
-      headers: { authorization: `Bearer ${token}` },
-      next: { revalidate: ARTICLE_REVALIDATE },
-      signal: AbortSignal.timeout(8000),
-    });
-    if (!response.ok) return null;
-    const payload = await response.json();
-    return shape(payload) ? (payload as T) : null;
-  } catch {
-    return null;
-  }
-}
-
 const isEntry = (value: unknown) =>
   !!value && typeof (value as ArticleIndexEntry).slug === 'string';
 
-export async function readArticleIndex(): Promise<ArticleIndexEntry[]> {
-  const payload = await read<{ articles: ArticleIndexEntry[] }>(
+/** Null when the record could not be read; an empty array means nothing is published. */
+export async function readArticleIndex(): Promise<ArticleIndexEntry[] | null> {
+  const payload = await readJson<{ articles: ArticleIndexEntry[] }>(
     '/articles',
+    ARTICLE_REVALIDATE,
     (value) => Array.isArray((value as { articles?: unknown }).articles),
   );
-  return (payload?.articles ?? []).filter(isEntry);
+  return payload ? payload.articles.filter(isEntry) : null;
 }
 
 export async function readArticle(slug: string): Promise<Article | null> {
   if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug)) return null;
-  return read<Article>(`/articles/${slug}`, (value) => {
+  return readJson<Article>(`/articles/${slug}`, ARTICLE_REVALIDATE, (value) => {
     const a = value as Article;
     return (
       isEntry(value) && typeof a.body === 'string' && Array.isArray(a.evidence)

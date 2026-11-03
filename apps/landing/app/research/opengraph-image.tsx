@@ -6,7 +6,7 @@ export const contentType = ogContentType;
 export const alt = 'Crosswake research notes on failed and live strategies';
 
 export default async function Image() {
-  const articles = await readArticleIndex();
+  const articles = (await readArticleIndex()) ?? [];
   const count = (status: string) =>
     articles.filter((article) => article.status === status).length;
   const stats =
