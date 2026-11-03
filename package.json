@@ -77,7 +77,8 @@
     "commerce:disable": "tsx apps/commerce/src/main.ts disable",
     "commerce:enable": "tsx apps/commerce/src/main.ts enable",
     "commerce:evaluate": "tsx apps/commerce/src/main.ts evaluate",
-    "commerce:agent": "tsx apps/commerce/src/main.ts agent"
+    "commerce:agent": "tsx apps/commerce/src/main.ts agent",
+    "record:freshness": "tsx scripts/check-record-freshness.ts"
   },
   "dependencies": {
     "@ai-sdk/openai": "^4.0.86",

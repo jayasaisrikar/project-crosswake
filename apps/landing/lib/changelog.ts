@@ -9,6 +9,12 @@ export const changelog: {
 }[] = [
   {
     date: '2026-11-03',
+    kind: 'strategy',
+    title: 'v011 frozen: the same breakout, held to a harder standard',
+    body: "v005 proved it could avoid a falling market and nothing more: its average trade had a confidence interval that included zero, and without one coin it returned +0.08% in 21 months. v011 keeps the rules identical and changes one thing, position size, to inverse volatility with an 8% cap per coin so a single coin cannot decide the verdict. The gate is new and published before any data: at least 40 closed trades, an average net above +50 bps, a symbol-clustered confidence interval whose lower bound clears zero, at least 6 symbols profitable on their own, no symbol above a quarter of gross profit, and positive expectancy in at least 60% of the Bitcoin up and down segments it trades. Replayed over v005's own 243 trades, that gate fails on three counts: the confidence interval, the 35% share one coin carried, and only 3 of 12 regimes positive. v011 is judged on live paper from 3 November 2026 and cannot be called anything before then. The edge rating is unassigned until that gate runs, and a fail publishes in full.",
+  },
+  {
+    date: '2026-11-03',
     kind: 'product',
     title: 'The performance chart carries on into the live record',
     body: 'The unseen-data chart used to stop where the last published snapshot stopped, so it kept naming a date that had already passed. It now runs to the latest completed daily close: exits realised from the hash-chained signal log, open positions marked at each close, and both benchmarks chained from their own published values, joined to the frozen test without a jump. The page is rendered from the record instead of fetching after load, so the numbers and both charts are in the first response. When the record cannot be read the page keeps the last published snapshot and names its date, and the research notes page says the record did not answer rather than reporting that no notes exist. The notes themselves are written by the research writer agent from a fact sheet of the record, and a draft that introduces a number the fact sheet does not contain is rejected. The notes and the live snapshot are also published to the public signal-log repository the site already reads, so these pages render from a CDN copy when the record host is slow or unreachable.',
