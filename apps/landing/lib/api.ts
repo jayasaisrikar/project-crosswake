@@ -1,3 +1,5 @@
+import { signalLogBase } from './site';
+
 export function apiBase() {
   const explicit = process.env.RESEARCH_API_BASE;
   if (!explicit) return null;
@@ -18,6 +20,52 @@ export function apiBase() {
  */
 const TIMEOUT_MS = 25_000;
 const ATTEMPTS = 2;
+
+/** The public mirror of the record, on a CDN; the evidence API is the fallback. */
+export const mirrorBase = () =>
+  (process.env.RECORD_MIRROR_BASE ?? signalLogBase)?.replace(/\/+$/, '') ??
+  null;
+
+async function readUrl<T>(
+  url: string,
+  revalidate: number,
+  shape: (value: unknown) => boolean,
+): Promise<T | null> {
+  try {
+    const response = await fetch(url, {
+      next: { revalidate },
+      signal: AbortSignal.timeout(8000),
+    });
+    if (!response.ok) return null;
+    const payload = await response.json();
+    return shape(payload) ? (payload as T) : null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Reads a record route from the public mirror, then from the evidence API. The mirror is a
+ * static copy published to the signal-log repository, so a slow or unreachable tunnel no
+ * longer empties a page; the API stays the authoritative read when it answers.
+ */
+export async function readRecord<T>(
+  mirrorPath: string,
+  apiPath: string,
+  revalidate: number,
+  shape: (value: unknown) => boolean,
+): Promise<T | null> {
+  const base = mirrorBase();
+  if (base) {
+    const mirrored = await readUrl<T>(
+      `${base}${mirrorPath}`,
+      revalidate,
+      shape,
+    );
+    if (mirrored) return mirrored;
+  }
+  return readJson<T>(apiPath, revalidate, shape);
+}
 
 /**
  * Reads one JSON route from the evidence API. A null means the record could not be read,

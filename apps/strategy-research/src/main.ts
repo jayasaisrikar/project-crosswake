@@ -29,6 +29,7 @@ import {
   publicSnapshot,
   type PublicSnapshot,
 } from '../../../packages/research-runtime/src/public-snapshot.js';
+import { publishPublicRecord } from '../../../packages/research-runtime/src/public-mirror.js';
 
 const num = (
   value: string | undefined,
@@ -73,6 +74,12 @@ const dataDir = resolve(process.env.CROSSWAKE_DATA ?? 'data'),
     3,
     1,
     40,
+  ),
+  mirrorIntervalMs = num(
+    process.env.RESEARCH_MIRROR_INTERVAL_MS,
+    15 * 60_000,
+    60_000,
+    24 * 3_600_000,
   ),
   statePath = join(dataDir, 'public', 'writer-state.json');
 
@@ -264,7 +271,8 @@ console.log(
 
 let state = await readState(),
   stop = false,
-  skipLoggedAt = 0;
+  skipLoggedAt = 0,
+  mirroredAt = 0;
 for (const signal of ['SIGINT', 'SIGTERM'] as const)
   process.on(signal, () => {
     stop = true;
@@ -306,6 +314,16 @@ for (;;) {
         action: 'throttled',
         error: throttled,
         cooldownMinutes: cooldownMs / 60_000,
+      });
+  }
+  if (!dryRun && Date.now() - mirroredAt >= mirrorIntervalMs) {
+    mirroredAt = Date.now();
+    const published = await publishPublicRecord(dataDir);
+    if (published?.committed)
+      console.log({
+        action: 'record_published',
+        notes: published.notes,
+        files: published.written,
       });
   }
   if (once || stop) break;

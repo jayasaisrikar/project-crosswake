@@ -1,4 +1,4 @@
-import { readJson } from './api';
+import { readRecord } from './api';
 
 export const ARTICLE_REVALIDATE = 600;
 
@@ -27,7 +27,8 @@ const isEntry = (value: unknown) =>
 
 /** Null when the record could not be read; an empty array means nothing is published. */
 export async function readArticleIndex(): Promise<ArticleIndexEntry[] | null> {
-  const payload = await readJson<{ articles: ArticleIndexEntry[] }>(
+  const payload = await readRecord<{ articles: ArticleIndexEntry[] }>(
+    '/research/index.json',
     '/articles',
     ARTICLE_REVALIDATE,
     (value) => Array.isArray((value as { articles?: unknown }).articles),
@@ -37,12 +38,19 @@ export async function readArticleIndex(): Promise<ArticleIndexEntry[] | null> {
 
 export async function readArticle(slug: string): Promise<Article | null> {
   if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug)) return null;
-  return readJson<Article>(`/articles/${slug}`, ARTICLE_REVALIDATE, (value) => {
-    const a = value as Article;
-    return (
-      isEntry(value) && typeof a.body === 'string' && Array.isArray(a.evidence)
-    );
-  });
+  return readRecord<Article>(
+    `/research/${slug}.json`,
+    `/articles/${slug}`,
+    ARTICLE_REVALIDATE,
+    (value) => {
+      const a = value as Article;
+      return (
+        isEntry(value) &&
+        typeof a.body === 'string' &&
+        Array.isArray(a.evidence)
+      );
+    },
+  );
 }
 
 export const statusLabel: Record<ArticleStatus, string> = {

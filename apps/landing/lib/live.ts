@@ -1,4 +1,4 @@
-import { readJson } from './api';
+import { readRecord } from './api';
 
 export const LIVE_REVALIDATE = 300;
 
@@ -74,7 +74,12 @@ function isSnapshot(value: unknown): value is PublicSnapshot {
 
 /** The engines' live state, cached for a few minutes. Null when the record is unreachable. */
 export async function readSnapshot(): Promise<PublicSnapshot | null> {
-  return readJson<PublicSnapshot>('/public', LIVE_REVALIDATE, isSnapshot);
+  return readRecord<PublicSnapshot>(
+    '/research/record.json',
+    '/public',
+    LIVE_REVALIDATE,
+    isSnapshot,
+  );
 }
 
 export const pct = (bps: number | null, digits = 1) =>
