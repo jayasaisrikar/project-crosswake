@@ -6,10 +6,25 @@ import { epochMs } from '../../../packages/domain/src/index.js';
 import { existsSync } from 'node:fs';
 import { rename } from 'node:fs/promises';
 import { getJson } from '../../../packages/market-data/src/klines.js';
-import { fetchHlCandles, fetchHlMid } from '../../../packages/market-data/src/hyperliquid.js';
-import { deliver, escapeHtml, sinksFromEnv } from '../../../packages/notify/src/index.js';
-import { fingerprint, type SignalLogEntry } from '../../../packages/signal-log/src/index.js';
-import { append, publish, readLog } from '../../../packages/signal-log/src/node.js';
+import { inverseVolWeights } from '../../../packages/backtest/src/sizing.js';
+import {
+  fetchHlCandles,
+  fetchHlMid,
+} from '../../../packages/market-data/src/hyperliquid.js';
+import {
+  deliver,
+  escapeHtml,
+  sinksFromEnv,
+} from '../../../packages/notify/src/index.js';
+import {
+  fingerprint,
+  type SignalLogEntry,
+} from '../../../packages/signal-log/src/index.js';
+import {
+  append,
+  publish,
+  readLog,
+} from '../../../packages/signal-log/src/node.js';
 import type { TrendEvent } from '../../../packages/backtest/src/trend.js';
 import {
   trendLedger,
@@ -200,13 +215,18 @@ async function live() {
         decidedAt: e.decidedAt,
         fillAt: e.fillAt,
         price: e.price,
-        ...(e.kind === 'exit' ? { netBps: e.netBps, reason: String(e.reason) } : {}),
+        ...(e.kind === 'exit'
+          ? { netBps: e.netBps, reason: String(e.reason) }
+          : {}),
         publishedAt: Date.now(),
         ...(backfill ? { backfill } : {}),
       }).then((x) => (logged.add(x.id), x)),
     fillsPath = join(out, 'fills.jsonl'),
     fills: { gapBps: number }[] = existsSync(fillsPath)
-      ? (await readFile(fillsPath, 'utf8')).split('\n').filter(Boolean).map((l) => JSON.parse(l))
+      ? (await readFile(fillsPath, 'utf8'))
+          .split('\n')
+          .filter(Boolean)
+          .map((l) => JSON.parse(l))
       : [],
     sentPath = join(out, 'delivered.json'),
     sent = new Set<string>(
@@ -243,64 +263,122 @@ async function live() {
           .slice(-plan.entry.regimeSmaDays)
           .reduce((a, b) => a + b.close, 0) / plan.entry.regimeSmaDays,
       stats = trendStats(ledger.closed);
-    const state = {
-      version: plan.version,
-      updatedAt: Date.now(),
-      lastDailyClose: lastClose.ts + DAY,
-      nextDailyClose: lastClose.ts + 2 * DAY,
-      forwardStart: FORWARD_START,
-      regime: {
-        on: regime.get(lastClose.ts) === true,
-        btcClose: lastClose.close,
-        btcSma: sma,
-      },
-      universe: bars.size,
-      skipped,
-      open: ledger.open,
-      events: ledger.events.slice(0, 100),
-      closed: ledger.closed,
-      stats,
-      // Only v005 has a frozen historical test; v006 is judged on live paper alone.
-      backtest:
-        plan.version === 'trend-daily-v005'
+    // v011 sizes the book by inverse volatility; earlier versions used one equal slot per coin.
+    const sizing = (plan as { sizing?: Record<string, unknown> }).sizing as
+        | {
+            volLookbackDays: number;
+            targetVolAnnual: number;
+            maxWeightPerCoin: number;
+            grossCap: number;
+          }
+        | undefined,
+      sized = sizing
+        ? inverseVolWeights(
+            new Map(
+              [...ledger.open]
+                .map(
+                  (position) =>
+                    [
+                      position.symbol,
+                      (bars.get(position.symbol) ?? [])
+                        .slice(0, -1)
+                        .map((bar) => bar.close),
+                    ] as const,
+                )
+                .filter(([, closes]) => closes.length > sizing.volLookbackDays),
+            ),
+            {
+              volLookbackDays: sizing.volLookbackDays,
+              targetVolAnnual: sizing.targetVolAnnual,
+              maxWeightPerCoin: sizing.maxWeightPerCoin,
+              grossCap: sizing.grossCap,
+            },
+          )
+        : null,
+      weightOf = new Map(
+        (sized?.positions ?? []).map((position) => [
+          position.symbol,
+          position.weight,
+        ]),
+      ),
+      state = {
+        version: plan.version,
+        updatedAt: Date.now(),
+        lastDailyClose: lastClose.ts + DAY,
+        nextDailyClose: lastClose.ts + 2 * DAY,
+        forwardStart: FORWARD_START,
+        regime: {
+          on: regime.get(lastClose.ts) === true,
+          btcClose: lastClose.close,
+          btcSma: sma,
+        },
+        universe: bars.size,
+        skipped,
+        open: ledger.open.map((position) => ({
+          ...position,
+          weight: weightOf.get(position.symbol) ?? null,
+        })),
+        events: ledger.events
+          .slice(0, 100)
+          .map((event) =>
+            event.kind === 'entry'
+              ? { ...event, weight: weightOf.get(event.symbol) ?? null }
+              : event,
+          ),
+        closed: ledger.closed,
+        stats,
+        // Only v005 has a frozen historical test; v006 is judged on live paper alone.
+        backtest:
+          plan.version === 'trend-daily-v005'
+            ? {
+                test: {
+                  trades: 243,
+                  winRate: 0.337,
+                  netExpectancyBps: 153,
+                  ci95: [-287, 629],
+                },
+              }
+            : null,
+        symbols: [...bars.keys()],
+        // Per-coin distance to the entry trigger, from closed daily bars only.
+        watch: [...bars]
+          .filter(([symbol]) => symbol !== plan.regimeSymbol)
+          .map(([symbol, b]) => {
+            const closed = b.slice(0, -1),
+              last = closed.at(-1)!,
+              prior = closed.slice(-plan.entry.breakoutDays - 1, -1),
+              high = Math.max(...prior.map((x) => x.close));
+            return {
+              symbol,
+              close: last.close,
+              changeBps: (last.close / closed.at(-2)!.close - 1) * 10_000,
+              breakoutHigh: high,
+              toHighBps: (last.close / high - 1) * 10_000,
+            };
+          })
+          .sort((a, b) => b.toHighBps - a.toHighBps),
+        channels,
+        // Live alert-to-fill gap: price when the alert went out vs the open the ledger assumes.
+        fillGap: fills.length
           ? {
-              test: {
-                trades: 243,
-                winRate: 0.337,
-                netExpectancyBps: 153,
-                ci95: [-287, 629],
-              },
+              n: fills.length,
+              avgBps: fills.reduce((a, f) => a + f.gapBps, 0) / fills.length,
+              medianBps: [...fills].map((f) => f.gapBps).sort((a, b) => a - b)[
+                Math.floor(fills.length / 2)
+              ],
             }
           : null,
-      symbols: [...bars.keys()],
-      // Per-coin distance to the entry trigger, from closed daily bars only.
-      watch: [...bars]
-        .filter(([symbol]) => symbol !== plan.regimeSymbol)
-        .map(([symbol, b]) => {
-          const closed = b.slice(0, -1),
-            last = closed.at(-1)!,
-            prior = closed.slice(-plan.entry.breakoutDays - 1, -1),
-            high = Math.max(...prior.map((x) => x.close));
-          return {
-            symbol,
-            close: last.close,
-            changeBps: (last.close / closed.at(-2)!.close - 1) * 10_000,
-            breakoutHigh: high,
-            toHighBps: (last.close / high - 1) * 10_000,
-          };
-        })
-        .sort((a, b) => b.toHighBps - a.toHighBps),
-      channels,
-      // Live alert-to-fill gap: price when the alert went out vs the open the ledger assumes.
-      fillGap: fills.length
-        ? {
-            n: fills.length,
-            avgBps: fills.reduce((a, f) => a + f.gapBps, 0) / fills.length,
-            medianBps: [...fills].map((f) => f.gapBps).sort((a, b) => a - b)[Math.floor(fills.length / 2)],
-          }
-        : null,
-      executionEnabled: false,
-    };
+        sizing: sized
+          ? {
+              method: 'inverse-vol',
+              targetVolAnnual: sizing!.targetVolAnnual,
+              maxWeightPerCoin: sizing!.maxWeightPerCoin,
+              bookVolAtFullWeight: sized.bookVol,
+              gross: sized.positions.reduce((a, b) => a + b.weight, 0),
+            }
+          : null,
+        executionEnabled: false,
+      };
     const tmp = join(out, 'state.json.tmp');
     await writeFile(tmp, JSON.stringify(state, null, 2));
     await rename(tmp, join(out, 'state.json'));
@@ -327,6 +405,11 @@ async function live() {
               `🟢 <b>BUY ${coin}</b> · spot · daily`,
               '',
               `▸ <b>Entry</b>  <code>~${e.price}</code>  (today's open)`,
+              ...(weightOf.has(e.symbol)
+                ? [
+                    `▸ <b>Size</b>   ${(weightOf.get(e.symbol)! * 100).toFixed(1)}% of book (inverse-vol)`,
+                  ]
+                : []),
               `▸ <b>Exit</b>   daily close below the 10-day low`,
               '',
               '<b>Why</b>  20-day breakout with BTC in an uptrend',
@@ -372,7 +455,15 @@ async function live() {
               ),
           ratio = alertPrice / e.price,
           gapBps = (e.kind === 'entry' ? ratio - 1 : 1 - ratio) * 10_000,
-          fill = { id: e.id, kind: e.kind, symbol: e.symbol, assumedPrice: e.price, alertAt: Date.now(), alertPrice, gapBps };
+          fill = {
+            id: e.id,
+            kind: e.kind,
+            symbol: e.symbol,
+            assumedPrice: e.price,
+            alertAt: Date.now(),
+            alertPrice,
+            gapBps,
+          };
         fills.push(fill);
         await writeFile(fillsPath, JSON.stringify(fill) + '\n', { flag: 'a' });
       } catch (error) {

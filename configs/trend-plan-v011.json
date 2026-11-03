@@ -1,6 +1,7 @@
 {
   "version": "trend-daily-v011",
   "frozenAt": "2026-11-03",
+  "forwardStart": "2026-11-03",
   "hypothesis": "The v005 breakout premise, sized by inverse volatility instead of equal capital and held to a breadth standard, turns a single-coin result into a portfolio result: positive net expectancy whose symbol-clustered confidence interval clears zero, spread over many coins, in both Bitcoin regimes.",
   "rulesChosenFrom": "The recorded failure modes of the versions before it, not from v011 data. v005 (243 trades, 33.7% win rate, +1.53% per trade) had a confidence interval of -2.9% to +6.3% and was flat without one coin: ZEC rose 24.7x and carried the result. v006 repeated v005 on a wider universe and produced the same trades. v009 and v010 asked for breadth (profitable pairs) and failed it. v011 changes two things and nothing else: position size is inverse-volatility with a per-coin cap rather than an equal slot, and the acceptance standard adds breadth, concentration and regime splits. No period is clean for these rules, so no historical test is claimed; the judgement window opens at the freeze.",
   "market": "spot",
@@ -39,8 +40,15 @@
     "BTCUSDT"
   ],
   "survivorshipNote": "The universe is held identical to v005 so the two versions answer the same question. It still includes pairs that were later delisted (EOS, MATIC); their history simply ends.",
-  "entry": { "breakoutDays": 20, "regimeSmaDays": 100, "requireRegime": true },
-  "exit": { "breakdownDays": 10, "exitOnRegimeOff": true },
+  "entry": {
+    "breakoutDays": 20,
+    "regimeSmaDays": 100,
+    "requireRegime": true
+  },
+  "exit": {
+    "breakdownDays": 10,
+    "exitOnRegimeOff": true
+  },
   "sizing": {
     "method": "inverse-vol",
     "volLookbackDays": 60,
@@ -51,7 +59,10 @@
   },
   "execution": "Signal on the daily close (00:00 UTC); fill at the next day's open. One position per symbol, long only. Weights are recomputed at each daily close and applied to the open, never inside the day.",
   "costBpsRoundTrip": 30,
-  "periods": { "development": ["2020-01-01", "2025-01-01"], "test": null },
+  "periods": {
+    "development": ["2020-01-01", "2025-01-01"],
+    "test": null
+  },
   "judging": {
     "mode": "live-paper-only",
     "from": "2026-11-03",

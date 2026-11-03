@@ -110,7 +110,7 @@ export const docs: {
         title: 'v011 · The same breakout, a harder standard',
         paragraphs: [
           'v005 showed it could stay out of a falling market. It did not show an edge: the average trade had a confidence interval from −2.9% to +6.3%, and without one coin the book returned +0.08% over 21 months.',
-          'v011 keeps the entry and exit rules identical and changes one thing: position size follows inverse volatility, capped at 8% of the book per coin, so no single coin can decide the verdict. It is judged on live paper only, from 3 November 2026, and no earlier.',
+          'v011 keeps the entry and exit rules identical and changes one thing: position size follows inverse volatility, capped at 8% of the book per coin, so no single coin can decide the verdict. It is judged on live paper only, from 3 November 2026, and no earlier. It is also the engine behind the daily Telegram signals from that date, and every signal it posts states its size; v005 and v006 keep running on paper without posting.',
           'The gate was written before any v011 data existed: 40 closed trades, +50 bps average net, a symbol-clustered confidence interval whose lower bound clears zero, 6 symbols profitable on their own, no symbol above a quarter of gross profit, and positive expectancy in at least 60% of the Bitcoin up and down segments traded. Replayed over v005’s 243 trades it fails three of those checks. A fail is published in full.',
         ],
       },

@@ -18,6 +18,7 @@ UNITS=(
   "signals-spot:384M:512M"
   "signals-perp:384M:512M"
   "signals-daily:256M:384M"
+  "signals-daily-v005:256M:384M"
   "signals-daily-v006:256M:384M"
   "signals-htf-v007:256M:384M"
   "signals-momentum-v008:256M:384M"

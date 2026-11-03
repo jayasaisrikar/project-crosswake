@@ -39,7 +39,7 @@ units_for_app() {
     api) echo api ;;
     dashboard) echo dashboard ;;
     residual) echo 'signals-spot signals-perp' ;;
-    trend) echo 'signals-daily signals-daily-v006' ;;
+    trend) echo 'signals-daily signals-daily-v005 signals-daily-v006' ;;
     htf) echo signals-htf-v007 ;;
     momentum) echo signals-momentum-v008 ;;
     digest) echo digest ;;

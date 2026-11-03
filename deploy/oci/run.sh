@@ -17,8 +17,12 @@ case "$1" in
   # The variable set here wins because loadEnvFile does not override the existing environment.
   signals-spot) TELEGRAM_ENABLED=false exec node --import tsx apps/residual/src/main.ts live --config configs/residual-spot-v003.json ;;
   signals-perp) TELEGRAM_ENABLED=false exec node --import tsx apps/residual/src/main.ts live --config configs/catchdown-perp-v004.json ;;
-  signals-daily) exec node --import tsx apps/trend/src/main.ts live ;;
-  signals-daily-v006) exec node --import tsx apps/trend/src/main.ts live --plan configs/trend-plan-v006.json ;;
+  # The daily channel now carries v011 (inverse-vol sizing). v005 and v006 keep running on paper
+  # so their live records stay comparable, but they never post: three correlated alerts per
+  # breakout is noise, not a service.
+  signals-daily) exec node --import tsx apps/trend/src/main.ts live --plan configs/trend-plan-v011.json ;;
+  signals-daily-v005) TELEGRAM_ENABLED=false exec node --import tsx apps/trend/src/main.ts live --plan configs/trend-plan-v005.json ;;
+  signals-daily-v006) TELEGRAM_ENABLED=false exec node --import tsx apps/trend/src/main.ts live --plan configs/trend-plan-v006.json ;;
   signals-htf-v007) exec node --import tsx apps/htf/src/main.ts live ;;
   signals-momentum-v008) exec node --import tsx apps/momentum/src/main.ts live ;;
   digest) exec node --import tsx apps/digest/src/main.ts ;;

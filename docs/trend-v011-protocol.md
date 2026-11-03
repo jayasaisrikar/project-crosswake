@@ -63,6 +63,14 @@ Replayed over v005's own 243 trades, split into the 12 BTC up/down segments it a
 Three failures, on exactly the three weaknesses the public record already admitted. A gate that
 v005 passes would have been decoration.
 
+## Delivery
+
+From 3 November 2026 v011 is the engine behind the daily Telegram channel: `signals-daily` runs
+`configs/trend-plan-v011.json` with delivery on. v005 and v006 keep running on paper with
+`TELEGRAM_ENABLED=false` so their live records stay comparable, but they no longer post — three
+correlated alerts for one breakout is noise. `signals-daily-v005` was added as its own unit for
+that. Any signal v011 posts carries its size, because the sizing is the rule that changed.
+
 ## Dependability, which is not the same as profitability
 
 The failure Jay hit was not a losing strategy, it was a *silent* one: an engine whose model had

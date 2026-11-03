@@ -10,6 +10,12 @@ export const changelog: {
   {
     date: '2026-11-03',
     kind: 'strategy',
+    title: 'v011 carries the daily channel, and it sizes what it sends',
+    body: "The daily Telegram engine now runs v011: the v005 breakout rules, sized by inverse volatility with an 8% cap per coin and a 20% book volatility target. Every entry it posts states its size, because sizing is the one rule that changed. v005 and v006 keep running on paper so both live records stay comparable, but they no longer post: three correlated alerts for one breakout is noise. v011's own live record starts empty today and is judged against a gate published before its first signal, with the first possible verdict in May 2027 and no claim of an edge until then.",
+  },
+  {
+    date: '2026-11-03',
+    kind: 'strategy',
     title: 'v011 frozen: the same breakout, held to a harder standard',
     body: "v005 proved it could avoid a falling market and nothing more: its average trade had a confidence interval that included zero, and without one coin it returned +0.08% in 21 months. v011 keeps the rules identical and changes one thing, position size, to inverse volatility with an 8% cap per coin so a single coin cannot decide the verdict. The gate is new and published before any data: at least 40 closed trades, an average net above +50 bps, a symbol-clustered confidence interval whose lower bound clears zero, at least 6 symbols profitable on their own, no symbol above a quarter of gross profit, and positive expectancy in at least 60% of the Bitcoin up and down segments it trades. Replayed over v005's own 243 trades, that gate fails on three counts: the confidence interval, the 35% share one coin carried, and only 3 of 12 regimes positive. v011 is judged on live paper from 3 November 2026 and cannot be called anything before then. The edge rating is unassigned until that gate runs, and a fail publishes in full.",
   },
