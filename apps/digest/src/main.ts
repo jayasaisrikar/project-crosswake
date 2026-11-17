@@ -3,10 +3,8 @@ if (existsSync('.env.local')) process.loadEnvFile('.env.local');
 import { mkdir, readFile, readdir, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { Agent } from '@mastra/core/agent';
-import { fetchContext } from '../../../packages/context/src/index.js';
 import {
   checkDraft,
-  coinFacts,
   digestPrompt,
   factSheet,
   postToHtml,
@@ -14,6 +12,7 @@ import {
   templatePost,
   type EngineFact,
 } from '../../../packages/context/src/digest.js';
+import { marketFacts } from '../../../packages/context/src/market-bars.js';
 import { deliver, sinksFromEnv } from '../../../packages/notify/src/index.js';
 import { resolveModel } from '../../../packages/research-runtime/src/model.js';
 
@@ -77,8 +76,6 @@ async function compose(facts: ReturnType<typeof factSheet>) {
 }
 
 async function main() {
-  const key = process.env.ALTFINS_API_KEY;
-  if (!key) throw new Error('ALTFINS_API_KEY is not configured');
   const { sinks } = sinksFromEnv(process.env);
   await mkdir(out, { recursive: true });
   const sentPath = join(out, 'delivered.json'),
@@ -90,11 +87,10 @@ async function main() {
       id = `digest-${slot}`;
     if (!sent.has(id) || dryRun) {
       try {
-        const ctx = await fetchContext(key, symbols),
-          facts = factSheet(
-            coinFacts(ctx.payload),
+        const facts = factSheet(
+            await marketFacts(symbols),
             await engines(),
-            ctx.availableAt,
+            Date.now(),
           ),
           post = await compose(facts);
         if (dryRun)
@@ -130,7 +126,7 @@ async function main() {
       }
     }
     if (once || dryRun) return;
-    // Post ~5 minutes after each slot opens so the 4h candle has closed on altFINS; retry failures every 10 minutes.
+    // Post ~5 minutes after each slot opens so the 4h candle has closed on Binance; retry failures every 10 minutes.
     const next = slotOf(Date.now(), hours) + hours * 3_600_000 + 5 * 60_000,
       wait = sent.has(`digest-${slotOf(Date.now(), hours)}`)
         ? next - Date.now()

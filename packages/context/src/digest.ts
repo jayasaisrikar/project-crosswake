@@ -1,6 +1,7 @@
 /**
- * 4-hourly market digest for the Telegram channel. Facts are computed here from altFINS and the
- * engines' own state; a model may only rephrase them, and any number it invents rejects its draft.
+ * 4-hourly market digest for the Telegram channel. Facts are computed here from Binance 4h klines
+ * and the engines' own state; a model may only rephrase them, and any number it invents rejects
+ * its draft.
  */
 import { escapeHtml } from '../../notify/src/index.js';
 
@@ -104,7 +105,7 @@ export function templatePost(f: Facts) {
       ? ['', ...f.engineLines.map((l) => `🤖 ${l}`)]
       : []),
     '',
-    `Source: altFINS 4h indicators. ${DISCLAIMER}`,
+    `Source: Binance 4h klines. ${DISCLAIMER}`,
   ].join('\n');
 }
 
@@ -120,7 +121,7 @@ RULES
 - Open with a one-line headline, then 3-6 short lines. Plain prose, a few emoji at most: no markdown, no asterisks, no hashes.
 - Mention what the Crosswake engines are doing in one line, in plain words.
 - If the daily BTC trend filter is on while 4h RSI readings are weak or oversold, say plainly that the longer daily trend is still up while short-term 4h momentum is weak. Do not present the two as contradicting each other.
-- End with exactly: "Source: altFINS 4h indicators. ${DISCLAIMER}"`;
+- End with exactly: "Source: Binance 4h klines. ${DISCLAIMER}"`;
 
 const numbersIn = (s: string) =>
   (s.match(/\d[\d,]*(?:\.\d+)?/g) ?? []).map((x) => x.replace(/,/g, ''));

@@ -48,7 +48,7 @@ describe('digest', () => {
   });
   it('rejects invented numbers, advice and a missing disclaimer', () => {
     const tail =
-      'Source: altFINS 4h indicators. Market context, not financial advice.';
+      'Source: Binance 4h klines. Market context, not financial advice.';
     expect(
       checkDraft(`BTC at 81,731 could reach 90,000. ${tail}`, facts),
     ).toMatchObject({ ok: false, reason: 'unsourced_numbers:90000' });
@@ -66,10 +66,10 @@ describe('digest', () => {
   });
   it('formats a post as Telegram HTML and escapes anything a draft might contain', () => {
     const html = postToHtml(
-      '📊 Market check\n\n• BTC 82,727: RSI 42.7 (soft)\n\nSource: altFINS 4h indicators. Not advice.',
+      '📊 Market check\n\n• BTC 82,727: RSI 42.7 (soft)\n\nSource: Binance 4h klines. Not advice.',
     );
     expect(html).toContain('<b>📊 Market check</b>');
-    expect(html).toContain('<i>Source: altFINS 4h indicators. Not advice.</i>');
+    expect(html).toContain('<i>Source: Binance 4h klines. Not advice.</i>');
     // A draft carrying markup must arrive as literal text, not as markup.
     expect(postToHtml('Head\n\n<b>not bold</b> & more')).toBe(
       '<b>Head</b>\n\n&lt;b&gt;not bold&lt;/b&gt; &amp; more',
