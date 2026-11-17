@@ -244,7 +244,7 @@ export const docs: {
         id: 'coverage',
         title: 'What they cover',
         paragraphs: [
-          'Updates cover BTC, ETH, SOL, BNB, XRP, DOGE, ADA, AVAX, LINK, and HYPE. They summarize price, four-hour RSI and MACD momentum from altFINS, market breadth, and current strategy paper positions.',
+          'Updates cover BTC, ETH, SOL, BNB, XRP, DOGE, ADA, AVAX, LINK, and HYPE. They summarize price, four-hour RSI and MACD momentum computed from our own Binance four-hour candles, market breadth, and current strategy paper positions.',
         ],
       },
       {
